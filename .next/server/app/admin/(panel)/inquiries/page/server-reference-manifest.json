@@ -1,0 +1,27 @@
+{
+  "node": {
+    "407d5b0ddecc55d9a7f5eb6b0499dcb6068ee94e32": {
+      "workers": {
+        "app/admin/(panel)/inquiries/page": {
+          "moduleId": 86206,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "saveInquiryAction",
+      "filename": "app/admin/(panel)/inquiries/actions.ts"
+    },
+    "40be782163c1c54c6084be350d0a5446dd88d090fb": {
+      "workers": {
+        "app/admin/(panel)/inquiries/page": {
+          "moduleId": 86206,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "deleteInquiryAction",
+      "filename": "app/admin/(panel)/inquiries/actions.ts"
+    }
+  },
+  "edge": {}
+}

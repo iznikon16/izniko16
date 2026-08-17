@@ -1,0 +1,3 @@
+module.exports=[55456,a=>{"use strict";var b=a.i(51367);a.s([],64125),a.i(64125),a.s(["40228714297e7f410f948a3e99284558b9fd55d45d",()=>b.reversePaymentAction,"4034329509d3cbf4fc28bf1371864ced89432dd138",()=>b.collectPaymentAction,"404c56480d650ec976321276ab68e77cff310bfe98",()=>b.postOrderToCurrentAccountAction,"4054a5536fcf1b6d9971661a27cc5d9255191aaf41",()=>b.cancelOrderInCurrentAccountAction,"406d97ea6abbbaef9d739a5c83d51c085b9bca98bb",()=>b.adjustBalanceAction,"40a512cc832e9605c90a3ef7b0e58cfe3761e03d8d",()=>b.updateCustomerRiskLimitAction,"40c688f471ca41c5b7997ec4d2a0337ce2a1d29d0a",()=>b.createStatementAction],55456)}];
+
+//# sourceMappingURL=_next-internal_server_app_admin_%28panel%29_accounting_page_actions_0rbcnms.js.map

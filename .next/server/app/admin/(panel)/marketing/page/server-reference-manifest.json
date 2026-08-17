@@ -1,0 +1,16 @@
+{
+  "node": {
+    "40e557196719d0129399620ba442526117a7b708cb": {
+      "workers": {
+        "app/admin/(panel)/marketing/page": {
+          "moduleId": 63869,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "sendMarketingEmailAction",
+      "filename": "app/admin/(panel)/marketing/actions.ts"
+    }
+  },
+  "edge": {}
+}

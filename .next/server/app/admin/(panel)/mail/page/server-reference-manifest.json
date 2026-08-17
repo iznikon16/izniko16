@@ -1,0 +1,49 @@
+{
+  "node": {
+    "00a5235590b8c781386a7a1c3ff3dc947cb4dc782b": {
+      "workers": {
+        "app/admin/(panel)/mail/page": {
+          "moduleId": 93995,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "testSmtpAction",
+      "filename": "app/admin/(panel)/mail/actions.ts"
+    },
+    "4096a32ff30d6354e56607c9fb12ec92b9c8e14626": {
+      "workers": {
+        "app/admin/(panel)/mail/page": {
+          "moduleId": 93995,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "sendSmtpTestAction",
+      "filename": "app/admin/(panel)/mail/actions.ts"
+    },
+    "40a794a669472b7bb4d59f6d70e8ab5a01683075e0": {
+      "workers": {
+        "app/admin/(panel)/mail/page": {
+          "moduleId": 93995,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "saveEmailTemplateAction",
+      "filename": "app/admin/(panel)/mail/actions.ts"
+    },
+    "40d467c91b281dda1e55fb9982135add2c174363e2": {
+      "workers": {
+        "app/admin/(panel)/mail/page": {
+          "moduleId": 93995,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "saveSmtpSettingsAction",
+      "filename": "app/admin/(panel)/mail/actions.ts"
+    }
+  },
+  "edge": {}
+}

@@ -1,0 +1,16 @@
+{
+  "node": {
+    "404bd37b3501f24a90877285855b168fed6a54b8ae": {
+      "workers": {
+        "app/admin/(panel)/integrations/odeal/page": {
+          "moduleId": 26164,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "saveOdealSettingsAction",
+      "filename": "app/admin/(panel)/integrations/odeal/actions.ts"
+    }
+  },
+  "edge": {}
+}

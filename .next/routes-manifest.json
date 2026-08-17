@@ -1,0 +1,400 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/admin/policies/[slug]",
+      "regex": "^/admin/policies/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/admin/policies/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/admin/products/[id]",
+      "regex": "^/admin/products/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/admin/products/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/kategori/[slug]",
+      "regex": "^/kategori/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/kategori/(?<nxtPslug>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/admin/accounting",
+      "regex": "^/admin/accounting(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/accounting(?:/)?$"
+    },
+    {
+      "page": "/admin/accounting/ekstre/csv",
+      "regex": "^/admin/accounting/ekstre/csv(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/accounting/ekstre/csv(?:/)?$"
+    },
+    {
+      "page": "/admin/accounting/ekstre/pdf",
+      "regex": "^/admin/accounting/ekstre/pdf(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/accounting/ekstre/pdf(?:/)?$"
+    },
+    {
+      "page": "/admin/accounting/ekstreler",
+      "regex": "^/admin/accounting/ekstreler(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/accounting/ekstreler(?:/)?$"
+    },
+    {
+      "page": "/admin/accounting/geciken-odemeler",
+      "regex": "^/admin/accounting/geciken\\-odemeler(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/accounting/geciken\\-odemeler(?:/)?$"
+    },
+    {
+      "page": "/admin/accounting/hareketler",
+      "regex": "^/admin/accounting/hareketler(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/accounting/hareketler(?:/)?$"
+    },
+    {
+      "page": "/admin/accounting/tahsilatlar",
+      "regex": "^/admin/accounting/tahsilatlar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/accounting/tahsilatlar(?:/)?$"
+    },
+    {
+      "page": "/admin/brands",
+      "regex": "^/admin/brands(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/brands(?:/)?$"
+    },
+    {
+      "page": "/admin/campaigns",
+      "regex": "^/admin/campaigns(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/campaigns(?:/)?$"
+    },
+    {
+      "page": "/admin/categories",
+      "regex": "^/admin/categories(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/categories(?:/)?$"
+    },
+    {
+      "page": "/admin/coupons",
+      "regex": "^/admin/coupons(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/coupons(?:/)?$"
+    },
+    {
+      "page": "/admin/customers",
+      "regex": "^/admin/customers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/customers(?:/)?$"
+    },
+    {
+      "page": "/admin/entegrasyonlar/netgsm",
+      "regex": "^/admin/entegrasyonlar/netgsm(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/entegrasyonlar/netgsm(?:/)?$"
+    },
+    {
+      "page": "/admin/entegrasyonlar/odeal",
+      "regex": "^/admin/entegrasyonlar/odeal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/entegrasyonlar/odeal(?:/)?$"
+    },
+    {
+      "page": "/admin/entegrasyonlar/xml",
+      "regex": "^/admin/entegrasyonlar/xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/entegrasyonlar/xml(?:/)?$"
+    },
+    {
+      "page": "/admin/entegrasyonlar/xml/aktarimlar",
+      "regex": "^/admin/entegrasyonlar/xml/aktarimlar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/entegrasyonlar/xml/aktarimlar(?:/)?$"
+    },
+    {
+      "page": "/admin/github-sync",
+      "regex": "^/admin/github\\-sync(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/github\\-sync(?:/)?$"
+    },
+    {
+      "page": "/admin/home-slides",
+      "regex": "^/admin/home\\-slides(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/home\\-slides(?:/)?$"
+    },
+    {
+      "page": "/admin/home-video",
+      "regex": "^/admin/home\\-video(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/home\\-video(?:/)?$"
+    },
+    {
+      "page": "/admin/inquiries",
+      "regex": "^/admin/inquiries(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/inquiries(?:/)?$"
+    },
+    {
+      "page": "/admin/integrations/netgsm",
+      "regex": "^/admin/integrations/netgsm(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/integrations/netgsm(?:/)?$"
+    },
+    {
+      "page": "/admin/integrations/odeal",
+      "regex": "^/admin/integrations/odeal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/integrations/odeal(?:/)?$"
+    },
+    {
+      "page": "/admin/integrations/xml",
+      "regex": "^/admin/integrations/xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/integrations/xml(?:/)?$"
+    },
+    {
+      "page": "/admin/integrations/xml/aktarimlar",
+      "regex": "^/admin/integrations/xml/aktarimlar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/integrations/xml/aktarimlar(?:/)?$"
+    },
+    {
+      "page": "/admin/katalog/fiyat-listeleri",
+      "regex": "^/admin/katalog/fiyat\\-listeleri(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/katalog/fiyat\\-listeleri(?:/)?$"
+    },
+    {
+      "page": "/admin/login",
+      "regex": "^/admin/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/login(?:/)?$"
+    },
+    {
+      "page": "/admin/mail",
+      "regex": "^/admin/mail(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/mail(?:/)?$"
+    },
+    {
+      "page": "/admin/marketing",
+      "regex": "^/admin/marketing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/marketing(?:/)?$"
+    },
+    {
+      "page": "/admin/media",
+      "regex": "^/admin/media(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/media(?:/)?$"
+    },
+    {
+      "page": "/admin/musteriler/fiyatlar",
+      "regex": "^/admin/musteriler/fiyatlar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/musteriler/fiyatlar(?:/)?$"
+    },
+    {
+      "page": "/admin/orders",
+      "regex": "^/admin/orders(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/orders(?:/)?$"
+    },
+    {
+      "page": "/admin/payment-methods",
+      "regex": "^/admin/payment\\-methods(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/payment\\-methods(?:/)?$"
+    },
+    {
+      "page": "/admin/policies",
+      "regex": "^/admin/policies(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/policies(?:/)?$"
+    },
+    {
+      "page": "/admin/pricing",
+      "regex": "^/admin/pricing(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/pricing(?:/)?$"
+    },
+    {
+      "page": "/admin/products",
+      "regex": "^/admin/products(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/products(?:/)?$"
+    },
+    {
+      "page": "/admin/products/new",
+      "regex": "^/admin/products/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/products/new(?:/)?$"
+    },
+    {
+      "page": "/admin/references",
+      "regex": "^/admin/references(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/references(?:/)?$"
+    },
+    {
+      "page": "/admin/stock",
+      "regex": "^/admin/stock(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/stock(?:/)?$"
+    },
+    {
+      "page": "/admin/stock/hareketler",
+      "regex": "^/admin/stock/hareketler(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/stock/hareketler(?:/)?$"
+    },
+    {
+      "page": "/admin/stock/kritik",
+      "regex": "^/admin/stock/kritik(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/stock/kritik(?:/)?$"
+    },
+    {
+      "page": "/admin/stok",
+      "regex": "^/admin/stok(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/stok(?:/)?$"
+    },
+    {
+      "page": "/admin/stok/hareketler",
+      "regex": "^/admin/stok/hareketler(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/stok/hareketler(?:/)?$"
+    },
+    {
+      "page": "/admin/stok/kritik",
+      "regex": "^/admin/stok/kritik(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/stok/kritik(?:/)?$"
+    },
+    {
+      "page": "/admin/yonetim/audit",
+      "regex": "^/admin/yonetim/audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/yonetim/audit(?:/)?$"
+    },
+    {
+      "page": "/api/export/dashboard",
+      "regex": "^/api/export/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/export/dashboard(?:/)?$"
+    },
+    {
+      "page": "/api/payments/odeal",
+      "regex": "^/api/payments/odeal(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/payments/odeal(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/hesabim/cari",
+      "regex": "^/hesabim/cari(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/hesabim/cari(?:/)?$"
+    },
+    {
+      "page": "/iletisim",
+      "regex": "^/iletisim(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/iletisim(?:/)?$"
+    },
+    {
+      "page": "/sepet",
+      "regex": "^/sepet(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sepet(?:/)?$"
+    },
+    {
+      "page": "/toptan-musteri-ol",
+      "regex": "^/toptan\\-musteri\\-ol(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/toptan\\-musteri\\-ol(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

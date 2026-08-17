@@ -1,0 +1,1 @@
+globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/api/export/dashboard/route"]={"moduleLoading":{"prefix":"/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"C:\\Users\\Ozan\\Desktop\\İZNİKON 17 AĞUSTOS\\app\\api\\export\\dashboard\\route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};

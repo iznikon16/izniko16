@@ -1,0 +1,163 @@
+import { requireAdminSession } from '@/lib/auth/admin';
+import { getXmlSources } from '@/lib/xml/queries';
+import { deleteXmlSourceAction, runXmlSyncAction, saveXmlSourceAction } from '@/app/admin/(panel)/integrations/xml/actions';
+import type { XmlTargetField } from '@/lib/catalog/types';
+
+export const dynamic = 'force-dynamic';
+
+const TARGET_LABELS: Record<XmlTargetField, string> = {
+  name: 'Ürün Adı',
+  sku: 'Stok Kodu (SKU)',
+  price: 'Satış Fiyatı',
+  retail_price: 'Perakende Fiyatı',
+  stock: 'Stok',
+  image: 'Görsel',
+  category: 'Kategori',
+  brand: 'Marka',
+  description: 'Açıklama',
+  barcode: 'Barkod',
+};
+
+export default async function XmlSourcesPage() {
+  await requireAdminSession();
+  const sources = await getXmlSources();
+
+  return (
+    <div className="mx-auto max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">XML Kaynakları</h1>
+        <p className="mt-1 text-gray-500">Tedarikçi XML kaynakları, fiyat/stok senkronizasyonu ve field mapping.</p>
+      </div>
+
+      {/* Yeni Kaynak Formu */}
+      <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
+        <h2 className="mb-4 font-semibold text-gray-900">Yeni XML Kaynağı Ekle</h2>
+        <form action={saveXmlSourceAction} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          <input type="hidden" name="id" value="" />
+          <input
+            type="text"
+            name="name"
+            required
+            placeholder="Kaynak adı (ör. TEDAŞ Toptan)"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm lg:col-span-2"
+          />
+          <input
+            type="url"
+            name="url"
+            required
+            placeholder="https://tedarikci.com/urunler.xml"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm lg:col-span-2"
+          />
+          <input
+            type="number"
+            name="price_markup"
+            defaultValue="0"
+            step="0.01"
+            placeholder="Fiyat %"
+            title="Fiyat pazarlama (markup) yüzdesi"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+          />
+          <div className="flex items-end gap-2">
+            <label className="flex flex-1 items-center gap-2 text-xs text-gray-600">
+              <input type="checkbox" name="is_active" defaultChecked />
+              Aktif
+            </label>
+            <button className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">
+              Kaydet
+            </button>
+          </div>
+          <input
+            type="text"
+            name="schedule_minutes"
+            defaultValue="60"
+            placeholder="Sıklık (dk)"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            name="mappings"
+            placeholder='Mapping JSON (örn. [{"source":"ProductName","target":"name"},{"source":"ProductCode","target":"sku"},{"source":"Price","target":"price"},{"source":"Quantity","target":"stock"}])'
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm lg:col-span-5"
+          />
+        </form>
+        <p className="mt-2 text-xs text-gray-500">
+          Hedef alanlar: {Object.entries(TARGET_LABELS).map(([k, v]) => `${k} (${v})`).join(' · ')}
+        </p>
+      </div>
+
+      {/* Kaynaklar */}
+      <div className="overflow-hidden rounded-[2rem] border border-[#cbd5e1]/60 bg-white shadow-sm shadow-[#cbd5e1]/10">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">Kaynak</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">URL</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-600">Markup</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">Durum</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-600">Son Çalışma</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-600">Mapping</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-600">İşlem</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {sources.map((source) => (
+              <tr key={source.id} className="hover:bg-gray-50">
+                <td className="px-4 py-3">
+                  <span className="font-medium text-gray-900">{source.name}</span>
+                  <p className="text-xs text-gray-500">Her {source.schedule_minutes} dk</p>
+                </td>
+                <td className="max-w-[220px] truncate px-4 py-3 text-gray-500">{source.url}</td>
+                <td className="px-4 py-3 text-right text-gray-600">%{source.price_markup}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={
+                      source.last_status === 'success'
+                        ? 'rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600'
+                        : source.last_status === 'error'
+                          ? 'rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-600'
+                          : source.last_status === 'running'
+                            ? 'rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-600'
+                            : 'rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500'
+                    }
+                  >
+                    {source.is_active ? (source.last_status || 'idle') : 'pasif'}
+                  </span>
+                  {source.last_message && <p className="mt-1 max-w-[200px] truncate text-xs text-gray-500">{source.last_message}</p>}
+                </td>
+                <td className="px-4 py-3 text-right text-gray-500">
+                  {source.last_run_at ? new Date(source.last_run_at).toLocaleString('tr-TR') : '—'}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                    {source.mappings.length} alan
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-2">
+                    <form action={runXmlSyncAction}>
+                      <input type="hidden" name="id" value={source.id} />
+                      <button className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700">
+                        Senkronize Et
+                      </button>
+                    </form>
+                    <form action={deleteXmlSourceAction}>
+                      <input type="hidden" name="id" value={source.id} />
+                      <button className="rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">
+                        Sil
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {sources.length === 0 && (
+              <tr>
+                <td colSpan={7} className="px-4 py-10 text-center text-gray-500">Henüz XML kaynağı eklenmemiş.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

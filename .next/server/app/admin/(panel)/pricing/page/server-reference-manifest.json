@@ -1,0 +1,104 @@
+{
+  "node": {
+    "401396658f0736d6f68d9adbd9def0115c6bba43c8": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "saveCustomerProductPriceAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    },
+    "40250f5f772a4beb15194884624acec8c054f6b2b7": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "saveCustomerDiscountAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    },
+    "40815e07d769683f3a5da4ff6e71482ef056a2a619": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "removeCustomerProductPriceAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    },
+    "40851ba38b78e1685610956e9f3dc73cb8a21ddda9": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "deletePriceListAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    },
+    "409be1e4b0809a334e551ab10bae352ceffbbd0fd4": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "savePriceListItemAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    },
+    "40b6801cab243786c9a65daa08881a9055996c9cdd": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "bulkUpdatePricesAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    },
+    "40c47bf6830e4b4b08c34537daf4e622ee7d9aecbf": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "assignCustomerPriceListAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    },
+    "40ce2b1a5083bcbaf2e53b6e63a0e58b79a5c4162b": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "removePriceListItemAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    },
+    "40dad4eb98ec44e957354899fa860efdc60aeebbf5": {
+      "workers": {
+        "app/admin/(panel)/pricing/page": {
+          "moduleId": 1458,
+          "async": false,
+          "codeHash": null
+        }
+      },
+      "exportedName": "savePriceListAction",
+      "filename": "app/admin/(panel)/pricing/actions.ts"
+    }
+  },
+  "edge": {}
+}

@@ -1,0 +1,8 @@
+{
+  "/admin/(panel)/accounting/tahsilatlar/page": "app/admin/(panel)/accounting/tahsilatlar/page.js",
+  "/admin/(panel)/customers/page": "app/admin/(panel)/customers/page.js",
+  "/admin/(panel)/page": "app/admin/(panel)/page.js",
+  "/admin/(panel)/coupons/page": "app/admin/(panel)/coupons/page.js",
+  "/admin/(panel)/github-sync/page": "app/admin/(panel)/github-sync/page.js",
+  "/admin/(panel)/accounting/page": "app/admin/(panel)/accounting/page.js"
+}
