@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# B2B Yönetim Platformu
 
-## Getting Started
+Kurumsal satış, müşteri, sipariş, stok, cari, tahsilat ve entegrasyon süreçlerini tek merkezden yönetmek için geliştirilen kapsamlı B2B yönetim platformu.
 
-First, run the development server:
+![Status](https://img.shields.io/badge/status-development-blue)
+![Platform](https://img.shields.io/badge/platform-B2B-informational)
+![License](https://img.shields.io/badge/license-Proprietary-red)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Hakkında
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+B2B Yönetim Platformu; işletmelerin operasyonel ve finansal süreçlerini tek panel üzerinden yönetebilmesini sağlayan merkezi bir yönetim çözümüdür.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Platform; müşteri yönetimi, ürün ve fiyatlandırma, sipariş operasyonları, stok takibi, cari hesap yönetimi, tahsilat süreçleri, raporlama ve harici servis entegrasyonlarını ortak bir yapı altında toplar.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Öne Çıkan Modüller
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* Müşteri ve kullanıcı yönetimi
+* Ürün, kategori ve marka yönetimi
+* Fiyat listeleri ve müşteriye özel fiyatlandırma
+* Sipariş ve sepet yönetimi
+* Sipariş durum takibi
+* Stok ve stok hareketleri
+* Kritik stok takibi
+* Cari hesap ve borç/alacak yönetimi
+* Tahsilat ve kısmi tahsilat
+* Vade ve geciken ödeme takibi
+* Müşteri risk limiti
+* Cari ekstre
+* PDF / Excel / CSV çıktıları
+* XML ürün entegrasyonu
+* Netgsm SMS entegrasyonu
+* Ödeal ödeme entegrasyonu
+* SMTP ve e-posta bildirimleri
+* Rol ve yetki yönetimi
+* Audit Log
+* Toast ve bildirim sistemi
+* Yedekleme sistemi
+* Yönetim Dashboard'u
+* Raporlama ve operasyon takibi
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Ön Muhasebe ve Cari
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Platform içerisinde müşteri bazlı finansal hareketlerin takip edilmesini sağlayan cari yönetim altyapısı bulunur.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Başlıca özellikler:
+
+* Cari hesap
+* Borç / alacak bakiyesi
+* Siparişlerin otomatik cariye işlenmesi
+* Tahsilat girişi
+* Kısmi tahsilat
+* Vade tarihi
+* Geciken ödemeler
+* Cari ekstre
+* PDF / Excel ekstre
+* Risk limiti
+* Müşterinin kendi bakiyesini görüntüleyebilmesi
+
+---
+
+## Entegrasyonlar
+
+| Entegrasyon  | Amaç                                                   |
+| ------------ | ------------------------------------------------------ |
+| **XML**      | Ürün, fiyat, stok, kategori ve görsel senkronizasyonu  |
+| **Netgsm**   | Sipariş, vade ve ödeme SMS bildirimleri                |
+| **Ödeal**    | Ödeme işlemleri ve tahsilat entegrasyonu               |
+| **SMTP**     | Sistem ve müşteri e-posta bildirimleri                 |
+| **Supabase** | Veri altyapısı ve sonraki aşama servis entegrasyonları |
+
+---
+
+## Yönetim Paneli
+
+Admin Dashboard üzerinden işletmenin operasyonel durumu merkezi olarak takip edilir.
+
+Dashboard içerisinde öne çıkan göstergeler:
+
+* Toplam ürün
+* Aktif ürün
+* Toplam müşteri
+* Toplam sipariş
+* Bekleyen sipariş
+* Bugünkü siparişler
+* Kritik stoklar
+* Toplam cari alacak
+* Bugünkü tahsilat
+* Vadesi geçmiş tutar
+* Geciken ödemeler
+* Risk limitine yaklaşan müşteriler
+* Sipariş trafiği
+* Tahsilat hareketleri
+* Entegrasyon sağlık durumu
+
+---
+
+## Kullanıcı Rolleri
+
+Platform rol ve yetki bazlı erişim kontrolü kullanır.
+
+### Yönetici
+
+Sistemin yönetim ve operasyon alanlarına yetkileri doğrultusunda erişir.
+
+### Personel
+
+Tanımlanan görev ve izinlere göre operasyonel işlemleri gerçekleştirir.
+
+### Müşteri
+
+Yalnızca kendi hesabı, fiyatları, siparişleri, belgeleri ve cari bilgilerine erişebilir.
+
+---
+
+## Proje Durumu
+
+> [!NOTE]
+> Proje aktif geliştirme aşamasındadır.
+
+Modüller ve entegrasyonlar proje yol haritası doğrultusunda geliştirilmeye devam etmektedir.
+
+---
+
+## Kullanım ve Haklar
+
+> [!IMPORTANT]
+> Bu proje özel ve kapalı kaynak kodlu bir yazılımdır.
+
+Kaynak kodun, tasarımın veya proje bileşenlerinin yetkisiz şekilde kopyalanması, paylaşılması, dağıtılması, yeniden yayınlanması veya ticari amaçla kullanılması yasaktır.
+
+**Proprietary Software — All Rights Reserved**
+
+---
+
+<div align="center">
+
+### TanıtımX
+
+**Bu proje TanıtımX tarafından tasarlanmış ve geliştirilmiştir.**
+
+Kurumsal yazılım çözümleri • Dijital sistemler • İş süreçleri otomasyonu
+
+**© 2026 TanıtımX. Tüm hakları saklıdır.**
+
+</div>
