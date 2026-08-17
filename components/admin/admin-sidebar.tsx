@@ -209,7 +209,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
         {/* Groups */}
         <div className="flex flex-col gap-2">
           {navigationGroups.map(({ icon: GroupIcon, items, key, label }) => {
-            const isOpen = openGroups[key] ?? true; // Default open in this design
+            const isOpen = openGroups[key] ?? false; // Default closed in this design
 
             return (
               <div key={key}>
