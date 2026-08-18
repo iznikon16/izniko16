@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
       --radius: 1rem;
@@ -10,6 +10,8 @@
       --brand-primary-hover: #0284c7;
       --text-foreground: #020617;
       --text-muted: #475569;
+      --navy-deep: #090e1a;
+      --navy-foreground: #ffffff;
       
       /* Legacy support */
       --background: #eef2f7;
@@ -1249,6 +1251,7 @@
       color: #e2e8f0;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
+
 
 
 

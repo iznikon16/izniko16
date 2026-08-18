@@ -49,6 +49,8 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
   const [viewMode, setViewMode] = useState<"b2b" | "grid">("b2b");
   const [showPrices, setShowPrices] = useState(false);
   const [sortBy, setSortBy] = useState("popular");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(24);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -141,6 +143,12 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
     
     return result;
   }, [appliedSearch, SAMPLE_PRODUCTS, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(gridProducts.length / itemsPerPage));
+  const paginatedProducts = gridProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [gridProducts.length, itemsPerPage]);
 
   const handleSearchSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -339,7 +347,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
                       whiteSpace: "nowrap"
                     }}
                   >
-                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#d97706", display: "inline-block", animation: "pulse 1.2s infinite" }}></span>
+                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#d97706", display: "inline-block", opacity: 0.6 }}></span>
                     Yazılıyor...
                   </span>
                 )}
@@ -597,7 +605,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
           <aside className="sidebar">
             <div style={{ marginBottom: "1.25rem", paddingBottom: "0.75rem", borderBottom: "1px solid #f1f5f9" }}>
               <h2 className="sidebar-title" style={{ fontSize: "1.15rem", margin: "0 0 0.2rem 0" }}>Filtreler &amp; Kategoriler</h2>
-              <span style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: "600", display: "block" }}>10.482 Stoklu Ürün</span>
+              <span style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: "600", display: "block" }}>{gridProducts.length} Stoklu Ürün</span>
             </div>
 
             <ul className="category-list">
@@ -788,8 +796,8 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
             {/* PRODUCTS GRID / B2B MATRIX TABLE VIEW */}
             {viewMode === "b2b" ? (
               <div className="b2b-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
-                {gridProducts.length > 0 ? (
-                  gridProducts.map((product) => (
+                {paginatedProducts.length > 0 ? (
+                  paginatedProducts.map((product) => (
                     <div
                       key={product.id}
                       className="b2b-cell"
@@ -909,8 +917,8 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
               </div>
             ) : (
               <div className="products">
-                {gridProducts.length > 0 ? (
-                  gridProducts.map((product) => (
+                {paginatedProducts.length > 0 ? (
+                  paginatedProducts.map((product) => (
                     <article key={product.id} className="product-card">
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.6rem" }}>
                         <span style={{ fontSize: "0.7rem", background: "#dcfce7", color: "#15803d", padding: "0.2rem 0.5rem", borderRadius: "6px", fontWeight: "700" }}>
@@ -1028,26 +1036,42 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
             {/* CATALOG PAGINATION */}
             <div className="pagination-bar">
               <div style={{ fontSize: "0.85rem", color: "#64748b" }}>
-                Gösterilen: <strong style={{ color: "#0f172a" }}>1 - {gridProducts.length}</strong> / Toplam <strong style={{ color: "#0f172a" }}>10.482</strong> Toptan Ürün (437 Sayfa)
+                Gösterilen: <strong style={{ color: "#0f172a" }}>{(currentPage - 1) * itemsPerPage + (paginatedProducts.length > 0 ? 1 : 0)} - {(currentPage - 1) * itemsPerPage + paginatedProducts.length}</strong> / Toplam <strong style={{ color: "#0f172a" }}>{gridProducts.length}</strong> Toptan Ürün
               </div>
 
               <div className="pagination-pages">
-                <button className="page-num disabled">&laquo;</button>
-                <button className="page-num disabled">&lsaquo;</button>
-                <button className="page-num active">1</button>
-                <button className="page-num">2</button>
-                <button className="page-num">3</button>
-                <button className="page-num">4</button>
-                <button className="page-num">5</button>
-                <span style={{ padding: "0 0.25rem", color: "#94a3b8" }}>...</span>
-                <button className="page-num">437</button>
-                <button className="page-num">&rsaquo;</button>
-                <button className="page-num">&raquo;</button>
+                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className={`page-num ${currentPage === 1 ? "disabled" : ""}`}>&laquo;</button>
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className={`page-num ${currentPage === 1 ? "disabled" : ""}`}>&lsaquo;</button>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum = currentPage;
+                  if (currentPage <= 3) pageNum = i + 1;
+                  else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                  else pageNum = currentPage - 2 + i;
+                  pageNum = Math.max(1, Math.min(pageNum, totalPages));
+                  
+                  return (
+                    <button 
+                      key={i} 
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`page-num ${currentPage === pageNum ? "active" : ""}`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                }).filter((val, index, self) => self.findIndex(v => v.key === val.key) === index)}
+
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className={`page-num ${currentPage === totalPages ? "disabled" : ""}`}>&rsaquo;</button>
+                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className={`page-num ${currentPage === totalPages ? "disabled" : ""}`}>&raquo;</button>
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", color: "#64748b" }}>
                 <span>Sayfa Başına:</span>
-                <select className="per-page-select" defaultValue="24">
+                <select 
+                  className="per-page-select" 
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                >
                   <option value="24">24 Ürün</option>
                   <option value="48">48 Ürün</option>
                   <option value="96">96 Ürün</option>
@@ -1281,3 +1305,8 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
     </>
   );
 }
+
+
+
+
+

@@ -1,4 +1,4 @@
-'use server';
+﻿'use server';
 
 import { createClient } from '@/lib/supabase/server';
 import { checkRateLimit } from '@/lib/security/rate-limit';
@@ -21,7 +21,7 @@ export async function adminLoginAction(formData: FormData) {
       metadata: { reason: 'rate_limit_exceeded', email },
       ip
     });
-    return { error: 'Çok fazla giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin.' };
+    return { error: 'Ã‡ok fazla giriÅŸ denemesi yapÄ±ldÄ±. LÃ¼tfen daha sonra tekrar deneyin.' };
   }
 
   const supabase = await createClient();
@@ -52,12 +52,13 @@ function getAuthErrorMessage(message: string) {
   const normalizedMessage = message.toLocaleLowerCase('tr');
 
   if (normalizedMessage.includes('invalid login credentials')) {
-    return 'E-posta veya şifre hatalı.';
+    return 'E-posta veya ÅŸifre hatalÄ±.';
   }
 
   if (normalizedMessage.includes('email not confirmed')) {
-    return 'E-posta adresi henüz doğrulanmamış.';
+    return 'E-posta adresi henÃ¼z doÄŸrulanmamÄ±ÅŸ.';
   }
 
   return message;
 }
+
