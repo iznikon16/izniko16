@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 
 /**
  * RBAC — permission bazlı yetki kontrolü.
@@ -41,6 +40,7 @@ const ROLE_PERMISSIONS: Record<RoleName, string[]> = {
     'xml.sync',
     'report.view',
     'report.export',
+    'marketing.manage',
   ],
   customer: [
     'customer.viewSelf',
@@ -104,6 +104,7 @@ export const PERMISSIONS = {
   xmlSync: 'xml.sync',
   reportView: 'report.view',
   settingsView: 'settings.view',
+  marketingManage: 'marketing.manage',
   auditView: 'audit.view',
 } as const;
 

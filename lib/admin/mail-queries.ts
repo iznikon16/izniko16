@@ -24,10 +24,18 @@ export async function getAdminMailSettings(): Promise<SmtpSettingsRow> {
       throw new Error(insertError?.message ?? 'SMTP ayarı oluşturulamadı.');
     }
 
-    return insertedSettings;
+    const maskedSettings = { ...insertedSettings };
+    if (maskedSettings.password) {
+      maskedSettings.password = '******';
+    }
+    return maskedSettings;
   }
 
-  return data;
+  const maskedData = { ...data };
+  if (maskedData.password) {
+    maskedData.password = '******';
+  }
+  return maskedData;
 }
 
 export async function getAdminEmailTemplates(): Promise<EmailTemplateRow[]> {

@@ -70,6 +70,14 @@ web_modules/
 .env.*
 !.env.example
 
+# Prevent committing secrets
+credentials*
+secrets*
+*.pem
+*.key
+*.p12
+*.pfx
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
@@ -136,6 +144,15 @@ dist
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# OS generated files
+__MACOSX/
+.DS_Store
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
 
 # Vite files
 vite.config.js.timestamp-*

@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 function getText(formData: FormData, key: string) {
@@ -20,7 +20,7 @@ function revalidatePricing() {
 }
 
 export async function savePriceListAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
@@ -46,7 +46,7 @@ export async function savePriceListAction(formData: FormData): Promise<void> {
 }
 
 export async function deletePriceListAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
   if (!id) return;
@@ -56,7 +56,7 @@ export async function deletePriceListAction(formData: FormData): Promise<void> {
 }
 
 export async function savePriceListItemAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const priceListId = getText(formData, 'price_list_id');
   const productId = getText(formData, 'product_id');
@@ -79,7 +79,7 @@ export async function savePriceListItemAction(formData: FormData): Promise<void>
 }
 
 export async function removePriceListItemAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
   if (!id) return;
@@ -89,7 +89,7 @@ export async function removePriceListItemAction(formData: FormData): Promise<voi
 }
 
 export async function assignCustomerPriceListAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const customerId = getText(formData, 'customer_id');
   const priceListId = getText(formData, 'price_list_id');
@@ -103,7 +103,7 @@ export async function assignCustomerPriceListAction(formData: FormData): Promise
 }
 
 export async function saveCustomerDiscountAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const customerId = getText(formData, 'customer_id');
   const discountPercent = getNumber(formData, 'discount_percent');
@@ -117,7 +117,7 @@ export async function saveCustomerDiscountAction(formData: FormData): Promise<vo
 }
 
 export async function saveCustomerProductPriceAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const customerId = getText(formData, 'customer_id');
   const productId = getText(formData, 'product_id');
@@ -132,7 +132,7 @@ export async function saveCustomerProductPriceAction(formData: FormData): Promis
 }
 
 export async function removeCustomerProductPriceAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const customerId = getText(formData, 'customer_id');
   const productId = getText(formData, 'product_id');
@@ -147,7 +147,7 @@ export async function removeCustomerProductPriceAction(formData: FormData): Prom
 }
 
 export async function bulkUpdatePricesAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.managePrice');
   const supabase = createAdminClient();
   const productIds = (formData.get('product_ids')?.toString() ?? '').split(',').map((s) => s.trim()).filter(Boolean);
   const mode = getText(formData, 'mode');

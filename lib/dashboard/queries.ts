@@ -28,7 +28,7 @@ function todayISOStart() {
   return d.toISOString();
 }
 
-export async function getDashboardAccountingMetrics(days?: number): Promise<DashboardAccountingMetrics> {
+export async function getDashboardAccountingMetrics(): Promise<DashboardAccountingMetrics> {
   const supabase = createAdminClient();
 
   const [accountsRes, txsRes, paymentsRes, productsRes] = await Promise.all([
@@ -172,5 +172,91 @@ export async function getOrderTrend(days: number): Promise<OrderTrendPoint[]> {
     label: new Date(`${date}T00:00:00`).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
     count,
     total,
+  }));
+}
+
+export async function getRecentOrders(limit: number = 5) {
+  const supabase = createAdminClient();
+  const { data: orders, error } = await supabase
+    .from('orders')
+    .select('id, total, status, created_at, order_number, user_id, payment_method_id')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw new Error(error.message);
+
+  if (!orders || orders.length === 0) return [];
+
+  const userIds = [...new Set(orders.map((o) => o.user_id))];
+  const paymentMethodIds = [...new Set(orders.map((o) => o.payment_method_id).filter(Boolean))] as string[];
+
+  const [profilesRes, paymentMethodsRes] = await Promise.all([
+    supabase.from('customer_profiles').select('user_id, full_name, email').in('user_id', userIds),
+    paymentMethodIds.length > 0 
+      ? supabase.from('payment_methods').select('id, name').in('id', paymentMethodIds)
+      : Promise.resolve({ data: [] })
+  ]);
+
+  const profilesById = new Map((profilesRes.data ?? []).map((p) => [p.user_id, p]));
+  const methodsById = new Map((paymentMethodsRes.data ?? []).map((m) => [m.id, m]));
+
+  return orders.map((order) => ({
+    id: order.id,
+    order_number: order.order_number,
+    total: order.total,
+    status: order.status,
+    created_at: order.created_at,
+    customerName: profilesById.get(order.user_id)?.full_name || profilesById.get(order.user_id)?.email || 'Bilinmeyen Müşteri',
+    paymentMethod: order.payment_method_id ? methodsById.get(order.payment_method_id)?.name : 'Bilinmiyor',
+  }));
+}
+
+export type AccountingTrendPoint = {
+  label: string;
+  tahsilat: number;
+  yeniBorc: number;
+};
+
+export async function getAccountingTrend(days: number): Promise<AccountingTrendPoint[]> {
+  const supabase = createAdminClient();
+  const from = new Date();
+  from.setDate(from.getDate() - (days - 1));
+  from.setHours(0, 0, 0, 0);
+
+  const [txsRes, paymentsRes] = await Promise.all([
+    supabase.from('account_transactions').select('debit, created_at').gte('created_at', from.toISOString()),
+    supabase.from('payments').select('amount, paid_at').eq('status', 'completed').gte('paid_at', from.toISOString()),
+  ]);
+
+  if (txsRes.error) throw new Error(txsRes.error.message);
+  if (paymentsRes.error) throw new Error(paymentsRes.error.message);
+
+  const buckets = new Map<string, { tahsilat: number; yeniBorc: number }>();
+  for (let i = 0; i < days; i++) {
+    const d = new Date(from);
+    d.setDate(from.getDate() + i);
+    buckets.set(d.toISOString().slice(0, 10), { tahsilat: 0, yeniBorc: 0 });
+  }
+
+  for (const tx of txsRes.data ?? []) {
+    const key = tx.created_at.slice(0, 10);
+    const bucket = buckets.get(key);
+    if (bucket && tx.debit) {
+      bucket.yeniBorc += Number(tx.debit) || 0;
+    }
+  }
+
+  for (const payment of paymentsRes.data ?? []) {
+    const key = (payment.paid_at || '').slice(0, 10);
+    const bucket = buckets.get(key);
+    if (bucket && payment.amount) {
+      bucket.tahsilat += Number(payment.amount) || 0;
+    }
+  }
+
+  return [...buckets.entries()].map(([date, { tahsilat, yeniBorc }]) => ({
+    label: new Date(`${date}T00:00:00`).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
+    tahsilat,
+    yeniBorc,
   }));
 }

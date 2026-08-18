@@ -9,10 +9,23 @@ export type SmsSendResult = {
   message: string;
 };
 
+import { decryptToken } from '@/lib/security/encryption';
+
 export async function getNetgsmSettings(): Promise<NetgsmSettingsRow | null> {
   const supabase = createAdminClient();
   const { data } = await supabase.from('netgsm_settings').select('*').eq('id', 'main').maybeSingle();
-  return (data ?? null) as NetgsmSettingsRow | null;
+  if (!data) return null;
+
+  let password = data.password;
+  if (password) {
+    try {
+      password = decryptToken(password);
+    } catch {
+      // Fallback to plain text
+    }
+  }
+
+  return { ...data, password } as NetgsmSettingsRow;
 }
 
 export async function getSmsTemplate(key: string): Promise<SmsTemplateRow | null> {

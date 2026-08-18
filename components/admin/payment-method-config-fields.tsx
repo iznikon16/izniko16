@@ -79,12 +79,12 @@ function FieldInput({
 }) {
   if (field.type === 'boolean') {
     return (
-      <label className="flex min-h-[47px] items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-600">
+      <label className="flex min-h-[47px] items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
         <span>{field.label}</span>
         <select
           value={value || 'false'}
           onChange={(event) => onChange(field.key, event.target.value)}
-          className="rounded-full border border-gray-200 bg-black px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-gray-900 outline-none"
+          className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-gray-900 outline-none"
         >
           <option value="true">Aktif</option>
           <option value="false">Pasif</option>
@@ -102,7 +102,7 @@ function FieldInput({
           onChange={(event) => onChange(field.key, event.target.value)}
           placeholder={field.placeholder}
           rows={3}
-          className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm leading-6 text-gray-900 outline-none"
+          className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 outline-none"
         />
         {field.help ? <span className="text-xs leading-5 text-gray-400">{field.help}</span> : null}
       </label>
@@ -118,7 +118,7 @@ function FieldInput({
         placeholder={field.placeholder}
         required={field.required}
         type={field.secret || field.type === 'password' ? 'password' : field.type === 'url' ? 'url' : 'text'}
-        className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none"
+        className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
       />
       {field.help ? <span className="text-xs leading-5 text-gray-400">{field.help}</span> : null}
     </label>
@@ -191,7 +191,7 @@ export function PaymentMethodConfigFields({
             name="provider"
             value={selectedProvider}
             onChange={(event) => handleProviderChange(event.target.value)}
-            className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none"
+            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500"
           >
             {selectableDefinitions.map((item) => (
               <option key={item.key} value={item.key}>
@@ -207,7 +207,7 @@ export function PaymentMethodConfigFields({
             name="integration_type"
             value={selectedIntegrationType}
             onChange={(event) => setSelectedIntegrationType(event.target.value)}
-            className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none"
+            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500"
           >
             <option value="manual">Manuel teyit</option>
             <option value="redirect">Güvenli yönlendirme</option>
@@ -221,7 +221,7 @@ export function PaymentMethodConfigFields({
             name="sort_order"
             type="number"
             defaultValue={sortOrder}
-            className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none"
+            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500"
           />
         </label>
       </div>
@@ -266,7 +266,7 @@ export function PaymentMethodConfigFields({
             onChange={(event) => setExtraJson(event.target.value)}
             rows={3}
             className={cn(
-              'rounded-2xl border bg-[#0d0d0d] px-4 py-3 font-mono text-sm leading-6 text-gray-900 outline-none',
+              'rounded-2xl border bg-white px-4 py-3 font-mono text-sm leading-6 text-gray-900 outline-none focus:border-blue-500',
               extraJsonError ? 'border-red-500/50' : 'border-gray-200'
             )}
           />

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { testSmtpConnection } from '@/lib/mail/mailer';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
@@ -14,7 +14,7 @@ function getText(formData: FormData, key: string) {
 }
 
 export async function saveSmtpSettingsAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const supabase = createAdminClient();
   const payload: Database['public']['Tables']['smtp_settings']['Update'] = {
     admin_notification_email: getText(formData, 'admin_notification_email'),
@@ -30,7 +30,16 @@ export async function saveSmtpSettingsAction(formData: FormData): Promise<void> 
 
   const passwordValue = formData.get('password');
   if (typeof passwordValue === 'string' && passwordValue.trim()) {
-    payload.password = passwordValue.trim();
+    const rawPassword = passwordValue.trim();
+    if (rawPassword === '******') {
+      const { data: existing } = await supabase.from('smtp_settings').select('password').eq('id', SMTP_SETTINGS_ID).maybeSingle();
+      if (existing?.password) {
+        payload.password = existing.password;
+      }
+    } else {
+      const { encryptToken } = await import('@/lib/security/encryption');
+      payload.password = encryptToken(rawPassword);
+    }
   }
 
   const { error } = await supabase.from('smtp_settings').upsert({ id: SMTP_SETTINGS_ID, ...payload }, { onConflict: 'id' });
@@ -42,7 +51,7 @@ export async function saveSmtpSettingsAction(formData: FormData): Promise<void> 
 }
 
 export async function saveEmailTemplateAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const supabase = createAdminClient();
   const key = getText(formData, 'key');
 
@@ -61,8 +70,8 @@ export async function saveEmailTemplateAction(formData: FormData): Promise<void>
   revalidatePath('/admin/mail');
 }
 
-export async function sendSmtpTestAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+export async function sendSmtpTestAction(): Promise<void> {
+  await requireAdminPermission('settings.view');
   const result = await testSmtpConnection();
   redirect(`/admin/mail?test=${result.ok ? 'sent' : 'failed'}`);
 }
@@ -73,6 +82,6 @@ export type MailTestResult = {
 };
 
 export async function testSmtpAction(): Promise<MailTestResult> {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   return testSmtpConnection();
 }

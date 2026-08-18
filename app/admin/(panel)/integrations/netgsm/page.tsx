@@ -37,7 +37,10 @@ export default async function NetgsmPage({
   if (templatesRes.error) throw new Error(templatesRes.error.message);
   if (logsRes.error) throw new Error(logsRes.error.message);
 
-  const settings = (settingsRes.data ?? null) as NetgsmSettingsRow | null;
+  let settings = (settingsRes.data ?? null) as NetgsmSettingsRow | null;
+  if (settings?.password) {
+    settings = { ...settings, password: '******' };
+  }
   const templates = (templatesRes.data ?? []) as SmsTemplateRow[];
   const logs = (logsRes.data ?? []) as SmsLogRow[];
 

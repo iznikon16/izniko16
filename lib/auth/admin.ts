@@ -8,8 +8,12 @@ export type AdminSession = {
   adminUser: AdminUserRow;
 };
 
-// DEV bypass: Supabase olmadan admin paneline erişim
-const DEV_BYPASS = process.env.DEV_BYPASS_AUTH === 'true';
+const isProd = process.env.NODE_ENV === 'production';
+if (isProd && process.env.DEV_BYPASS_AUTH === 'true') {
+  console.error('CRITICAL SECURITY ERROR: DEV_BYPASS_AUTH is active in production!');
+  throw new Error('Security Violation: DEV_BYPASS_AUTH cannot be used in production.');
+}
+const DEV_BYPASS = !isProd && process.env.DEV_BYPASS_AUTH === 'true';
 
 const DEV_FAKE_SESSION: AdminSession = {
   user: {
@@ -67,5 +71,51 @@ export async function requireAdminSession() {
     redirect('/admin/login');
   }
 
+  return session;
+}
+
+export async function requireAdminPermission(permission?: string) {
+  const session = await requireAdminSession();
+  
+  if (permission && session.adminUser.role !== 'admin') {
+    try {
+      const { createAdminClient } = await import('@/lib/supabase/admin');
+      const supabase = createAdminClient();
+      
+      const { data: roleData, error } = await supabase
+        .from('roles')
+        .select(`
+          name,
+          role_permissions(
+            permissions(key)
+          )
+        `)
+        .eq('name', session.adminUser.role)
+        .maybeSingle();
+
+      let hasPermission = false;
+      if (!error && roleData && roleData.role_permissions) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hasPermission = roleData.role_permissions.some((rp: any) => {
+          const pKey = rp.permissions?.key;
+          return pKey === permission || pKey === '*';
+        });
+      }
+
+      if (!hasPermission) {
+        const { PermissionError } = await import('@/lib/auth/permissions');
+        throw new PermissionError(permission);
+      }
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'name' in err && err.name === 'PermissionError') {
+        throw err;
+      }
+      
+      // DB hatası durumunda fallback (Geliştirme veya seed edilmemiş DB için)
+      const { assertPermission } = await import('@/lib/auth/permissions');
+      assertPermission(session.adminUser.role ?? 'staff', permission);
+    }
+  }
+  
   return session;
 }

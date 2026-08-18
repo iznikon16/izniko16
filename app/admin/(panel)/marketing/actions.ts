@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { getSiteOrigin, sendTemplatedMail, type EmailTemplateKey } from '@/lib/mail/mailer';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -22,7 +22,7 @@ function isMarketingTemplateKey(value: string): value is MarketingTemplateKey {
 }
 
 export async function sendMarketingEmailAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminPermission('marketing.manage');
   const templateKey = getText(formData, 'template_key');
   const campaignTitle = getText(formData, 'campaign_title');
   const campaignHeadline = getText(formData, 'campaign_headline');

@@ -4,10 +4,11 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { sanitizeProductHtml } from '@/lib/catalog/html';
 import { CATALOG_BASE_PATHS, getCatalogBasePath, STORAGE_BUCKET, parseTagInput, slugify } from '@/lib/catalog/utils';
-import { isPaymentProviderKey } from '@/lib/commerce/payment-provider-presets';
+import { isPaymentProviderKey, PAYMENT_PROVIDER_DEFINITIONS } from '@/lib/commerce/payment-provider-presets';
+import { encryptToken } from '@/lib/security/encryption';
 import { sendOrderUpdateEmails } from '@/lib/mail/notifications';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { postOrderToAccount, cancelOrderInAccount } from '@/lib/accounting/mutations';
@@ -465,12 +466,8 @@ async function uploadReferenceImage(supabase: ReturnType<typeof createAdminClien
   return storagePath;
 }
 
-async function ensureAdmin() {
-  const session = await requireAdminSession();
-  const { assertPermission } = await import('@/lib/auth/permissions');
-  if (session.adminUser.role !== 'admin') {
-    assertPermission(session.adminUser.role ?? 'staff', 'product.manageStock');
-  }
+async function ensureAdmin(permission?: string) {
+  await requireAdminPermission(permission);
   return createAdminClient();
 }
 
@@ -594,7 +591,7 @@ async function getProductRouteInfo(
 }
 
 async function syncTaxonomy(table: 'brands' | 'categories', formData: FormData, extra: Record<string, unknown> = {}) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('settings.view');
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
 
@@ -633,7 +630,7 @@ async function syncTaxonomy(table: 'brands' | 'categories', formData: FormData, 
 }
 
 async function removeTaxonomy(table: 'brands' | 'categories', formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('settings.view');
   const id = getText(formData, 'id');
 
   if (!id) {
@@ -780,7 +777,7 @@ async function revalidateProductMediaChanges(supabase: ReturnType<typeof createA
 }
 
 export async function saveBrandAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
 
@@ -831,7 +828,7 @@ export async function saveBrandAction(formData: FormData) {
 }
 
 export async function deleteBrandAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const id = getText(formData, 'id');
 
   if (!id) {
@@ -870,7 +867,7 @@ export async function deleteCategoryAction(formData: FormData) {
 }
 
 export async function saveProductAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const productId = getText(formData, 'id');
   const title = getText(formData, 'title');
 
@@ -994,7 +991,7 @@ export async function saveProductAction(formData: FormData) {
 }
 
 export async function deleteProductAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const productId = getText(formData, 'id');
 
   if (!productId) {
@@ -1027,7 +1024,7 @@ export async function deleteProductAction(formData: FormData) {
 }
 
 export async function uploadMediaImagesAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const productId = getText(formData, 'product_id');
   const newImages = formData
     .getAll('new_images')
@@ -1063,7 +1060,7 @@ export async function uploadMediaImagesAction(formData: FormData) {
 }
 
 export async function setFeaturedProductImageAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const imageId = getText(formData, 'id');
 
   if (!imageId) {
@@ -1107,7 +1104,7 @@ export async function setFeaturedProductImageAction(formData: FormData) {
 }
 
 export async function deleteProductImageAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const imageId = getText(formData, 'id');
 
   if (!imageId) {
@@ -1137,7 +1134,7 @@ export async function deleteProductImageAction(formData: FormData) {
 }
 
 export async function saveOrderAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const orderId = getText(formData, 'id');
 
   if (!orderId) {
@@ -1262,7 +1259,7 @@ export async function saveOrderAction(formData: FormData) {
 }
 
 export async function deleteOrderAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.update');
   const orderId = getText(formData, 'id');
 
   if (!orderId) {
@@ -1280,7 +1277,7 @@ export async function deleteOrderAction(formData: FormData) {
 }
 
 export async function createCustomerAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('order.changeStatus');
   const email = getText(formData, 'email');
   const password = getText(formData, 'password');
   const fullName = getText(formData, 'full_name');
@@ -1320,7 +1317,7 @@ export async function createCustomerAction(formData: FormData) {
 }
 
 export async function saveCustomerAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('order.cancel');
   const userId = getText(formData, 'user_id');
 
   if (!userId) {
@@ -1345,7 +1342,7 @@ export async function saveCustomerAction(formData: FormData) {
 }
 
 export async function deleteCustomerAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('customer.create');
   const userId = getText(formData, 'user_id');
 
   if (!userId) {
@@ -1363,7 +1360,7 @@ export async function deleteCustomerAction(formData: FormData) {
 }
 
 export async function saveCouponAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('customer.update');
   const id = getText(formData, 'id');
   const title = getText(formData, 'title');
   const code = getText(formData, 'code').toUpperCase().replace(/\s+/g, '');
@@ -1398,7 +1395,7 @@ export async function saveCouponAction(formData: FormData) {
 }
 
 export async function deleteCouponAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('customer.update');
   const id = getText(formData, 'id');
 
   if (!id) {
@@ -1415,7 +1412,7 @@ export async function deleteCouponAction(formData: FormData) {
 }
 
 export async function saveCampaignAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.managePrice');
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
 
@@ -1449,7 +1446,7 @@ export async function saveCampaignAction(formData: FormData) {
 }
 
 export async function deleteCampaignAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.managePrice');
   const id = getText(formData, 'id');
 
   if (!id) {
@@ -1466,7 +1463,7 @@ export async function deleteCampaignAction(formData: FormData) {
 }
 
 export async function saveHomeSlideAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.managePrice');
   const id = getText(formData, 'id');
   const title = getText(formData, 'title');
   const imageFile = getUploadedFile(formData, 'image_file');
@@ -1539,7 +1536,7 @@ export async function saveHomeSlideAction(formData: FormData) {
 }
 
 export async function deleteHomeSlideAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('product.managePrice');
   const id = getText(formData, 'id');
 
   if (!id) {
@@ -1571,7 +1568,7 @@ export async function deleteHomeSlideAction(formData: FormData) {
 }
 
 export async function saveHomeVideoAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('settings.view');
   const videoUrl = getText(formData, 'video_url');
   const videoId = getHomeVideoId(videoUrl);
   const title = getText(formData, 'title');
@@ -1604,7 +1601,7 @@ export async function saveHomeVideoAction(formData: FormData) {
 }
 
 export async function saveProjectReferenceAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('settings.view');
   const id = getText(formData, 'id');
   const title = getText(formData, 'title');
 
@@ -1679,7 +1676,7 @@ export async function saveProjectReferenceAction(formData: FormData) {
 }
 
 export async function deleteProjectReferenceAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('settings.view');
   const id = getText(formData, 'id');
 
   if (!id) {
@@ -1711,7 +1708,7 @@ export async function deleteProjectReferenceAction(formData: FormData) {
 }
 
 export async function savePaymentMethodAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('settings.view');
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
   const code = getText(formData, 'code') || slugify(name);
@@ -1720,15 +1717,42 @@ export async function savePaymentMethodAction(formData: FormData) {
     throw new Error('Ödeme yöntemi adı ve kodu zorunludur.');
   }
 
+  const providerKey = parsePaymentProvider(getText(formData, 'provider'));
+  const rawConfig = parseJsonObjectField(formData, 'config');
+  const finalConfig: Record<string, unknown> = { ...rawConfig };
+
+  const providerDef = PAYMENT_PROVIDER_DEFINITIONS[providerKey];
+  if (providerDef) {
+    const secretKeys = new Set(providerDef.configFields.filter(f => f.secret).map(f => f.key));
+    if (secretKeys.size > 0) {
+      let existingConfig: Record<string, unknown> = {};
+      if (id) {
+        const { data: existingMethod } = await supabase.from('payment_methods').select('config').eq('id', id).maybeSingle();
+        if (existingMethod?.config && typeof existingMethod.config === 'object') {
+          existingConfig = existingMethod.config as Record<string, unknown>;
+        }
+      }
+
+      for (const key of secretKeys) {
+        const val = finalConfig[key];
+        if (val === '******') {
+          finalConfig[key] = existingConfig[key] ?? null;
+        } else if (typeof val === 'string' && val.trim() !== '') {
+          finalConfig[key] = encryptToken(val.trim());
+        }
+      }
+    }
+  }
+
   const payload: PaymentMethodInsert = {
     code,
-    config: parseJsonObjectField(formData, 'config') as PaymentMethodInsert['config'],
+    config: finalConfig as PaymentMethodInsert['config'],
     description: getText(formData, 'description'),
     instructions: getText(formData, 'instructions'),
     integration_type: parsePaymentIntegrationType(getText(formData, 'integration_type')),
     is_active: formData.get('is_active') === 'on',
     name,
-    provider: parsePaymentProvider(getText(formData, 'provider')),
+    provider: providerKey,
     sort_order: getOptionalInteger(formData, 'sort_order') ?? 0,
   };
 
@@ -1744,7 +1768,7 @@ export async function savePaymentMethodAction(formData: FormData) {
 }
 
 export async function deletePaymentMethodAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('settings.view');
   const id = getText(formData, 'id');
 
   if (!id) {

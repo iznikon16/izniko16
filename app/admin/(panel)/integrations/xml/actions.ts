@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { validateXmlUrl } from '@/lib/xml/queries';
 import type { XmlTargetField } from '@/lib/catalog/types';
@@ -25,7 +25,7 @@ function revalidateXml() {
 }
 
 export async function saveXmlSourceAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('xml.sync');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
@@ -85,7 +85,7 @@ export async function saveXmlSourceAction(formData: FormData): Promise<void> {
 }
 
 export async function deleteXmlSourceAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('xml.sync');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
   if (!id) return;
@@ -97,7 +97,7 @@ export async function deleteXmlSourceAction(formData: FormData): Promise<void> {
 }
 
 export async function runXmlSyncAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('xml.sync');
   const id = getText(formData, 'id');
   if (!id) return;
 

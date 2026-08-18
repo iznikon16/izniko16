@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { sanitizeProductHtml } from '@/lib/catalog/html';
 import { createAdminClient } from '@/lib/supabase/admin';
 
@@ -15,13 +15,13 @@ function getInteger(formData: FormData, key: string, fallback: number) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-async function ensureAdmin() {
-  await requireAdminSession();
+async function ensureAdmin(permission?: string) {
+  await requireAdminPermission(permission);
   return createAdminClient();
 }
 
 export async function savePolicyPageAction(formData: FormData) {
-  const supabase = await ensureAdmin();
+  const supabase = await ensureAdmin('settings.view');
   const slug = getText(formData, 'slug');
   const title = getText(formData, 'title');
   const contentHtml = sanitizeProductHtml(getText(formData, 'content_html'));

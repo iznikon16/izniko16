@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 function getText(formData: FormData, key: string) {
@@ -18,7 +18,7 @@ function parseStatus(value: string) {
 }
 
 export async function saveInquiryAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminPermission('order.view');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
 
@@ -42,7 +42,7 @@ export async function saveInquiryAction(formData: FormData) {
 }
 
 export async function deleteInquiryAction(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminPermission('order.view');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
 

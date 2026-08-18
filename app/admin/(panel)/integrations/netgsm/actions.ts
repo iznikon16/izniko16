@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
 import { sendSms } from '@/lib/sms/netgsm';
@@ -13,15 +13,24 @@ export type NetgsmActionResult = {
 };
 
 export async function saveNetgsmSettingsAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const supabase = createAdminClient();
   const username = String(formData.get('username') ?? '').trim();
   const password = String(formData.get('password') ?? '').trim();
   const header = String(formData.get('header') ?? '').trim();
 
+  let finalPassword = password;
+  if (password === '******') {
+    const { data: existing } = await supabase.from('netgsm_settings').select('password').eq('id', 'main').maybeSingle();
+    finalPassword = existing?.password || '';
+  } else if (password) {
+    const { encryptToken } = await import('@/lib/security/encryption');
+    finalPassword = encryptToken(password);
+  }
+
   const payload: Database['public']['Tables']['netgsm_settings']['Update'] = {
     username,
-    password,
+    password: finalPassword,
     header,
     is_enabled: formData.get('is_enabled') === 'on',
   };
@@ -34,7 +43,7 @@ export async function saveNetgsmSettingsAction(formData: FormData): Promise<void
 }
 
 export async function sendTestSmsAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const phone = String(formData.get('phone') ?? '').trim();
   const message = String(formData.get('message') ?? '').trim();
 
@@ -58,7 +67,7 @@ export async function sendTestSmsActionResult(formData: FormData): Promise<Netgs
 }
 
 export async function saveSmsTemplateAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const supabase = createAdminClient();
   const key = String(formData.get('key') ?? '').trim();
   const name = String(formData.get('name') ?? '').trim();
@@ -78,7 +87,7 @@ export async function saveSmsTemplateAction(formData: FormData): Promise<void> {
 }
 
 export async function deleteSmsTemplateAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const supabase = createAdminClient();
   const key = String(formData.get('key') ?? '').trim();
   if (!key) return;

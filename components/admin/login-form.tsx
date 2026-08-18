@@ -1,27 +1,25 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { AlertCircle, ArrowRight, LoaderCircle, Lock, Mail, ShieldCheck } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { adminLoginAction } from './login-actions';
 
 export function LoginForm() {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(formData: FormData) {
-    const email = String(formData.get('email') ?? '').trim();
-    const password = String(formData.get('password') ?? '');
-
     startTransition(async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const result = await adminLoginAction(formData);
 
-      if (error) {
-        setError(getAuthErrorMessage(error.message));
+      if (result.error) {
+        setError(result.error);
         return;
       }
 
-      window.location.href = '/admin';
+      router.push('/admin');
     });
   }
 
@@ -81,20 +79,3 @@ export function LoginForm() {
   );
 }
 
-function getAuthErrorMessage(message: string) {
-  const normalizedMessage = message.toLocaleLowerCase('tr');
-
-  if (normalizedMessage.includes('invalid login credentials')) {
-    return 'E-posta veya şifre hatalı.';
-  }
-
-  if (normalizedMessage.includes('email not confirmed')) {
-    return 'E-posta adresi henüz doğrulanmamış.';
-  }
-
-  if (normalizedMessage.includes('too many requests')) {
-    return 'Çok fazla deneme yapıldı. Lütfen kısa süre sonra tekrar deneyin.';
-  }
-
-  return message;
-}

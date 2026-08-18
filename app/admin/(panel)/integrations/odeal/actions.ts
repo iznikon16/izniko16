@@ -1,12 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
 
 export async function saveOdealSettingsAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const supabase = createAdminClient();
   const apiKey = String(formData.get('api_key') ?? '').trim();
   const secretKey = String(formData.get('secret_key') ?? '').trim();

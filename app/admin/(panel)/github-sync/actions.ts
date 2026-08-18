@@ -2,14 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { encryptToken, decryptToken } from '@/lib/security/encryption';
 import { GitEngine } from '@/lib/github/git-engine';
 import { writeAuditLog } from '@/lib/audit/queries';
 
 export async function saveGitHubConfig(formData: FormData) {
   try {
-    const { user } = await requireAdminSession();
+    const { user } = await requireAdminPermission('settings.view');
     
     const owner = formData.get('owner') as string;
     const repository = formData.get('repository') as string;
@@ -76,7 +76,7 @@ export async function saveGitHubConfig(formData: FormData) {
 
 export async function testGitHubConnection() {
   try {
-    const { user } = await requireAdminSession();
+    const { user } = await requireAdminPermission('settings.view');
     const supabase = createAdminClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = supabase as any;
@@ -111,7 +111,7 @@ export async function testGitHubConnection() {
 
 export async function pushToGitHub(commitMessage?: string) {
   try {
-    const { user } = await requireAdminSession();
+    const { user } = await requireAdminPermission('settings.view');
     const supabase = createAdminClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = supabase as any;

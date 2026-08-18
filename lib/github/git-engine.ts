@@ -111,27 +111,51 @@ export const GitEngine = {
     }
   },
 
+  /**
+   * Validate GitHub URL
+   */
+  validateUrl(remoteUrl: string) {
+    if (!remoteUrl) throw new Error('Repository URL is required.');
+    
+    let urlObj;
+    try {
+      urlObj = new URL(remoteUrl);
+    } catch {
+      throw new Error('Invalid URL format.');
+    }
+
+    if (urlObj.protocol !== 'https:') {
+      throw new Error('Only HTTPS protocol is supported.');
+    }
+    if (urlObj.hostname !== 'github.com') {
+      throw new Error('Only github.com is supported as a remote.');
+    }
+    
+    // Güvenlik için temiz URL döndürüyoruz, içinde token/user kalmaz.
+    return `https://github.com${urlObj.pathname}`;
+  },
+
+  /**
+   * Builds secure environment variables for Git using extraHeader
+   */
+  buildGitEnv(token: string) {
+    const authHeader = `Authorization: Basic ${Buffer.from(`oauth2:${token}`).toString('base64')}`;
+    return {
+      GIT_TERMINAL_PROMPT: '0',
+      GIT_ASKPASS: 'echo',
+      GIT_CONFIG_COUNT: '1',
+      GIT_CONFIG_KEY_0: 'http.extraHeader',
+      GIT_CONFIG_VALUE_0: authHeader
+    };
+  },
+
   async fetch(remoteUrl: string, token: string) {
     const cwd = getRepoRoot();
-    
-    // Setup credential helper via environment or temporary config
-    // We use a custom core.askpass script or URL credentials securely.
-    // The safest cross-platform way without shell scripts is using standard credential format in URL
-    // BUT we must not log it.
-    
-    // Instead of using remoteUrl with token embedded in shell, we use git remote add or pass it securely.
-    // Given we are doing a one-off fetch, we can use the URL with token embedded, 
-    // BUT we MUST sanitize error outputs.
-    
-    const parsedUrl = new URL(remoteUrl);
-    parsedUrl.username = 'oauth2'; // GitHub allows any username with a PAT
-    parsedUrl.password = token;
-    
-    const safeUrl = parsedUrl.toString();
+    const safeUrl = this.validateUrl(remoteUrl);
+    const secureEnv = this.buildGitEnv(token);
 
     try {
-      // fetch from the safeUrl
-      const { stdout, stderr } = await runGitCommand(['fetch', safeUrl, '--prune'], cwd);
+      const { stdout, stderr } = await runGitCommand(['fetch', safeUrl, '--prune'], cwd, secureEnv);
       return { stdout: sanitizeGitOutput(stdout, token), stderr: sanitizeGitOutput(stderr, token) };
     } catch (error: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -157,13 +181,17 @@ export const GitEngine = {
   
   async push(remoteUrl: string, token: string, branch: string) {
     const cwd = getRepoRoot();
-    const parsedUrl = new URL(remoteUrl);
-    parsedUrl.username = 'oauth2';
-    parsedUrl.password = token;
-    const safeUrl = parsedUrl.toString();
+    const safeUrl = this.validateUrl(remoteUrl);
+    
+    // Validate branch parameter simply to avoid injection
+    if (!branch || !/^[a-zA-Z0-9_\-\/]+$/.test(branch) || branch.includes('..')) {
+      throw new Error('Invalid branch name.');
+    }
+
+    const secureEnv = this.buildGitEnv(token);
 
     try {
-      const { stdout, stderr } = await runGitCommand(['push', safeUrl, `HEAD:refs/heads/${branch}`], cwd);
+      const { stdout, stderr } = await runGitCommand(['push', safeUrl, `HEAD:refs/heads/${branch}`], cwd, secureEnv);
       return { stdout: sanitizeGitOutput(stdout, token), stderr: sanitizeGitOutput(stderr, token) };
     } catch (error: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -176,9 +204,33 @@ export const GitEngine = {
 
   async addAndCommit(message: string) {
     const cwd = getRepoRoot();
-    // Add all changes respecting .gitignore
+    
+    // Push öncesi çok kaba bir secret taraması yap. (Phase 4 requirement)
+    const { stdout: diff } = await runGitCommand(['diff', '--cached', '--name-only'], cwd);
+    if (diff) {
+      const changedFiles = diff.split('\n');
+      for (const file of changedFiles) {
+        if (file.includes('.env') || file.endsWith('.pem') || file.endsWith('.key')) {
+          await runGitCommand(['reset', 'HEAD', '--', file], cwd); // Unstage secret file
+          throw new Error(`Güvenlik: Hassas bilgi içerebilecek dosya yakalandı ve geri alındı (${file}). Yedekleme durduruldu.`);
+        }
+      }
+    }
+
     await runGitCommand(['add', '.'], cwd);
-    // Commit
+    
+    // Re-check after add (in case of new tracked secrets)
+    const { stdout: finalDiff } = await runGitCommand(['diff', '--cached', '--name-only'], cwd);
+    if (finalDiff) {
+      const finalFiles = finalDiff.split('\n');
+      for (const file of finalFiles) {
+        if (file.includes('.env') || file.endsWith('.pem') || file.endsWith('.key')) {
+           await runGitCommand(['reset', 'HEAD'], cwd);
+           throw new Error(`Yedekleme durduruldu. Hassas bilgi içerebilecek dosyalar tespit edildi: ${file}`);
+        }
+      }
+    }
+
     await runGitCommand(['commit', '-m', message], cwd);
   }
 };

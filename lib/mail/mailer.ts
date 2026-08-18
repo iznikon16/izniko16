@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import type { SendMailOptions } from 'nodemailer';
 import type { Json } from '@/lib/supabase/database.types';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { decryptToken } from '@/lib/security/encryption';
 
 export type EmailTemplateKey =
   | 'admin_order_created'
@@ -165,10 +166,15 @@ export async function sendTemplatedMail({
     ? renderTemplateString(template.text_body, variables, 'text')
     : stripHtml(renderedHtml);
 
+  let smtpPassword = settings.password || '';
+  if (smtpPassword) {
+    try { smtpPassword = decryptToken(smtpPassword); } catch {}
+  }
+
   const transporter = nodemailer.createTransport({
     auth: settings.username
       ? {
-          pass: settings.password,
+          pass: smtpPassword,
           user: settings.username,
         }
       : undefined,
@@ -224,8 +230,13 @@ export async function testSmtpConnection(): Promise<SmtpTestResult> {
     return { ok: false, message: 'SMTP ayarı eksik: host ve gönderen e-posta gerekli.' };
   }
 
+  let smtpPassword = settings.password || '';
+  if (smtpPassword) {
+    try { smtpPassword = decryptToken(smtpPassword); } catch {}
+  }
+
   const transporter = nodemailer.createTransport({
-    auth: settings.username ? { pass: settings.password, user: settings.username } : undefined,
+    auth: settings.username ? { pass: smtpPassword, user: settings.username } : undefined,
     host: settings.host,
     port: settings.port,
     secure: settings.secure,

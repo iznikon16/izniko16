@@ -77,9 +77,9 @@ const navigationGroups: NavigationGroup[] = [
     label: 'Stok',
     icon: Boxes,
     items: [
-      { href: '/admin/stok', label: 'Stok Durumu', icon: Boxes },
-      { href: '/admin/stok/hareketler', label: 'Stok Hareketleri', icon: ArrowDownUp },
-      { href: '/admin/stok/kritik', label: 'Kritik Stok', icon: TriangleAlert },
+      { href: '/admin/stock', label: 'Stok Durumu', icon: Boxes },
+      { href: '/admin/stock/hareketler', label: 'Stok Hareketleri', icon: ArrowDownUp },
+      { href: '/admin/stock/kritik', label: 'Kritik Stok', icon: TriangleAlert },
     ],
   },
   {
@@ -87,10 +87,10 @@ const navigationGroups: NavigationGroup[] = [
     label: 'Entegrasyonlar',
     icon: Plug,
     items: [
-      { href: '/admin/entegrasyonlar/xml', label: 'XML Kaynakları', icon: FileCode },
-      { href: '/admin/entegrasyonlar/xml/aktarimlar', label: 'XML Aktarımları', icon: FileCode },
-      { href: '/admin/entegrasyonlar/netgsm', label: 'Netgsm', icon: MessageSquareText },
-      { href: '/admin/entegrasyonlar/odeal', label: 'Ödeal', icon: WalletCards },
+      { href: '/admin/integrations/xml', label: 'XML Kaynakları', icon: FileCode },
+      { href: '/admin/integrations/xml/aktarimlar', label: 'XML Aktarımları', icon: FileCode },
+      { href: '/admin/integrations/netgsm', label: 'Netgsm', icon: MessageSquareText },
+      { href: '/admin/integrations/odeal', label: 'Ödeal', icon: WalletCards },
     ],
   },
   {
@@ -101,7 +101,7 @@ const navigationGroups: NavigationGroup[] = [
       { href: '/admin/products', label: 'Ürünler', icon: PackageSearch },
       { href: '/admin/categories', label: 'Kategoriler', icon: FolderTree },
       { href: '/admin/brands', label: 'Markalar', icon: Tags },
-      { href: '/admin/katalog/fiyat-listeleri', label: 'Fiyat Listeleri', icon: Percent },
+      { href: '/admin/pricing', label: 'Fiyat Listeleri', icon: Percent },
     ],
   },
   {

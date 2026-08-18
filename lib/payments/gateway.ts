@@ -5,6 +5,8 @@ import type { OrderItemRow, OrderRow, PaymentAttemptRow, PaymentMethodRow } from
 import { getBankTransferDetails, mergeBankTransferDetails } from '@/lib/commerce/payment-display';
 import type { Json } from '@/lib/supabase/database.types';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { PAYMENT_PROVIDER_DEFINITIONS, type PaymentProviderKey } from '@/lib/commerce/payment-provider-presets';
+import { decryptToken } from '@/lib/security/encryption';
 
 type PaymentAttemptContext = {
   attempt: PaymentAttemptRow;
@@ -57,7 +59,24 @@ function asRecord(value: Json | null | undefined) {
 
 function getConfigString(method: PaymentMethodRow, key: string) {
   const value = asRecord(method.config)[key];
-  return typeof value === 'string' ? value.trim() : '';
+  if (typeof value !== 'string') return '';
+  
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  const providerDef = PAYMENT_PROVIDER_DEFINITIONS[method.provider as PaymentProviderKey];
+  const fieldDef = providerDef?.configFields.find((f) => f.key === key);
+
+  if (fieldDef?.secret) {
+    try {
+      return decryptToken(trimmed);
+    } catch {
+      // Fallback for unencrypted legacy secrets
+      return trimmed;
+    }
+  }
+
+  return trimmed;
 }
 
 function getConfigBoolean(method: PaymentMethodRow, key: string, fallback = false) {

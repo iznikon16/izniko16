@@ -12,7 +12,7 @@ Bu proje **local-first** mimaride çalışır. Tüm business logic (ürün, mü�
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://gulpzppljunptzlefxit.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ucb8gMQYhLaMwkRynCtnag_rxXODve4
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 
 # Storage bucket adı (Supabase Storage'da oluşturulmalı)
 SUPABASE_STORAGE_BUCKET=product-media

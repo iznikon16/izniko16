@@ -23,6 +23,7 @@ import type {
 } from '@/lib/catalog/types';
 import { getStoragePublicUrl } from '@/lib/catalog/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { PAYMENT_PROVIDER_DEFINITIONS, type PaymentProviderKey } from '@/lib/commerce/payment-provider-presets';
 
 function mapHomeVideoSettings(settings: HomeVideoSettingsRow): HomeVideoSettings {
   return {
@@ -324,7 +325,24 @@ export async function getAdminPaymentMethods() {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as PaymentMethodRow[];
+  return ((data ?? []) as PaymentMethodRow[]).map((method) => {
+    const providerKey = method.provider as PaymentProviderKey;
+    const providerDef = PAYMENT_PROVIDER_DEFINITIONS[providerKey];
+    if (!providerDef || !method.config || typeof method.config !== 'object') {
+      return method;
+    }
+
+    const secretKeys = new Set(providerDef.configFields.filter((f) => f.secret).map((f) => f.key));
+    const maskedConfig = { ...(method.config as Record<string, unknown>) };
+    
+    for (const key of secretKeys) {
+      if (typeof maskedConfig[key] === 'string' && maskedConfig[key]) {
+        maskedConfig[key] = '******';
+      }
+    }
+
+    return { ...method, config: maskedConfig };
+  });
 }
 
 export async function getCheckoutPaymentMethods(): Promise<CheckoutPaymentMethod[]> {

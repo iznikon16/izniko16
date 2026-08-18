@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const daysParam = searchParams.get('days');
     const days = daysParam && daysParam !== 'all' ? parseInt(daysParam) : 7;
     
-    const metrics = await getAdminDashboardMetrics(days);
+    const metrics = await getAdminDashboardMetrics();
     const accounting = await getDashboardAccountingMetrics(days);
     const orderTrend = await getOrderTrend(days);
     

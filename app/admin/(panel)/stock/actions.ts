@@ -2,12 +2,12 @@
 
 import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { applyManualStockChange } from '@/lib/stock/queries';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function manualStockInAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.manageStock');
   const productId = String(formData.get('product_id') ?? '').trim();
   const quantity = Number(String(formData.get('quantity') ?? '').replace(',', '.'));
   const reference = String(formData.get('reference') ?? '').trim();
@@ -21,7 +21,7 @@ export async function manualStockInAction(formData: FormData): Promise<void> {
 }
 
 export async function manualStockOutAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.manageStock');
   const productId = String(formData.get('product_id') ?? '').trim();
   const quantity = Number(String(formData.get('quantity') ?? '').replace(',', '.'));
   const reference = String(formData.get('reference') ?? '').trim();
@@ -35,7 +35,7 @@ export async function manualStockOutAction(formData: FormData): Promise<void> {
 }
 
 export async function updateCriticalStockAction(formData: FormData): Promise<void> {
-  await requireAdminSession();
+  await requireAdminPermission('product.manageStock');
   const productId = String(formData.get('product_id') ?? '').trim();
   const critical = Number(String(formData.get('critical_stock') ?? '').replace(',', '.'));
   const level = Number.isFinite(critical) ? Math.max(0, critical) : 0;
