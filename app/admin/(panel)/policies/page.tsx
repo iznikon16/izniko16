@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { ArrowRight, Eye, EyeOff, FileText, ShieldCheck } from 'lucide-react';
 import { getAdminPolicyPages } from '@/lib/policies/queries';
 
@@ -48,7 +48,7 @@ export default async function AdminPoliciesPage() {
               <Link
                 key={policy.id}
                 href={`/admin/policies/${policy.slug}`}
-                className="group grid gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5 transition-colors hover:border-gray-300 hover:bg-white/[0.055] lg:grid-cols-[minmax(0,1fr)_170px_120px]"
+                className="group grid gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5 transition-colors hover:border-gray-300 hover:bg-gray-50 lg:grid-cols-[minmax(0,1fr)_170px_120px]"
               >
                 <div className="flex min-w-0 gap-4">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600/15 text-blue-600">
@@ -66,7 +66,7 @@ export default async function AdminPoliciesPage() {
                 </span>
 
                 <span className="flex items-center justify-between gap-3 lg:justify-end">
-                  <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${policy.is_published ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-100' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
+                  <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${policy.is_published ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
                     {policy.is_published ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
                     {policy.is_published ? 'Yayında' : 'Kapalı'}
                   </span>
@@ -80,3 +80,4 @@ export default async function AdminPoliciesPage() {
     </div>
   );
 }
+

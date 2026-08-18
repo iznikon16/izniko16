@@ -1,4 +1,4 @@
-import Image from 'next/image';
+﻿import Image from 'next/image';
 import { ChevronDown } from 'lucide-react';
 import { deleteHomeSlideAction, saveHomeSlideAction } from '@/app/admin/(panel)/actions';
 import { AdminFilePicker, AdminFormPendingNotice } from '@/components/admin/admin-form-feedback';
@@ -19,7 +19,7 @@ function HomeSlideForm({ slide }: { slide?: HomeSlide }) {
             <span
               className={
                 slide.is_active
-                  ? 'rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-100'
+                  ? 'rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700'
                   : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'
               }
             >
@@ -147,3 +147,4 @@ export default async function AdminHomeSlidesPage() {
     </div>
   );
 }
+

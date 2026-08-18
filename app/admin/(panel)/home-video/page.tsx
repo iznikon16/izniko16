@@ -1,4 +1,4 @@
-import { ExternalLink, Play, Video } from 'lucide-react';
+﻿import { ExternalLink, Play, Video } from 'lucide-react';
 import { saveHomeVideoAction } from '@/app/admin/(panel)/actions';
 import { AdminFormPendingNotice } from '@/components/admin/admin-form-feedback';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
@@ -86,7 +86,7 @@ export default async function AdminHomeVideoPage() {
               idleLabel="Video Ayarını Kaydet"
               pendingLabel="Kaydediliyor..."
               icon={<Video className="h-4 w-4" />}
-              className="inline-flex w-fit items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-gray-900 transition-colors hover:bg-[#f05a3f] disabled:opacity-70"
+              className="inline-flex w-fit items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700 disabled:opacity-70"
             />
           </form>
 
@@ -130,3 +130,4 @@ export default async function AdminHomeVideoPage() {
     </div>
   );
 }
+

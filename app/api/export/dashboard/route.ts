@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const days = daysParam && daysParam !== 'all' ? parseInt(daysParam) : 7;
     
     const metrics = await getAdminDashboardMetrics();
-    const accounting = await getDashboardAccountingMetrics(days);
+    const accounting = await getDashboardAccountingMetrics();
     const orderTrend = await getOrderTrend(days);
     
     // Basit bir CSV yapısı - Excel'de TR karakter sorunu olmaması için UTF-8 BOM (\uFEFF) ekliyoruz

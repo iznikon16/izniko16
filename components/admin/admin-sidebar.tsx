@@ -195,7 +195,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
         <Link
           href={panelLink.href}
           className={cn(
-            'group mb-6 flex items-center rounded-xl transition-colors',
+            'group mb-6 flex items-center rounded-xl transition-colors whitespace-nowrap',
             isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3',
             isPanelActive
               ? 'bg-sky-50 text-sky-600'
@@ -219,7 +219,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
                     setOpenGroups((curr) => ({ ...curr, [key]: !isOpen }));
                   }}
                   className={cn(
-                    "flex w-full items-center rounded-lg py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50",
+                    "flex w-full items-center rounded-lg py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 whitespace-nowrap",
                     isCollapsed ? "justify-center px-0" : "justify-between px-4"
                   )}
                   title={isCollapsed ? label : undefined}
@@ -244,7 +244,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
                           key={item.href}
                           href={item.href}
                           className={cn(
-                            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
+                            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors whitespace-nowrap',
                             isActive
                               ? 'bg-sky-50 font-medium text-sky-600'
                               : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'

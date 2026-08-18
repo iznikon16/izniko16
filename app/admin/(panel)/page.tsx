@@ -475,7 +475,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
           <div className="flex-1 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-4 shadow-sm shadow-[#cbd5e1]/10">
             <h3 className="font-bold text-gray-900 mb-3 text-[13px]">Hızlı İşlemler</h3>
             <div className="grid grid-cols-2 gap-2">
-              <Link href="/admin/customers/new" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-blue-600">
+              <Link href="/admin/customers" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-blue-600">
                 <UserPlus className="h-5 w-5" />
                 <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">Müşteri</span>
               </Link>
@@ -483,11 +483,11 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
                 <PackagePlus className="h-5 w-5" />
                 <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">Ürün</span>
               </Link>
-              <Link href="/admin/accounting" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-emerald-500">
+              <Link href="/admin/accounting/tahsilatlar" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-emerald-500">
                 <Landmark className="h-5 w-5" />
                 <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">Tahsilat</span>
               </Link>
-              <Link href="/admin/entegrasyonlar/xml/aktarimlar" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-indigo-500">
+              <Link href="/admin/integrations/xml" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-indigo-500">
                 <RefreshCw className="h-5 w-5" />
                 <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">XML</span>
               </Link>

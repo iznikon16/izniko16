@@ -1,4 +1,4 @@
-import { deleteCampaignAction, saveCampaignAction } from '@/app/admin/(panel)/actions';
+﻿import { deleteCampaignAction, saveCampaignAction } from '@/app/admin/(panel)/actions';
 import { getAdminCampaigns } from '@/lib/admin/commerce-queries';
 import { formatCommercePrice } from '@/lib/commerce/format';
 import type { CampaignRow } from '@/lib/catalog/types';
@@ -31,7 +31,7 @@ function CampaignForm({ campaign }: { campaign?: CampaignRow }) {
               <span className="rounded-full border border-gray-200 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500">
                 {campaign.is_featured ? 'Öne çıkan' : 'Standart'}
               </span>
-              <span className={campaign.is_active ? 'rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-100' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
+              <span className={campaign.is_active ? 'rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
                 {campaign.is_active ? 'Aktif' : 'Pasif'}
               </span>
             </>
@@ -153,7 +153,7 @@ function CampaignForm({ campaign }: { campaign?: CampaignRow }) {
           </details>
 
           <div className="flex flex-wrap gap-2">
-            <button type="submit" className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-gray-900 transition-colors hover:bg-[#f05a3f]">
+            <button type="submit" className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700">
               {campaign ? 'Kampanyayı Güncelle' : 'Kampanya Ekle'}
             </button>
           </div>
@@ -196,3 +196,4 @@ export default async function AdminCampaignsPage() {
     </div>
   );
 }
+

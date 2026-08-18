@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronDown, ImageIcon, MapPin, Star } from 'lucide-react';
+﻿import { CalendarDays, ChevronDown, ImageIcon, MapPin, Star } from 'lucide-react';
 import { deleteProjectReferenceAction, saveProjectReferenceAction } from '@/app/admin/(panel)/actions';
 import { AdminFilePicker, AdminFormPendingNotice } from '@/components/admin/admin-form-feedback';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
@@ -32,7 +32,7 @@ function ReferenceForm({ reference }: { reference?: ProjectReference }) {
               <span className={reference.is_featured ? 'rounded-full border border-blue-300/24 bg-blue-600/12 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-600' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
                 {reference.is_featured ? 'Öne çıkan' : 'Standart'}
               </span>
-              <span className={reference.is_active ? 'rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-100' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
+              <span className={reference.is_active ? 'rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
                 {reference.is_active ? 'Aktif' : 'Pasif'}
               </span>
             </>
@@ -170,7 +170,7 @@ function ReferenceForm({ reference }: { reference?: ProjectReference }) {
             <FormSubmitButton
               idleLabel={reference ? 'Referansı Güncelle' : 'Referans Ekle'}
               pendingLabel={reference ? 'Güncelleniyor...' : 'Kaydediliyor...'}
-              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-gray-900 transition-colors hover:bg-[#f05a3f] disabled:opacity-70"
+              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700 disabled:opacity-70"
             />
           </div>
         </form>
@@ -214,3 +214,4 @@ export default async function AdminReferencesPage() {
     </div>
   );
 }
+

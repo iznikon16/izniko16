@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { CheckCircle2, MailCheck, Megaphone, Send, UsersRound, XCircle } from 'lucide-react';
 import { sendMarketingEmailAction } from '@/app/admin/(panel)/marketing/actions';
 import { getMarketingDashboardData } from '@/lib/admin/marketing-queries';
@@ -25,7 +25,7 @@ function getLogTone(status: string) {
   if (status === 'sent') {
     return {
       Icon: CheckCircle2,
-      className: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-100',
+      className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
       label: 'Gönderildi',
     };
   }
@@ -59,7 +59,7 @@ export default async function AdminMarketingPage({ searchParams }: AdminMarketin
             </p>
 
             {sent || failed || skipped ? (
-              <div className="mt-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm leading-6 text-emerald-100">
+              <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-700">
                 Gönderim tamamlandı. Gönderilen: {sent || 0}, hata: {failed || 0}, atlanan: {skipped || 0}.
               </div>
             ) : null}
@@ -217,3 +217,4 @@ export default async function AdminMarketingPage({ searchParams }: AdminMarketin
     </div>
   );
 }
+

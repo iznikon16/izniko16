@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface CartItem {
-  id: number;
+  id: string | number;
   name: string;
   code: string;
   price: string;
@@ -15,9 +15,9 @@ export interface CartItem {
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: { id: number; name: string; code: string; price: string; unit: string; img: string }, qty?: number) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, qty: number) => void;
+  addToCart: (product: { id: string | number; name: string; code: string; price: string; unit: string; img: string }, qty?: number) => void;
+  removeFromCart: (productId: string | number) => void;
+  updateQuantity: (productId: string | number, qty: number) => void;
   clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
@@ -72,7 +72,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Add to cart without opening popup drawer
-  const addToCart = (product: { id: number; name: string; code: string; price: string; unit: string; img: string }, qty: number = 1) => {
+  const addToCart = (product: { id: string | number; name: string; code: string; price: string; unit: string; img: string }, qty: number = 1) => {
     const numPrice = parsePrice(product.price);
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex((item) => item.id === product.id);
@@ -99,11 +99,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // DO NOT trigger popup drawer automatically as requested!
   };
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: string | number) => {
     setCart((prev) => prev.filter((item) => item.id !== productId));
   };
 
-  const updateQuantity = (productId: number, qty: number) => {
+  const updateQuantity = (productId: string | number, qty: number) => {
     if (qty <= 0) {
       removeFromCart(productId);
       return;

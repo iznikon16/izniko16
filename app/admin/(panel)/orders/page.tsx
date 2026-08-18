@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { ChevronDown, MapPin, MessageSquare, Search, SlidersHorizontal, X } from 'lucide-react';
 import { deleteOrderAction, saveOrderAction } from '@/app/admin/(panel)/actions';
 import { DeleteSubmitButton } from '@/components/admin/delete-submit-button';
@@ -109,7 +109,7 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
 
   return (
     <details className="group border-t border-gray-100 first:border-t-0">
-      <summary className="grid cursor-pointer list-none gap-3 px-4 py-3 outline-none transition-colors hover:bg-white/[0.035] xl:grid-cols-[180px_minmax(190px,1fr)_170px_160px_105px_130px_34px] xl:items-center">
+      <summary className="grid cursor-pointer list-none gap-3 px-4 py-3 outline-none transition-colors hover:bg-gray-50 xl:grid-cols-[180px_minmax(190px,1fr)_170px_160px_105px_130px_34px] xl:items-center">
         <div className="min-w-0">
           <Badge variant="info" className="max-w-full">
             <span className="truncate">{order.order_number}</span>
@@ -326,7 +326,7 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
 function OrdersTable({ orders, paymentMethods }: { orders: AdminOrderRecord[]; paymentMethods: PaymentMethodRow[] }) {
   return (
     <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 bg-white/[0.025]">
-      <div className="hidden border-b border-gray-100 bg-black/30 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 xl:grid xl:grid-cols-[180px_minmax(190px,1fr)_170px_160px_105px_130px_34px]">
+      <div className="hidden border-b border-gray-100 bg-gray-50 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 xl:grid xl:grid-cols-[180px_minmax(190px,1fr)_170px_160px_105px_130px_34px]">
         <span>Sipariş</span>
         <span>Müşteri</span>
         <span>Durum</span>
@@ -336,7 +336,7 @@ function OrdersTable({ orders, paymentMethods }: { orders: AdminOrderRecord[]; p
         <span />
       </div>
       {orders.map((order) => (
-        <OrderRow key={order.id} order={order} paymentMethods={paymentMethods} />
+        <OrderRow key={order.id} order={order} paymentMethods={paymentMethods as any} />
       ))}
     </div>
   );
@@ -437,10 +437,11 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
             description="Bu filtrelerle eşleşen sipariş kaydı bulunmamaktadır."
           />
         ) : (
-          <OrdersTable orders={orders} paymentMethods={paymentMethods} />
+          <OrdersTable orders={orders} paymentMethods={paymentMethods as any} />
         )}
         </CardContent>
       </Card>
     </div>
   );
 }
+

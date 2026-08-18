@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 import { LogoutButton } from '@/components/admin/logout-button';
 import { requireAdminSession } from '@/lib/auth/admin';
 import { MobileSidebar } from '@/components/admin/mobile-sidebar';
@@ -31,6 +33,14 @@ export async function AdminHeader() {
 
       {/* Right side */}
       <div className="flex items-center gap-4">
+        <Link
+          href="/"
+          target="_blank"
+          className="hidden items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900 md:flex"
+        >
+          <ExternalLink className="h-4 w-4 text-gray-500" />
+          Vitrini Görüntüle
+        </Link>
         {/* Badges */}
         <div className="hidden items-center gap-2 md:flex">
           <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-600">

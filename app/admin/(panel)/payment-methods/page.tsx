@@ -32,12 +32,12 @@ function PaymentMethodForm({ paymentMethod }: { paymentMethod?: PaymentMethodRow
               <span className="rounded-full border border-gray-200 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500">
                 {getPaymentIntegrationTypeLabel(paymentMethod.integration_type)}
               </span>
-              <span className={paymentMethod.is_active ? 'rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-100' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
+              <span className={paymentMethod.is_active ? 'rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
                 {paymentMethod.is_active ? 'Aktif' : 'Pasif'}
               </span>
             </>
           ) : (
-            <span className="rounded-full border border-blue-300/20 bg-blue-600/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-600">
+            <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-600">
               Yeni kayıt
             </span>
           )}
@@ -148,7 +148,7 @@ export default async function AdminPaymentMethodsPage() {
         <div className="mt-6 grid gap-4">
           <PaymentMethodForm />
           {paymentMethods.map((paymentMethod) => (
-            <PaymentMethodForm key={paymentMethod.id} paymentMethod={paymentMethod} />
+            <PaymentMethodForm key={paymentMethod.id} paymentMethod={paymentMethod as any} />
           ))}
         </div>
       </section>

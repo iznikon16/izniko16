@@ -1,4 +1,4 @@
-import { deleteCouponAction, saveCouponAction } from '@/app/admin/(panel)/actions';
+﻿import { deleteCouponAction, saveCouponAction } from '@/app/admin/(panel)/actions';
 import { getAdminCoupons } from '@/lib/admin/commerce-queries';
 import { formatCommercePrice } from '@/lib/commerce/format';
 import type { CouponRow } from '@/lib/catalog/types';
@@ -26,7 +26,7 @@ function CouponForm({ coupon }: { coupon?: CouponRow }) {
                 {discountLabel}
               </span>
               <span className="rounded-full border border-gray-200 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500">{usageLabel}</span>
-              <span className={coupon.is_active ? 'rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-100' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
+              <span className={coupon.is_active ? 'rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
                 {coupon.is_active ? 'Aktif' : 'Pasif'}
               </span>
             </>
@@ -144,7 +144,7 @@ function CouponForm({ coupon }: { coupon?: CouponRow }) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button type="submit" className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-gray-900 transition-colors hover:bg-[#f05a3f]">
+            <button type="submit" className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700">
               {coupon ? 'Kuponu Güncelle' : 'Kupon Ekle'}
             </button>
           </div>
@@ -187,3 +187,4 @@ export default async function AdminCouponsPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { ImageIcon } from 'lucide-react';
+﻿import { ImageIcon } from 'lucide-react';
 import { saveBrandAction, deleteBrandAction } from '@/app/admin/(panel)/actions';
 import { AdminFilePicker, AdminFormPendingNotice } from '@/components/admin/admin-form-feedback';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
@@ -100,7 +100,7 @@ function BrandForm({
           <FormSubmitButton
             idleLabel={brand?.id ? 'Güncelle' : 'Marka Ekle'}
             pendingLabel={brand?.id ? 'Güncelleniyor...' : 'Kaydediliyor...'}
-            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-gray-900 transition-colors hover:bg-[#f05a3f] disabled:opacity-70"
+            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700 disabled:opacity-70"
           />
         </div>
       </form>
@@ -144,3 +144,4 @@ export default async function BrandsPage() {
     </div>
   );
 }
+
