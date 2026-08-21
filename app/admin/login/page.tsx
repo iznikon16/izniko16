@@ -1,8 +1,9 @@
-import { redirect } from 'next/navigation';
+﻿import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { LockKeyhole, Sparkles, Database, ShieldCheck, ArrowRight, Zap, Layers, Boxes } from 'lucide-react';
+import { LockKeyhole, ShieldCheck, Zap, Boxes } from 'lucide-react';
 import { LoginForm } from '@/components/admin/login-form';
 import { getAdminSession } from '@/lib/auth/admin';
+import { SafeImage } from '@/components/ui/safe-image';
 
 export const metadata = {
   title: 'Yönetici & Bayi Girişi | İZNİKON',
@@ -43,7 +44,7 @@ export default async function AdminLoginPage() {
         {/* TOP BRAND HEADER */}
         <header className="relative z-10 mx-auto w-full max-w-7xl px-6 pt-8 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <img src="/logo.png" alt="İZNİKON Logo" className="h-10 w-auto transition-transform group-hover:scale-105" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="h-10 w-auto transition-transform group-hover:scale-105" />
             <span className="hidden sm:inline-block border-l border-slate-800/60 pl-3 text-xs font-bold tracking-widest text-slate-400 uppercase">
               B2B Toptan Portalı
             </span>

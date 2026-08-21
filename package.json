@@ -4,12 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3006 --webpack",
+    "check:utf8": "node scripts/check-utf8.mjs",
+    "prebuild": "npm run check:utf8",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.0",
@@ -26,6 +29,7 @@
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
     "framer-motion": "^13.1.0",
     "jose": "^6.2.9",
     "jspdf": "^4.2.1",
@@ -34,25 +38,35 @@
     "motion": "^13.1.0",
     "next": "16.3.1",
     "nodemailer": "^9.0.5",
+    "pdfmake": "^0.3.11",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "recharts": "^3.10.1",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
     "turkey-neighbourhoods": "^4.0.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
+    "@types/pdfmake": "^0.3.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "jest": "^30.4.2",
+    "supabase": "^2.115.0",
     "tailwindcss": "^4.3.3",
     "ts-jest": "^29.4.12",
     "typescript": "^5"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   }
 }

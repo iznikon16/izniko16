@@ -1,10 +1,29 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { StorefrontAccountAction } from "../../../components/storefront/storefront-account-action";
 import { useCart } from "../../../context/CartContext";
+import { SafeImage } from '@/components/ui/safe-image';
 
-export default function ProductDetailClient({ product }: { product: any }) {
+type ProductDetail = {
+  id: string | number;
+  name: string;
+  slug?: string;
+  category: string;
+  brand: string;
+  code: string;
+  price: string;
+  unit: string;
+  img: string;
+  tags: string[];
+  inStock: boolean;
+  boxQty: string;
+  description: string;
+  customerPriceSource: string | null;
+};
+
+export default function ProductDetailClient({ product, isAuthenticated }: { product: ProductDetail; isAuthenticated: boolean }) {
   const { addToCart, setIsCartOpen, itemCount, subtotal } = useCart();
   const [qty, setQty] = useState(1);
 
@@ -14,7 +33,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
       <header className="header">
         <div className="container header-container">
           <Link href="/" className="logo" aria-label="İZNİKON Ana Sayfasına Git">
-            <img src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
           </Link>
 
           <nav className="main-nav" aria-label="Ana Menü">
@@ -26,15 +45,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
           </nav>
 
           <div className="header-actions">
-            <a href="#" className="nav-link user-orders-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                <path d="M3 6h18" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-              Siparişlerim
-            </a>
-            <a href="#" className="nav-link btn-login">Giriş Yap</a>
+            <StorefrontAccountAction isAuthenticated={isAuthenticated} nextPath={`/urun/${product.slug ?? ''}`} />
             
             <div
               onClick={() => setIsCartOpen(true)}
@@ -96,7 +107,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
               </svg>
             </button>
           </div>
-          <img src={product.img} alt={product.name} style={{ width: "100%", maxWidth: "450px", height: "auto", objectFit: "contain" }} />
+          <SafeImage src={product.img} alt={product.name} style={{ width: "100%", maxWidth: "450px", height: "auto", objectFit: "contain" }} />
         </div>
 
         {/* PRODUCT DETAILS & BUY BOX */}
@@ -184,7 +195,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
               </div>
               <div>
                 <div style={{ fontWeight: "800", color: "#0f172a", fontSize: "0.95rem" }}>Aynı Gün Kargo</div>
-                <div style={{ color: "#64748b", fontSize: "0.85rem", fontWeight: "500" }}>Saat 15:00'a kadar verilen siparişler aynı gün kargoda.</div>
+                <div style={{ color: "#64748b", fontSize: "0.85rem", fontWeight: "500" }}>Saat 15:00&apos;a kadar verilen siparişler aynı gün kargoda.</div>
               </div>
             </div>
           </div>
@@ -206,7 +217,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <img src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
+              <SafeImage src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
               <p>Türkiye&apos;nin en hızlı B2B toptan nalbur, cıvata, elektrik ve tesisat malzemeleri tedarik platformu. 10.000+ çeşit orijinal stoklu ürün.</p>
             </div>
           </div>

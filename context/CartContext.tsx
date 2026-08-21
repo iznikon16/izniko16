@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useCallback, useContext, useState, useEffect } from "react";
 
 export interface CartItem {
   id: string | number;
@@ -39,19 +39,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Load cart from localStorage on client mount
   useEffect(() => {
-    try {
-      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
-      if (savedCart) {
-        const parsed = JSON.parse(savedCart);
-        if (Array.isArray(parsed)) {
-          setCart(parsed);
+    const frame = requestAnimationFrame(() => {
+      try {
+        const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+        if (savedCart) {
+          const parsed = JSON.parse(savedCart);
+          if (Array.isArray(parsed)) {
+            setCart(parsed);
+          }
         }
+      } catch (error) {
+        console.error("Failed to load cart from localStorage", error);
+      } finally {
+        setIsHydrated(true);
       }
-    } catch (e) {
-      console.error("Failed to load cart from localStorage", e);
-    } finally {
-      setIsHydrated(true);
-    }
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   // Save cart to localStorage whenever cart state updates
@@ -113,18 +116,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCart([]);
     try {
       localStorage.removeItem(CART_STORAGE_KEY);
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
 
   const subtotal = cart.reduce((sum, item) => sum + item.numericPrice * item.quantity, 0);
-  const vatAmount = subtotal * 0.20; // 20% KDV
-  const total = subtotal + vatAmount;
+  // Storefront prices are KDV dahil; checkout recalculates the authoritative total on the server.
+  const total = subtotal;
+  const vatAmount = subtotal - subtotal / 1.20;
   const itemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
   return (

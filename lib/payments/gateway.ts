@@ -311,61 +311,44 @@ async function markPaymentResult({
   raw?: Record<string, unknown>;
 }) {
   const supabase = createAdminClient();
-  const status = paid ? 'paid' : 'failed';
+  const metadata = {
+    ...asRecord(attempt.metadata),
+    callback_received_at: new Date().toISOString(),
+    callback_payload: raw ?? null,
+  } as Json;
+  const { data: paymentResults, error: paymentResultError } = await supabase.rpc(
+    'record_payment_result_with_accounting',
+    {
+      p_attempt_id: attempt.id,
+      p_failure_reason: failureReason ?? null,
+      p_metadata: metadata,
+      p_provider_reference: providerReference ?? attempt.provider_reference,
+      p_paid: paid,
+    }
+  );
+  const order = paymentResults?.[0];
 
-  const { error: attemptError } = await supabase
-    .from('payment_attempts')
-    .update({
-      failure_reason: failureReason ?? null,
-      metadata: {
-        ...asRecord(attempt.metadata),
-        callback_received_at: new Date().toISOString(),
-        callback_payload: raw ?? null,
-      } as Json,
-      provider_reference: providerReference ?? attempt.provider_reference,
-      status,
-    })
-    .eq('id', attempt.id);
-
-  if (attemptError) {
-    throw new Error(attemptError.message);
-  }
-
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .update({
-      payment_reference: providerReference ?? attempt.provider_reference,
-      payment_status: status,
-      status: paid ? 'confirmed' : 'pending_payment',
-    })
-    .eq('id', attempt.order_id)
-    .select('id, user_id, total')
-    .single();
-
-  if (orderError) {
-    throw new Error(orderError.message);
+  if (paymentResultError || !order) {
+    throw new Error(paymentResultError?.message ?? 'Ödeme sonucu siparişe işlenemedi.');
   }
 
   // Ödeme başarılıysa cariye borç işle (idempotent) + stok düşümü
-  if (paid && order?.user_id && Number(order.total) > 0) {
+  if (paid && order.customer_id && Number(order.order_total) > 0) {
     try {
-      const { postOrderToAccount } = await import('@/lib/accounting/mutations');
-      await postOrderToAccount(order.user_id, { id: order.id, total: Number(order.total) });
-
       // Stok düşümü
       const { data: items } = await supabase
         .from('order_items')
         .select('product_id, quantity')
-        .eq('order_id', order.id);
+        .eq('order_id', order.order_id);
       for (const item of items ?? []) {
         if (!item.product_id) continue;
         const { error: stockError } = await supabase.rpc('apply_stock_change', {
           p_product_id: item.product_id,
           p_quantity_change: -Math.max(0, Number(item.quantity) || 0),
           p_type: 'order_out',
-          p_reference: order.id,
-          p_order_id: order.id,
-          p_idempotency_key: `order-stock:${order.id}:${item.product_id}`,
+          p_reference: order.order_id,
+          p_order_id: order.order_id,
+          p_idempotency_key: `order-stock:${order.order_id}:${item.product_id}`,
         });
         // Stok yetersizse sessiz geç (sipariş zaten onaylandı)
         if (stockError) console.error(`Stok düşümü başarısız: ${item.product_id}`, stockError.message);
@@ -631,6 +614,7 @@ export function getPaymentAttemptDisplayData(context: PaymentAttemptContext) {
     paymentPageUrl: typeof metadata.payment_page_url === 'string' ? metadata.payment_page_url : null,
     provider: context.method.provider,
     providerName: context.method.name,
+    isAccountCharge: context.method.code === 'cari-bakiye' || metadata.account_charge === true,
     status: context.attempt.status,
     total: context.order.total,
   };

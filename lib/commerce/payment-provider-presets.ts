@@ -77,6 +77,8 @@ const apiKeyField: PaymentProviderConfigField = {
   key: 'apiKey',
   label: 'API key',
   placeholder: 'API key',
+  secret: true,
+  type: 'password',
 };
 
 const secretKeyField: PaymentProviderConfigField = {

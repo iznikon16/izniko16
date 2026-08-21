@@ -1,4 +1,4 @@
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { NetgsmSettingsRow, SmsTemplateRow, SmsLogRow } from '@/lib/catalog/types';
 import { saveNetgsmSettingsAction, saveSmsTemplateAction, deleteSmsTemplateAction, sendTestSmsAction } from '@/app/admin/(panel)/integrations/netgsm/actions';
@@ -22,7 +22,7 @@ export default async function NetgsmPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const params = await searchParams;
   const testState = getParam(params.test);
   const supabase = createAdminClient();

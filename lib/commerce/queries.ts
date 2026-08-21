@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
+import { getCustomerAccessStatus } from '@/lib/auth/customer-access';
+import { getSafeCustomerRedirectPath } from '@/lib/auth/safe-redirect';
 import type { CatalogProduct, CustomerAddressRow, CustomerProfileRow, OrderItemRow, OrderRow, PaymentAttemptRow, PaymentMethodRow } from '@/lib/catalog/types';
 import type { ResolvedCommerceCoupon } from '@/lib/commerce/coupons';
 import type { GuestCartItem } from '@/lib/commerce/guest-cart';
-import { formatCommercePrice } from '@/lib/commerce/format';
 import type { BankTransferDetails } from '@/lib/commerce/payment-display';
 import { getBankTransferDetails } from '@/lib/commerce/payment-display';
 import { getProductCheckoutPrice, getProductHref } from '@/lib/commerce/product';
@@ -54,15 +55,39 @@ export type CustomerOrder = OrderRow & {
 
 export async function getCustomerSession() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (error) {
+    console.warn('Supabase auth error in customer session:', error instanceof Error ? error.message : error);
+  }
 
   if (!user) {
     return null;
   }
 
-  const profile = await ensureCustomerProfile(user);
+  const adminSupabase = createAdminClient();
+  const { data: profile, error: profileError } = await adminSupabase
+    .from('customer_profiles')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    throw new Error('Müşteri oturumu doğrulanamadı.');
+  }
+
+  const accessStatus = getCustomerAccessStatus(profile);
+
+  if (accessStatus === 'missing_profile' || accessStatus === 'unverified' || !profile) {
+    return null;
+  }
+
+  if (accessStatus === 'blocked') {
+    await supabase.auth.signOut({ scope: 'global' });
+    return null;
+  }
 
   return {
     profile,
@@ -74,14 +99,15 @@ export async function requireCustomerSession(next = '/hesabim') {
   const session = await getCustomerSession();
 
   if (!session) {
-    redirect(`/giris?next=${encodeURIComponent(next)}`);
+    const safeNext = getSafeCustomerRedirectPath(next);
+    redirect(`/giris?next=${encodeURIComponent(safeNext)}`);
   }
 
   return session;
 }
 
 export async function ensureCustomerProfile(user: User) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const email = user.email ?? '';
   const fullName = typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : '';
   const marketingConsent = user.user_metadata?.marketing_consent === true || user.user_metadata?.marketing_consent === 'true';

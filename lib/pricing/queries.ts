@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient as createServerClient } from '@/lib/supabase/server';
-import type { CustomerDiscountRow, PriceListItemRow, ProductRow } from '@/lib/catalog/types';
+import type { PriceListItemRow, ProductRow } from '@/lib/catalog/types';
 
 /**
  * Merkezi PricingService.
@@ -74,7 +74,7 @@ export function resolveProductPriceForCustomer(
   context: ReturnType<typeof getCustomerPricingContext> extends Promise<infer T> ? T : never,
   options: ResolveOptions
 ): ResolvedPrice {
-  const { standardPrice, customerId, productId } = options;
+  const { standardPrice, productId } = options;
 
   // 1. Müşteri özel ürün fiyatı
   const special = context.specialPrices.get(productId);
@@ -111,7 +111,7 @@ export function resolveProductPriceForCustomer(
 /**
  * Katalog ürün listesini müşteri fiyatlarıyla zenginleştirir (B2B katalog görünümü).
  */
-export async function getCustomerPricedProducts(customerId: string, products: Array<Pick<ProductRow, 'id' | 'price'> & Record<string, unknown>>) {
+export async function getCustomerPricedProducts<T extends Pick<ProductRow, 'id' | 'price'>>(customerId: string, products: T[]) {
   const context = await getCustomerPricingContext(customerId);
   return products.map((product) => {
     const resolved = resolveProductPriceForCustomer(context, {

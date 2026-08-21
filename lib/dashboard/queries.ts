@@ -1,6 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { AccountTransactionRow, CustomerAccountRow, CustomerProfileRow, PaymentRow, ProductRow } from '@/lib/catalog/types';
-import { summarizeTransactions } from '@/lib/accounting/queries';
+import type { PaymentRow, ProductRow } from '@/lib/catalog/types';
 
 /**
  * Admin Dashboard için cari + stok metrikleri.
@@ -31,81 +30,56 @@ function todayISOStart() {
 export async function getDashboardAccountingMetrics(): Promise<DashboardAccountingMetrics> {
   const supabase = createAdminClient();
 
-  const [accountsRes, txsRes, paymentsRes, productsRes] = await Promise.all([
-    supabase.from('customer_accounts').select('*'),
-    supabase.from('account_transactions').select('*'),
+  const [summariesRes, dueRes, paymentsRes, productsRes] = await Promise.all([
+    supabase.from('customer_account_summaries').select('customer_id, customer_name, balance, risk_limit'),
+    supabase.from('customer_receivable_due_status').select('customer_id, remaining_amount, remaining_days, overdue_days'),
     supabase.from('payments').select('*').eq('status', 'completed').gte('paid_at', todayISOStart()),
     supabase.from('products').select('id, title, stock_quantity, critical_stock'),
   ]);
 
-  if (accountsRes.error) throw new Error(accountsRes.error.message);
-  if (txsRes.error) throw new Error(txsRes.error.message);
+  if (summariesRes.error) throw new Error(summariesRes.error.message);
+  if (dueRes.error) throw new Error(dueRes.error.message);
   if (paymentsRes.error) throw new Error(paymentsRes.error.message);
   if (productsRes.error) throw new Error(productsRes.error.message);
 
   const payments = (paymentsRes.data ?? []) as PaymentRow[];
   const products = (productsRes.data ?? []) as Pick<ProductRow, 'id' | 'title' | 'stock_quantity' | 'critical_stock'>[];
 
-  // Toplam alacak: tüm ledger'ı grupla
-  const txs = (txsRes.data ?? []) as AccountTransactionRow[];
-  let totalDebit = 0;
-  let totalCredit = 0;
+  const summaries = summariesRes.data ?? [];
+  const dueReceivables = dueRes.data ?? [];
   let dueToday = 0;
   let overdueTotal = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayISO = today.toISOString().slice(0, 10);
-
-  for (const tx of txs) {
-    totalDebit += Number(tx.debit) || 0;
-    totalCredit += Number(tx.credit) || 0;
-    const open = (Number(tx.debit) || 0) - (Number(tx.credit) || 0);
-    if (open > 0 && tx.due_date) {
-      if (tx.due_date === todayISO) dueToday += open;
-      else if (tx.due_date < todayISO) overdueTotal += open;
+  const overdueCustomerIds = new Set<string>();
+  for (const receivable of dueReceivables) {
+    const remaining = Number(receivable.remaining_amount) || 0;
+    const overdueDays = Number(receivable.overdue_days) || 0;
+    const remainingDays = Number(receivable.remaining_days) || 0;
+    if (remaining <= 0) continue;
+    if (overdueDays > 0) {
+      overdueTotal += remaining;
+      if (receivable.customer_id) overdueCustomerIds.add(receivable.customer_id);
+    } else if (remainingDays === 0) {
+      dueToday += remaining;
     }
   }
 
-  const totalReceivable = Math.max(0, totalDebit - totalCredit);
+  const totalReceivable = summaries.reduce((sum, summary) => sum + Math.max(0, Number(summary.balance) || 0), 0);
   const todayCollected = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-
-  // Vadesi geçen müşteri sayısı
-  const overdueCustomers = txs.reduce((set, tx) => {
-    const open = (Number(tx.debit) || 0) - (Number(tx.credit) || 0);
-    if (open > 0 && tx.due_date && tx.due_date < todayISO) {
-      set.add(tx.customer_id);
-    }
-    return set;
-  }, new Set<string>()).size;
+  const overdueCustomers = overdueCustomerIds.size;
 
   // Kritik stok
   const criticalStockCount = products.filter((p) => Number(p.stock_quantity) <= Number(p.critical_stock)).length;
 
   // Müşteri bazında risk limiti yaklaşanlar
-  const accounts = accountsRes.data ?? [];
-  const txsByCustomer = new Map<string, AccountTransactionRow[]>();
-  for (const tx of txs) {
-    const list = txsByCustomer.get(tx.customer_id) ?? [];
-    list.push(tx);
-    txsByCustomer.set(tx.customer_id, list);
-  }
-  const accountsById = new Map((accounts as CustomerAccountRow[]).map((a) => [a.customer_id, a]));
-  const profilesRes = await supabase.from('customer_profiles').select('user_id, full_name, email, is_vip, phone, is_blocked');
-  const profilesById = new Map((profilesRes.data ?? []).map((p) => [p.user_id, p as CustomerProfileRow]));
-
   const customersNearRiskLimit: DashboardAccountingMetrics['customersNearRiskLimit'] = [];
-  for (const [customerId, customerTxs] of txsByCustomer) {
-    const account = accountsById.get(customerId) as CustomerAccountRow | undefined;
-    if (!account) continue;
-    const riskLimit = Number(account.risk_limit) || 0;
+  for (const summary of summaries) {
+    const riskLimit = Number(summary.risk_limit) || 0;
     if (riskLimit <= 0) continue;
-    const summary = summarizeTransactions(customerTxs, account);
-    const balance = summary.balance;
+    const balance = Number(summary.balance) || 0;
     const usedPercent = Math.min(100, Math.round((balance / riskLimit) * 100));
     if (usedPercent >= 70) {
-      const profile = profilesById.get(customerId);
       customersNearRiskLimit.push({
-        customerName: profile?.full_name || profile?.email || customerId,
+        customerName: summary.customer_name || summary.customer_id || 'Bilinmeyen müşteri',
         balance,
         riskLimit,
         usedPercent,

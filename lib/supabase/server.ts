@@ -20,6 +20,9 @@ export async function createClient(): Promise<SupabaseClient<Database>> {
             signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
             signUp: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
             signOut: () => Promise.resolve({ error: null }),
+            exchangeCodeForSession: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+            resetPasswordForEmail: () => Promise.resolve({ data: {}, error: null }),
+            updateUser: () => Promise.resolve({ data: { user: null }, error: null }),
           };
         }
 

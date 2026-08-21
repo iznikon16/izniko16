@@ -99,7 +99,7 @@ export async function assignCustomerPriceListAction(formData: FormData): Promise
   const { error } = await supabase.from('customer_price_lists').insert({ customer_id: customerId, price_list_id: priceListId });
   if (error) throw new Error(error.message);
   revalidatePricing();
-  revalidatePath('/admin/musteriler'); // eslint-disable-line react-hooks/rules-of-hooks -- server action
+  revalidatePath('/admin/musteriler');
 }
 
 export async function saveCustomerDiscountAction(formData: FormData): Promise<void> {

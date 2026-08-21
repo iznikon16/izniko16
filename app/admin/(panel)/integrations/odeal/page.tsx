@@ -2,6 +2,7 @@ import { requireAdminSession } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { OdealSettingsRow } from '@/lib/catalog/types';
 import { saveOdealSettingsAction } from '@/app/admin/(panel)/integrations/odeal/actions';
+import { SECRET_MASK } from '@/lib/integrations/security';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,9 +25,9 @@ export default async function OdealPage() {
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">API Key</label>
             <input
-              type="text"
+              type="password"
               name="api_key"
-              defaultValue={settings?.api_key ?? ''}
+              defaultValue={settings?.api_key ? SECRET_MASK : ''}
               placeholder="Ödeal API Key"
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
             />
@@ -36,7 +37,7 @@ export default async function OdealPage() {
             <input
               type="password"
               name="secret_key"
-              defaultValue={settings?.secret_key ?? ''}
+              defaultValue={settings?.secret_key ? SECRET_MASK : ''}
               placeholder="Ödeal Secret Key"
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
             />
@@ -59,6 +60,9 @@ export default async function OdealPage() {
           Ödeal entegrasyonu ayrı bir payment provider abstraction üzerinden çalışır. Başarılı tahsilat → doğrulama → cari alacak hareketi akışı
           idempotent (aynı callback iki kez bakiyeyi etkilemez) olarak uygulanır. Resmi Ödeal API detayları eklenirken bu ayarlar esas alınır.
         </p>
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
+          Faz 22A&apos;da anahtarlar şifreli ve maskeli saklanır. Ödeal canlı ödeme adaptörü, resmi hesabınız ve test anahtarlarınızla Faz 22B kabul testinden geçmeden aktif kabul edilmez.
+        </div>
       </div>
     </div>
   );

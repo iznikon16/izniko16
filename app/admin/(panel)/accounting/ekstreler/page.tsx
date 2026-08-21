@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { CustomerProfileRow } from '@/lib/catalog/types';
 import { getAccountStatement } from '@/lib/accounting/queries';
@@ -9,12 +9,11 @@ import { ACCOUNT_TRANSACTION_LABELS } from '@/lib/accounting/types';
 export const dynamic = 'force-dynamic';
 
 function todayISODate() {
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Istanbul' });
 }
 
 function monthStartISODate() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+  return `${todayISODate().slice(0, 7)}-01`;
 }
 
 export default async function StatementsPage({
@@ -22,7 +21,7 @@ export default async function StatementsPage({
 }: {
   searchParams: Promise<{ customer?: string; from?: string; to?: string }>;
 }) {
-  await requireAdminSession();
+  await requireAdminPermission('account.viewStatement');
   const params = await searchParams;
   const selectedCustomerId = params.customer || '';
 
@@ -104,6 +103,7 @@ export default async function StatementsPage({
             <div className="flex flex-col justify-center rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs text-gray-500">Müşteri</p>
               <p className="mt-1 truncate text-sm font-semibold text-gray-900">{statement.customer?.full_name || statement.customer?.email || '—'}</p>
+              <p className="mt-1 text-xs text-gray-500">{statement.accountCode}</p>
             </div>
           </div>
 
@@ -165,10 +165,15 @@ export default async function StatementsPage({
           <div className="flex justify-end gap-2">
             <Link
               href={`/admin/accounting/ekstre/pdf?customer=${selectedCustomerId}&from=${fromDate}&to=${toDate}`}
-              target="_blank"
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
               PDF İndir
+            </Link>
+            <Link
+              href={`/admin/accounting/ekstre/excel?customer=${selectedCustomerId}&from=${fromDate}&to=${toDate}`}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            >
+              Excel İndir
             </Link>
             <Link
               href={`/admin/accounting/ekstre/csv?customer=${selectedCustomerId}&from=${fromDate}&to=${toDate}`}

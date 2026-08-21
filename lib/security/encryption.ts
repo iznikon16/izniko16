@@ -4,21 +4,46 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
 const VERSION = 'v1';
 
+function decodeBase64Key(rawKey: string): Buffer | null {
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(rawKey) || rawKey.length % 4 !== 0) return null;
+  const decoded = Buffer.from(rawKey, 'base64');
+  return decoded.length === 32 ? decoded : null;
+}
+
 /**
- * APP_ENCRYPTION_KEY or GITHUB_SYNC_ENCRYPTION_KEY must be a Base64 encoded 32-byte key.
+ * APP_ENCRYPTION_KEY must be a Base64 encoded 32-byte key. The legacy
+ * GITHUB_SYNC_ENCRYPTION_KEY also accepts the original 32-byte UTF-8 format
+ * so existing encrypted GitHub tokens can be migrated without exposing them.
  */
 function getEncryptionKey(): Buffer {
-  const rawKey = process.env.APP_ENCRYPTION_KEY || process.env.GITHUB_SYNC_ENCRYPTION_KEY;
-  if (!rawKey) {
+  const appKey = process.env.APP_ENCRYPTION_KEY;
+  if (appKey) {
+    const decoded = decodeBase64Key(appKey);
+    if (!decoded) throw new Error('APP_ENCRYPTION_KEY must be exactly a 32-byte Base64 string.');
+    return decoded;
+  }
+
+  const githubKey = process.env.GITHUB_SYNC_ENCRYPTION_KEY;
+  if (!githubKey) {
     throw new Error('Encryption key is not defined in environment variables.');
   }
-  
-  const keyBuffer = Buffer.from(rawKey, 'base64');
-  if (keyBuffer.length !== 32) {
-    throw new Error('Encryption key must be exactly a 32-byte Base64 string.');
-  }
-  
-  return keyBuffer;
+
+  const decoded = decodeBase64Key(githubKey);
+  if (decoded) return decoded;
+
+  const legacyKey = Buffer.from(githubKey, 'utf8');
+  if (legacyKey.length === 32) return legacyKey;
+
+  throw new Error('GITHUB_SYNC_ENCRYPTION_KEY must be a 32-byte Base64 or legacy UTF-8 string.');
+}
+
+export function isLegacyEncryptedToken(encryptedData: string): boolean {
+  return encryptedData.split(':').length === 3;
+}
+
+export function isEncryptedToken(value: string): boolean {
+  const parts = value.split(':');
+  return (parts.length === 4 && parts[0] === VERSION) || parts.length === 3;
 }
 
 /**
@@ -41,20 +66,25 @@ export function encryptToken(text: string): string {
 
 /**
  * Decrypts an encrypted token.
- * Expects format: v1:base64(iv):base64(authTag):base64(encryptedText)
+ * Accepts the current v1 format and the original unversioned format.
  */
 export function decryptToken(encryptedData: string): string {
   if (!encryptedData) return '';
-  
+
   const parts = encryptedData.split(':');
-  
-  // Desteklenen format: v1:<iv>:<authTag>:<ciphertext>
-  if (parts.length !== 4 || parts[0] !== VERSION) {
+
+  let ivBase64: string;
+  let authTagBase64: string;
+  let encryptedTextBase64: string;
+
+  if (parts.length === 4 && parts[0] === VERSION) {
+    [, ivBase64, authTagBase64, encryptedTextBase64] = parts;
+  } else if (parts.length === 3) {
+    [ivBase64, authTagBase64, encryptedTextBase64] = parts;
+  } else {
     throw new Error('Invalid or unsupported encrypted data format/version.');
   }
-  
-  const [, ivBase64, authTagBase64, encryptedTextBase64] = parts;
-  
+
   const key = getEncryptionKey();
   const iv = Buffer.from(ivBase64, 'base64');
   const authTag = Buffer.from(authTagBase64, 'base64');

@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
+import { decryptToken } from '@/lib/security/encryption';
 
 /**
  * Ödeal Payment Provider abstraction.
@@ -41,9 +42,13 @@ export async function getOdealConfig(): Promise<OdealProviderConfig | null> {
   const supabase = createAdminClient();
   const { data } = await supabase.from('odeal_settings').select('*').eq('id', 'main').maybeSingle();
   if (!data) return null;
+  const readSecret = (value: string) => {
+    if (!value) return '';
+    try { return decryptToken(value); } catch { return value; }
+  };
   return {
-    apiKey: data.api_key ?? '',
-    secretKey: data.secret_key ?? '',
+    apiKey: readSecret(data.api_key ?? ''),
+    secretKey: readSecret(data.secret_key ?? ''),
     isEnabled: data.is_enabled ?? false,
     isTestMode: data.is_test_mode ?? true,
   };
@@ -55,7 +60,7 @@ export async function getOdealConfig(): Promise<OdealProviderConfig | null> {
  */
 const ODEAL_API = {
   baseUrl: 'https://api.odeal.com',
-  sandboxBaseUrl: 'https://sandbox.api.odeal.com',
+  sandboxBaseUrl: 'https://api-stg.odeal.com',
   paymentInitPath: '/v1/payment/create',
   paymentDetailPath: '/v1/payment/detail',
   refundPath: '/v1/payment/refund',

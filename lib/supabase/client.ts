@@ -8,8 +8,8 @@ export function createClient(): SupabaseClient<Database> {
 
   if (!supabaseUrl || !publishableKey) {
     console.warn('Supabase environment variables are not configured. Returning dummy mock client.');
-    const dummyClient = new Proxy({} as any, {
-      get(target, prop) {
+    const dummyClient = new Proxy({} as Record<string, unknown>, {
+      get(_target, prop) {
         if (prop === 'auth') {
           return {
             getSession: () => Promise.resolve({ data: { session: null }, error: null }),
@@ -24,7 +24,7 @@ export function createClient(): SupabaseClient<Database> {
         if (prop === 'storage') {
           return {
             from: () => ({
-              getPublicUrl: (path: string) => ({ data: { publicUrl: '' } }),
+              getPublicUrl: (path: string) => { void path; return { data: { publicUrl: '' } }; },
               upload: () => Promise.resolve({ data: null, error: null }),
               remove: () => Promise.resolve({ data: null, error: null }),
             }),
@@ -32,10 +32,10 @@ export function createClient(): SupabaseClient<Database> {
         }
 
         const queryHandler = () => {
-          const queryBuilder = new Proxy({} as any, {
-            get(innerTarget, innerProp) {
+          const queryBuilder = new Proxy({} as Record<string, unknown>, {
+            get(_innerTarget, innerProp) {
               if (innerProp === 'then') {
-                return (resolve: any) => resolve({ data: [], error: null });
+                return (resolve: (value: { data: unknown[]; error: null }) => void) => resolve({ data: [], error: null });
               }
               return () => queryBuilder;
             },

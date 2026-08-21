@@ -60,6 +60,9 @@ const ACTION_LABELS: Record<string, string> = {
   xml_sync: 'XML Senkronizasyonu',
   settings_update: 'Ayarlar Güncelleme',
   customer_update: 'Müşteri Güncelleme',
+  managed_user_create: 'Kullanıcı Oluşturma',
+  managed_user_update: 'Kullanıcı ve Rol Güncelleme',
+  managed_user_password_change: 'Kullanıcı Şifresi Değiştirme',
 };
 
 export function getAuditActionLabel(action: string) {

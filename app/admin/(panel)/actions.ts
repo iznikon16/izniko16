@@ -5,15 +5,17 @@ import path from 'node:path';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdminPermission } from '@/lib/auth/admin';
+import { getPasswordPolicyError } from '@/lib/auth/password-policy';
 import { sanitizeProductHtml } from '@/lib/catalog/html';
 import { CATALOG_BASE_PATHS, getCatalogBasePath, STORAGE_BUCKET, parseTagInput, slugify } from '@/lib/catalog/utils';
 import { isPaymentProviderKey, PAYMENT_PROVIDER_DEFINITIONS } from '@/lib/commerce/payment-provider-presets';
-import { encryptToken } from '@/lib/security/encryption';
+import { encryptToken, isEncryptedToken } from '@/lib/security/encryption';
+import { SECRET_MASK, assertNoUnknownSecrets, getPaymentSecretKeys } from '@/lib/integrations/security';
+import { writeAuditLog } from '@/lib/audit/queries';
 import { sendOrderUpdateEmails } from '@/lib/mail/notifications';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { postOrderToAccount, cancelOrderInAccount } from '@/lib/accounting/mutations';
+import { cancelOrderInAccount } from '@/lib/accounting/mutations';
 import type { Database } from '@/lib/supabase/database.types';
-import { createClient as createServerClient } from '@/lib/supabase/server';
 
 type HighlightInput = {
   id?: string;
@@ -106,6 +108,26 @@ function revalidateProjectReferences() {
 
 function getText(formData: FormData, key: string) {
   return String(formData.get(key) ?? '').trim();
+}
+
+type ManagedUserRole = 'customer' | 'staff' | 'admin';
+
+function getManagedUserRole(formData: FormData): ManagedUserRole {
+  const role = getText(formData, 'role');
+  if (role === 'customer' || role === 'staff' || role === 'admin') return role;
+  throw new Error('Geçerli bir kullanıcı rolü seçin.');
+}
+
+function validateManagedUserEmail(email: string) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error('Geçerli bir e-posta adresi girin.');
+  }
+}
+
+function validateManagedUserPassword(password: string, confirmation: string) {
+  const passwordError = getPasswordPolicyError(password);
+  if (passwordError) throw new Error(passwordError);
+  if (password !== confirmation) throw new Error('Şifre tekrarı eşleşmiyor.');
 }
 
 function getOptionalNumber(formData: FormData, key: string) {
@@ -316,6 +338,7 @@ function revalidateAdminCommerce() {
   revalidatePath('/admin');
   revalidatePath('/admin/orders');
   revalidatePath('/admin/customers');
+  revalidatePath('/admin/yonetim/kullanicilar');
   revalidatePath('/admin/coupons');
   revalidatePath('/admin/campaigns');
   revalidatePath('/admin/payment-methods');
@@ -1134,21 +1157,12 @@ export async function deleteProductImageAction(formData: FormData) {
 }
 
 export async function saveOrderAction(formData: FormData) {
-  const supabase = await ensureAdmin('product.update');
+  const session = await requireAdminPermission('product.update');
+  const supabase = createAdminClient();
   const orderId = getText(formData, 'id');
 
   if (!orderId) {
     return;
-  }
-
-  const { data: previousOrder, error: previousOrderError } = await supabase
-    .from('orders')
-    .select('id, status, payment_status, user_id, total')
-    .eq('id', orderId)
-    .maybeSingle();
-
-  if (previousOrderError) {
-    throw new Error(previousOrderError.message);
   }
 
   const paymentMethodId = getText(formData, 'payment_method_id') || null;
@@ -1182,12 +1196,18 @@ export async function saveOrderAction(formData: FormData) {
     status: parseOrderStatus(getText(formData, 'status')),
   };
 
-  const { data: updatedOrder, error } = await supabase
-    .from('orders')
-    .update(payload)
-    .eq('id', orderId)
-    .select('id, status, payment_status')
-    .single();
+  const { data: updateResults, error } = await supabase.rpc('update_order_with_accounting', {
+    p_order_id: orderId,
+    p_admin_note: payload.admin_note ?? '',
+    p_note: payload.note ?? '',
+    p_payment_method_id: payload.payment_method_id ?? null,
+    p_payment_provider: payload.payment_provider ?? 'offline',
+    p_payment_reference: payload.payment_reference ?? null,
+    p_payment_status: payload.payment_status ?? 'pending',
+    p_status: payload.status ?? 'pending_payment',
+    p_actor_user_id: session.user.id,
+  });
+  const updatedOrder = updateResults?.[0];
 
   if (error || !updatedOrder) {
     throw new Error(error?.message ?? 'Sipariş güncellenemedi.');
@@ -1221,37 +1241,13 @@ export async function saveOrderAction(formData: FormData) {
     }
   }
 
-  if (previousOrder) {
-    await sendOrderUpdateEmails({
-      orderId,
-      previousPaymentStatus: previousOrder.payment_status,
-      previousStatus: previousOrder.status,
-    }).catch((mailError) => {
-      console.error('Order update email notification failed:', mailError);
-    });
-  }
-
-  if (previousOrder) {
-    // Sipariş → Cari otomatik işleme
-    const becamePaid = payload.payment_status === 'paid' && previousOrder.payment_status !== 'paid';
-    const becameFulfilled =
-      (payload.status === 'confirmed' || payload.status === 'preparing' || payload.status === 'shipped' || payload.status === 'completed') &&
-      previousOrder.status !== payload.status;
-    const becameCancelled = payload.status === 'cancelled' && previousOrder.status !== 'cancelled';
-    const orderTotal = Number(previousOrder.total) || 0;
-
-    if (previousOrder.user_id && orderTotal > 0 && (becamePaid || becameFulfilled)) {
-      await postOrderToAccount(previousOrder.user_id, { id: orderId, total: orderTotal }).catch((err) => {
-        console.error('Order→cari işlenemedi:', err);
-      });
-    }
-
-    if (previousOrder.user_id && orderTotal > 0 && becameCancelled) {
-      await cancelOrderInAccount(previousOrder.user_id, { id: orderId, total: orderTotal }).catch((err) => {
-        console.error('Sipariş iptali cariye işlenemedi:', err);
-      });
-    }
-  }
+  await sendOrderUpdateEmails({
+    orderId,
+    previousPaymentStatus: updatedOrder.previous_payment_status,
+    previousStatus: updatedOrder.previous_status,
+  }).catch((mailError) => {
+    console.error('Order update email notification failed:', mailError);
+  });
 
   revalidateAdminCommerce();
   revalidatePath('/admin/accounting/hareketler');
@@ -1259,25 +1255,23 @@ export async function saveOrderAction(formData: FormData) {
 }
 
 export async function deleteOrderAction(formData: FormData) {
-  const supabase = await ensureAdmin('product.update');
+  const session = await requireAdminPermission('product.update');
   const orderId = getText(formData, 'id');
 
   if (!orderId) {
     return;
   }
 
-  const { error } = await supabase.from('orders').delete().eq('id', orderId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  const result = await cancelOrderInAccount(orderId, { actorUserId: session.user.id });
+  if (!result.ok) throw new Error(result.error);
 
   revalidateAdminCommerce();
   redirect('/admin/orders');
 }
 
 export async function createCustomerAction(formData: FormData) {
-  const supabase = await ensureAdmin('order.changeStatus');
+  const session = await requireAdminPermission('customer.create');
+  const supabase = createAdminClient();
   const email = getText(formData, 'email');
   const password = getText(formData, 'password');
   const fullName = getText(formData, 'full_name');
@@ -1286,6 +1280,8 @@ export async function createCustomerAction(formData: FormData) {
   if (!email || !password) {
     throw new Error('E-posta ve şifre zorunludur.');
   }
+  const passwordError = getPasswordPolicyError(password);
+  if (passwordError) throw new Error(passwordError);
 
   // Create user in Auth
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -1311,17 +1307,208 @@ export async function createCustomerAction(formData: FormData) {
       full_name: fullName,
       phone: phone
     }).eq('user_id', authData.user.id);
+
+    await writeAuditLog({
+      actorUserId: session.user.id,
+      action: 'managed_user_create',
+      resourceType: 'user',
+      resourceId: authData.user.id,
+      newValue: { email, fullName, role: 'customer' },
+    });
   }
 
   revalidateAdminCommerce();
 }
+export async function createManagedUserAction(formData: FormData) {
+  const session = await requireAdminPermission('user.manage');
+  const supabase = createAdminClient();
+  const email = getText(formData, 'email').toLowerCase();
+  const fullName = getText(formData, 'full_name');
+  const phone = getText(formData, 'phone');
+  const role = getManagedUserRole(formData);
+  const password = String(formData.get('password') ?? '');
+  const passwordConfirmation = String(formData.get('password_confirm') ?? '');
+
+  validateManagedUserEmail(email);
+  validateManagedUserPassword(password, passwordConfirmation);
+
+  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: fullName, phone },
+  });
+
+  if (authError || !authData.user) {
+    throw new Error(authError?.message.toLowerCase().includes('already')
+      ? 'Bu e-posta adresi zaten kullanılıyor.'
+      : 'Supabase kullanıcısı oluşturulamadı.');
+  }
+
+  const userId = authData.user.id;
+  const profileResult = role === 'customer'
+    ? await supabase.from('customer_profiles').upsert({
+        email,
+        email_verified_at: new Date().toISOString(),
+        full_name: fullName,
+        is_blocked: false,
+        phone,
+        user_id: userId,
+      })
+    : await supabase.from('admin_users').upsert({
+        email,
+        full_name: fullName,
+        is_active: true,
+        is_super_admin: false,
+        role,
+        user_id: userId,
+      });
+
+  if (profileResult.error) {
+    await supabase.auth.admin.deleteUser(userId);
+    throw new Error('Kullanıcı profili oluşturulamadı; Auth kaydı geri alındı.');
+  }
+
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: 'managed_user_create',
+    resourceType: 'user',
+    resourceId: userId,
+    newValue: { email, fullName, role },
+  });
+
+  revalidateAdminCommerce();
+  return { ok: true };
+}
+
+export async function updateManagedUserAction(formData: FormData) {
+  const session = await requireAdminPermission('user.manage');
+  const supabase = createAdminClient();
+  const userId = getText(formData, 'user_id');
+  const email = getText(formData, 'email').toLowerCase();
+  const fullName = getText(formData, 'full_name');
+  const role = getManagedUserRole(formData);
+  const isActive = formData.get('is_active') === 'on';
+
+  if (!userId) throw new Error('Kullanıcı kimliği eksik.');
+  validateManagedUserEmail(email);
+
+  const [{ data: targetAdmin, error: targetAdminError }, { data: authUserData, error: authLookupError }] = await Promise.all([
+    supabase.from('admin_users').select('user_id, email, full_name, role, is_active, is_super_admin').eq('user_id', userId).maybeSingle(),
+    supabase.auth.admin.getUserById(userId),
+  ]);
+
+  if (targetAdminError || authLookupError || !authUserData.user) throw new Error('Kullanıcı bulunamadı.');
+  if (targetAdmin?.is_super_admin && !session.adminUser.is_super_admin) {
+    throw new Error('Süper yönetici hesabını yalnızca başka bir süper yönetici değiştirebilir.');
+  }
+  if (userId === session.user.id && (role !== session.adminUser.role || !isActive)) {
+    throw new Error('Kendi yönetici rolünüzü düşüremez veya hesabınızı pasife alamazsınız.');
+  }
+
+  const oldValue = {
+    email: authUserData.user.email ?? targetAdmin?.email ?? '',
+    fullName: targetAdmin?.full_name ?? '',
+    isActive: targetAdmin?.is_active ?? true,
+    role: targetAdmin?.role ?? 'customer',
+  };
+
+  const { error: authUpdateError } = await supabase.auth.admin.updateUserById(userId, {
+    ban_duration: isActive ? 'none' : '876000h',
+    email,
+    email_confirm: true,
+    user_metadata: { ...authUserData.user.user_metadata, full_name: fullName },
+  });
+  if (authUpdateError) throw new Error('Supabase Auth bilgileri güncellenemedi.');
+
+  if (role === 'customer') {
+    const { error: profileError } = await supabase.from('customer_profiles').upsert({
+      email,
+      email_verified_at: new Date().toISOString(),
+      full_name: fullName,
+      is_blocked: !isActive,
+      user_id: userId,
+    });
+    if (profileError) throw new Error('Müşteri profili güncellenemedi.');
+
+    const { error: deleteAdminError } = await supabase.from('admin_users').delete().eq('user_id', userId);
+    if (deleteAdminError) throw new Error('Eski yönetici rolü kaldırılamadı.');
+  } else {
+    const { error: adminError } = await supabase.from('admin_users').upsert({
+      email,
+      full_name: fullName,
+      is_active: isActive,
+      is_super_admin: targetAdmin?.is_super_admin ?? false,
+      role,
+      user_id: userId,
+    });
+    if (adminError) throw new Error('Yönetici rolü güncellenemedi.');
+
+    await supabase.from('customer_profiles').update({ is_blocked: true }).eq('user_id', userId);
+  }
+
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: 'managed_user_update',
+    resourceType: 'user',
+    resourceId: userId,
+    oldValue,
+    newValue: { email, fullName, isActive, role },
+  });
+
+  revalidateAdminCommerce();
+  return { ok: true };
+}
+
+export async function changeManagedUserPasswordAction(formData: FormData) {
+  const session = await requireAdminPermission('user.manageCredentials');
+  const supabase = createAdminClient();
+  const userId = getText(formData, 'user_id');
+  const password = String(formData.get('password') ?? '');
+  const passwordConfirmation = String(formData.get('password_confirm') ?? '');
+
+  if (!userId) throw new Error('Kullanıcı kimliği eksik.');
+  validateManagedUserPassword(password, passwordConfirmation);
+
+  const { data: targetAdmin, error: targetError } = await supabase
+    .from('admin_users')
+    .select('is_super_admin')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (targetError) throw new Error('Kullanıcı yetkisi doğrulanamadı.');
+  if (targetAdmin?.is_super_admin && !session.adminUser.is_super_admin) {
+    throw new Error('Süper yönetici şifresini yalnızca başka bir süper yönetici değiştirebilir.');
+  }
+
+  const { error } = await supabase.auth.admin.updateUserById(userId, { password });
+  if (error) throw new Error('Kullanıcı şifresi Supabase Auth üzerinde güncellenemedi.');
+
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: 'managed_user_password_change',
+    resourceType: 'user',
+    resourceId: userId,
+    metadata: { passwordStored: false },
+  });
+
+  return { ok: true };
+}
 
 export async function saveCustomerAction(formData: FormData) {
-  const supabase = await ensureAdmin('order.cancel');
+  const supabase = await ensureAdmin('customer.update');
   const userId = getText(formData, 'user_id');
 
   if (!userId) {
     return;
+  }
+
+  const isBlocked = formData.get('is_blocked') === 'on';
+  const { error: authError } = await supabase.auth.admin.updateUserById(userId, {
+    ban_duration: isBlocked ? '876000h' : 'none',
+  });
+
+  if (authError) {
+    throw new Error('Kullanıcı oturum durumu güncellenemedi.');
   }
 
   const { error } = await supabase
@@ -1329,7 +1516,7 @@ export async function saveCustomerAction(formData: FormData) {
     .update({
       admin_note: getText(formData, 'admin_note'),
       full_name: getText(formData, 'full_name'),
-      is_blocked: formData.get('is_blocked') === 'on',
+      is_blocked: isBlocked,
       phone: getText(formData, 'phone'),
     })
     .eq('user_id', userId);
@@ -1339,24 +1526,6 @@ export async function saveCustomerAction(formData: FormData) {
   }
 
   revalidateAdminCommerce();
-}
-
-export async function deleteCustomerAction(formData: FormData) {
-  const supabase = await ensureAdmin('customer.create');
-  const userId = getText(formData, 'user_id');
-
-  if (!userId) {
-    return;
-  }
-
-  const { error } = await supabase.auth.admin.deleteUser(userId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  revalidateAdminCommerce();
-  redirect('/admin/customers');
 }
 
 export async function saveCouponAction(formData: FormData) {
@@ -1708,7 +1877,8 @@ export async function deleteProjectReferenceAction(formData: FormData) {
 }
 
 export async function savePaymentMethodAction(formData: FormData) {
-  const supabase = await ensureAdmin('settings.view');
+  const session = await requireAdminPermission('settings.manageIntegrations');
+  const supabase = createAdminClient();
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
   const code = getText(formData, 'code') || slugify(name);
@@ -1719,11 +1889,12 @@ export async function savePaymentMethodAction(formData: FormData) {
 
   const providerKey = parsePaymentProvider(getText(formData, 'provider'));
   const rawConfig = parseJsonObjectField(formData, 'config');
+  assertNoUnknownSecrets(providerKey, rawConfig);
   const finalConfig: Record<string, unknown> = { ...rawConfig };
 
   const providerDef = PAYMENT_PROVIDER_DEFINITIONS[providerKey];
   if (providerDef) {
-    const secretKeys = new Set(providerDef.configFields.filter(f => f.secret).map(f => f.key));
+    const secretKeys = getPaymentSecretKeys(providerKey);
     if (secretKeys.size > 0) {
       let existingConfig: Record<string, unknown> = {};
       if (id) {
@@ -1735,8 +1906,11 @@ export async function savePaymentMethodAction(formData: FormData) {
 
       for (const key of secretKeys) {
         const val = finalConfig[key];
-        if (val === '******') {
-          finalConfig[key] = existingConfig[key] ?? null;
+        if (val === SECRET_MASK || val == null || val === '') {
+          const existingValue = existingConfig[key];
+          finalConfig[key] = typeof existingValue === 'string' && existingValue && !isEncryptedToken(existingValue)
+            ? encryptToken(existingValue)
+            : existingValue ?? null;
         } else if (typeof val === 'string' && val.trim() !== '') {
           finalConfig[key] = encryptToken(val.trim());
         }
@@ -1764,11 +1938,19 @@ export async function savePaymentMethodAction(formData: FormData) {
     throw new Error(error.message);
   }
 
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: id ? 'integration_payment_method_update' : 'integration_payment_method_create',
+    resourceType: 'payment_method',
+    resourceId: id || code,
+    newValue: { code, provider: providerKey, isActive: payload.is_active },
+  });
+
   revalidateAdminCommerce();
 }
 
 export async function deletePaymentMethodAction(formData: FormData) {
-  const supabase = await ensureAdmin('settings.view');
+  const supabase = await ensureAdmin('settings.manageIntegrations');
   const id = getText(formData, 'id');
 
   if (!id) {
@@ -1782,10 +1964,4 @@ export async function deletePaymentMethodAction(formData: FormData) {
   }
 
   revalidateAdminCommerce();
-}
-
-export async function signOutAction() {
-  const supabase = await createServerClient();
-  await supabase.auth.signOut();
-  redirect('/admin/login');
 }

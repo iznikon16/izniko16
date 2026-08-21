@@ -2,6 +2,7 @@ import { getPublicCatalogProducts, getPublicHomeSlides } from '@/lib/catalog/que
 import { getCustomerSession } from '@/lib/commerce/queries';
 import { getCustomerPricedProducts } from '@/lib/pricing/queries';
 import HomeClient from './HomeClient';
+import type { CatalogProduct } from '@/lib/catalog/types';
 
 export const revalidate = 60; // revalidate every 60 seconds or use on-demand revalidation
 
@@ -10,13 +11,13 @@ export default async function Home() {
   const slides = await getPublicHomeSlides(5);
   const session = await getCustomerSession();
   
-  let finalProducts: any[] = catalogProducts;
+  let finalProducts: Array<CatalogProduct & { customerPrice?: number | null; customerPriceSource?: string }> = catalogProducts;
   if (session?.profile?.user_id) {
     finalProducts = await getCustomerPricedProducts(session.profile.user_id, catalogProducts);
   }
   
   // Map real database products to the format expected by the Storefront UI
-  const products = finalProducts.map((p: any) => ({
+  const products = finalProducts.map((p) => ({
     id: p.id,
     name: p.title,
     slug: p.slug,
@@ -31,5 +32,5 @@ export default async function Home() {
     boxQty: ''
   }));
 
-  return <HomeClient products={products} slides={slides} />;
+  return <HomeClient products={products} slides={slides} isAuthenticated={Boolean(session)} />;
 }

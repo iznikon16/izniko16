@@ -86,6 +86,11 @@ secrets*
 .next
 out
 
+# Local test and Supabase CLI state
+test-results/
+playwright-report/
+supabase/.branches/
+
 # Nuxt.js build / generate output
 .nuxt
 dist

@@ -42,6 +42,7 @@ export type XmlSyncRunRow = Database['public']['Tables']['xml_sync_runs']['Row']
 export type XmlSyncErrorRow = Database['public']['Tables']['xml_sync_errors']['Row'];
 export type NetgsmSettingsRow = Database['public']['Tables']['netgsm_settings']['Row'];
 export type OdealSettingsRow = Database['public']['Tables']['odeal_settings']['Row'];
+export type IntegrationHealthCheckRow = Database['public']['Tables']['integration_health_checks']['Row'];
 
 export type XmlTargetField =
   | 'name'

@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           email: string
           full_name: string | null
+          is_active: boolean
           is_super_admin: boolean
           role: string
           updated_at: string
@@ -28,6 +29,7 @@ export type Database = {
           created_at?: string
           email: string
           full_name?: string | null
+          is_active?: boolean
           is_super_admin?: boolean
           role?: string
           updated_at?: string
@@ -37,6 +39,7 @@ export type Database = {
           created_at?: string
           email?: string
           full_name?: string | null
+          is_active?: boolean
           is_super_admin?: boolean
           role?: string
           updated_at?: string
@@ -749,6 +752,7 @@ export type Database = {
           admin_note: string
           billing_address: Json
           campaign_id: string | null
+          checkout_idempotency_key: string | null
           coupon_code: string | null
           coupon_id: string | null
           created_at: string
@@ -764,6 +768,10 @@ export type Database = {
           payment_provider: Database["public"]["Enums"]["payment_provider"]
           payment_reference: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          risk_approved_at: string | null
+          risk_approved_by: string | null
+          risk_decision: string
+          risk_snapshot: Json
           shipping_address: Json
           shipping_total: number
           status: Database["public"]["Enums"]["order_status"]
@@ -776,6 +784,7 @@ export type Database = {
           admin_note?: string
           billing_address?: Json
           campaign_id?: string | null
+          checkout_idempotency_key?: string | null
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
@@ -791,6 +800,10 @@ export type Database = {
           payment_provider?: Database["public"]["Enums"]["payment_provider"]
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          risk_approved_at?: string | null
+          risk_approved_by?: string | null
+          risk_decision?: string
+          risk_snapshot?: Json
           shipping_address?: Json
           shipping_total?: number
           status?: Database["public"]["Enums"]["order_status"]
@@ -803,6 +816,7 @@ export type Database = {
           admin_note?: string
           billing_address?: Json
           campaign_id?: string | null
+          checkout_idempotency_key?: string | null
           coupon_code?: string | null
           coupon_id?: string | null
           created_at?: string
@@ -818,6 +832,10 @@ export type Database = {
           payment_provider?: Database["public"]["Enums"]["payment_provider"]
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          risk_approved_at?: string | null
+          risk_approved_by?: string | null
+          risk_decision?: string
+          risk_snapshot?: Json
           shipping_address?: Json
           shipping_total?: number
           status?: Database["public"]["Enums"]["order_status"]
@@ -1310,7 +1328,10 @@ export type Database = {
           last_payment_at: string | null
           last_transaction_at: string | null
           overdue_balance: number
+          payment_term_days: number
           risk_limit: number
+          risk_policy: string
+          risk_warning_threshold: number
           updated_at: string
         }
         Insert: {
@@ -1320,7 +1341,10 @@ export type Database = {
           last_payment_at?: string | null
           last_transaction_at?: string | null
           overdue_balance?: number
+          payment_term_days?: number
           risk_limit?: number
+          risk_policy?: string
+          risk_warning_threshold?: number
           updated_at?: string
         }
         Update: {
@@ -1330,7 +1354,10 @@ export type Database = {
           last_payment_at?: string | null
           last_transaction_at?: string | null
           overdue_balance?: number
+          payment_term_days?: number
           risk_limit?: number
+          risk_policy?: string
+          risk_warning_threshold?: number
           updated_at?: string
         }
         Relationships: [
@@ -1340,6 +1367,48 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "customer_profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      account_transaction_due_dates: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          due_date: string
+          id: string
+          reason: string
+          transaction_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          due_date: string
+          id?: string
+          reason?: string
+          transaction_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          due_date?: string
+          id?: string
+          reason?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_transaction_due_dates_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_transaction_due_dates_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "account_transactions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1441,6 +1510,7 @@ export type Database = {
           description: string
           id: string
           idempotency_key: string | null
+          note: string
           order_id: string | null
           paid_at: string
           payment_method: string
@@ -1457,6 +1527,7 @@ export type Database = {
           description?: string
           id?: string
           idempotency_key?: string | null
+          note?: string
           order_id?: string | null
           paid_at?: string
           payment_method?: string
@@ -1473,6 +1544,7 @@ export type Database = {
           description?: string
           id?: string
           idempotency_key?: string | null
+          note?: string
           order_id?: string | null
           paid_at?: string
           payment_method?: string
@@ -1695,9 +1767,14 @@ export type Database = {
       }
       sms_logs: {
         Row: {
+          actor_user_id: string | null
           body: string
           created_at: string
+          customer_id: string | null
+          due_transaction_id: string | null
           error_message: string
+          event_key: string | null
+          event_type: string | null
           id: string
           metadata: Json
           recipient_phone: string
@@ -1705,9 +1782,14 @@ export type Database = {
           template_key: string | null
         }
         Insert: {
+          actor_user_id?: string | null
           body?: string
           created_at?: string
+          customer_id?: string | null
+          due_transaction_id?: string | null
           error_message?: string
+          event_key?: string | null
+          event_type?: string | null
           id?: string
           metadata?: Json
           recipient_phone: string
@@ -1715,9 +1797,14 @@ export type Database = {
           template_key?: string | null
         }
         Update: {
+          actor_user_id?: string | null
           body?: string
           created_at?: string
+          customer_id?: string | null
+          due_transaction_id?: string | null
           error_message?: string
+          event_key?: string | null
+          event_type?: string | null
           id?: string
           metadata?: Json
           recipient_phone?: string
@@ -1907,6 +1994,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      integration_health_checks: {
+        Row: {
+          actor_user_id: string | null
+          check_type: string
+          checked_at: string
+          environment: string
+          id: string
+          integration_key: string
+          message: string
+          metadata: Json
+          status: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          check_type?: string
+          checked_at?: string
+          environment?: string
+          id?: string
+          integration_key: string
+          message?: string
+          metadata?: Json
+          status: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          check_type?: string
+          checked_at?: string
+          environment?: string
+          id?: string
+          integration_key?: string
+          message?: string
+          metadata?: Json
+          status?: string
+        }
+        Relationships: []
       }
       netgsm_settings: {
         Row: {
@@ -2224,10 +2347,265 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      customer_account_metrics: {
+        Row: {
+          customer_count: number | null
+          total_customer_credit: number | null
+          total_overdue: number | null
+          total_receivable: number | null
+        }
+        Relationships: []
+      }
+      customer_account_summaries: {
+        Row: {
+          account_code: string | null
+          account_id: string | null
+          available_limit: number | null
+          balance: number | null
+          customer_id: string | null
+          customer_name: string | null
+          email: string | null
+          is_active: boolean | null
+          last_transaction_at: string | null
+          overdue_balance: number | null
+          phone: string | null
+          risk_exceeded: boolean | null
+          risk_limit: number | null
+          search_text: string | null
+          total_credit: number | null
+          total_debit: number | null
+        }
+        Relationships: []
+      }
+      customer_risk_status: {
+        Row: {
+          account_id: string | null
+          available_limit: number | null
+          customer_id: string | null
+          ledger_exposure: number | null
+          risk_exceeded: boolean | null
+          risk_limit: number | null
+          risk_policy: string | null
+          unposted_order_exposure: number | null
+          usage_percent: number | null
+          used_limit: number | null
+          warning_threshold: number | null
+        }
+        Relationships: []
+      }
+      account_transaction_ledger: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          balance_after: number | null
+          created_at: string | null
+          credit: number | null
+          customer_id: string | null
+          debit: number | null
+          description: string | null
+          due_date: string | null
+          is_reversal: boolean | null
+          order_id: string | null
+          order_number: string | null
+          payment_id: string | null
+          reference: string | null
+          reversed_transaction_id: string | null
+          search_text: string | null
+          transaction_id: string | null
+          type: string | null
+        }
+        Relationships: []
+      }
+      customer_receivable_due_status: {
+        Row: {
+          created_at: string | null
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          description: string | null
+          due_date: string | null
+          order_id: string | null
+          order_number: string | null
+          original_amount: number | null
+          overdue_days: number | null
+          paid_amount: number | null
+          reference: string | null
+          remaining_amount: number | null
+          remaining_days: number | null
+          status: string | null
+          transaction_id: string | null
+        }
+        Relationships: []
+      }
+      customer_account_transaction_breakdown: {
+        Row: {
+          customer_id: string | null
+          last_transaction_at: string | null
+          net_balance: number | null
+          total_credit: number | null
+          total_debit: number | null
+          transaction_count: number | null
+          type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      delete_customer_address: {
+        Args: { p_id: string }
+        Returns: boolean
+      }
+      save_customer_address: {
+        Args: {
+          p_address_line: string
+          p_city: string
+          p_district: string
+          p_full_name: string
+          p_id: string | null
+          p_is_default: boolean
+          p_label: string
+          p_neighborhood: string
+          p_phone: string
+          p_postal_code: string
+        }
+        Returns: string
+      }
+      set_default_customer_address: {
+        Args: { p_id: string }
+        Returns: boolean
+      }
+      create_storefront_checkout: {
+        Args: {
+          p_billing_address: Json
+          p_coupon_code?: string | null
+          p_coupon_id?: string | null
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_discount_total?: number
+          p_items: Json
+          p_idempotency_key: string
+          p_note: string
+          p_payment_metadata?: Json
+          p_payment_method_id: string
+          p_shipping_address: Json
+          p_user_id: string
+        }
+        Returns: {
+          order_id: string
+          order_number: string
+          payment_attempt_id: string
+        }[]
+      }
+      create_account_storefront_checkout: {
+        Args: {
+          p_billing_address: Json
+          p_coupon_code?: string | null
+          p_coupon_id?: string | null
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_discount_total?: number
+          p_items: Json
+          p_idempotency_key: string
+          p_note: string
+          p_payment_metadata?: Json
+          p_payment_method_id: string
+          p_shipping_address: Json
+          p_user_id: string
+        }
+        Returns: {
+          order_id: string
+          order_number: string
+          payment_attempt_id: string
+        }[]
+      }
+      charge_checkout_to_account: {
+        Args: { p_attempt_id: string; p_user_id: string }
+        Returns: {
+          accounting_action: string
+          order_id: string
+          order_number: string
+          resulting_balance: number
+        }[]
+      }
+      approve_order_risk: {
+        Args: { p_actor_user_id: string; p_order_id: string }
+        Returns: Database["public"]["Tables"]["orders"]["Row"]
+      }
+      evaluate_customer_risk: {
+        Args: {
+          p_customer_id: string
+          p_order_id?: string | null
+          p_proposed_amount?: number
+        }
+        Returns: {
+          allowed: boolean
+          available_limit: number
+          decision: string
+          ledger_exposure: number
+          message: string
+          projected_exposure: number
+          proposed_amount: number
+          requires_approval: boolean
+          risk_limit: number
+          risk_policy: string
+          unposted_order_exposure: number
+          usage_percent: number
+          used_limit: number
+          warning_threshold: number
+        }[]
+      }
+      update_customer_risk_settings: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_customer_id: string
+          p_risk_limit: number
+          p_risk_policy: string
+          p_warning_threshold: number
+        }
+        Returns: Database["public"]["Tables"]["customer_accounts"]["Row"]
+      }
+      append_account_transaction: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_credit: number
+          p_customer_id: string
+          p_debit: number
+          p_description?: string
+          p_due_date?: string | null
+          p_idempotency_key?: string | null
+          p_is_reversal?: boolean
+          p_order_id?: string | null
+          p_payment_id?: string | null
+          p_reference?: string
+          p_reversed_transaction_id?: string | null
+          p_type: string
+        }
+        Returns: {
+          idempotency_hit: boolean
+          resulting_balance: number
+          transaction_id: string
+        }[]
+      }
+      cancel_order_with_accounting: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_order_id: string
+        }
+        Returns: {
+          accounting_action: string
+          customer_id: string
+          resulting_balance: number
+          transaction_id: string | null
+        }[]
+      }
       generate_order_number: { Args: never; Returns: string }
+      is_customer_active: {
+        Args: { check_user_id?: string }
+        Returns: boolean
+      }
       is_admin: { Args: { check_user_id?: string }; Returns: boolean }
       apply_stock_change: {
         Args: {
@@ -2242,6 +2620,116 @@ export type Database = {
         Returns: {
           previous_quantity: number
           resulting_quantity: number
+        }[]
+      }
+      record_payment_result_with_accounting: {
+        Args: {
+          p_attempt_id: string
+          p_failure_reason: string | null
+          p_metadata: Json
+          p_paid: boolean
+          p_provider_reference: string | null
+        }
+        Returns: {
+          accounting_action: string
+          customer_id: string
+          order_id: string
+          order_total: number
+          resulting_balance: number
+        }[]
+      }
+      record_account_payment: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_amount: number
+          p_customer_id: string
+          p_description?: string
+          p_idempotency_key?: string | null
+          p_note?: string
+          p_order_id?: string | null
+          p_paid_at?: string
+          p_payment_method?: string
+          p_provider?: string
+          p_provider_reference?: string | null
+          p_reference_number?: string
+        }
+        Returns: {
+          allocated_amount: number
+          customer_id: string
+          idempotency_hit: boolean
+          payment_id: string
+          payment_type: string
+          resulting_balance: number
+          transaction_id: string
+        }[]
+      }
+      set_account_transaction_due_date: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_due_date: string
+          p_reason?: string
+          p_transaction_id: string
+        }
+        Returns: {
+          due_date: string
+          transaction_id: string
+        }[]
+      }
+      update_customer_payment_terms: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_customer_id: string
+          p_payment_term_days: number
+        }
+        Returns: number
+      }
+      reverse_account_payment: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_payment_id: string
+        }
+        Returns: {
+          customer_id: string
+          idempotency_hit: boolean
+          payment_id: string
+          resulting_balance: number
+          transaction_id: string
+        }[]
+      }
+      sync_order_accounting: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_due_date?: string | null
+          p_order_id: string
+        }
+        Returns: {
+          accounting_action: string
+          customer_id: string
+          resulting_balance: number
+          transaction_id: string | null
+        }[]
+      }
+      update_order_with_accounting: {
+        Args: {
+          p_actor_user_id?: string | null
+          p_admin_note: string
+          p_note: string
+          p_order_id: string
+          p_payment_method_id: string | null
+          p_payment_provider: Database["public"]["Enums"]["payment_provider"]
+          p_payment_reference: string | null
+          p_payment_status: Database["public"]["Enums"]["payment_status"]
+          p_status: Database["public"]["Enums"]["order_status"]
+        }
+        Returns: {
+          accounting_action: string
+          customer_id: string
+          order_id: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          previous_payment_status: Database["public"]["Enums"]["payment_status"]
+          previous_status: Database["public"]["Enums"]["order_status"]
+          resulting_balance: number
+          status: Database["public"]["Enums"]["order_status"]
         }[]
       }
     }

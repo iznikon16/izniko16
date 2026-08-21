@@ -1,9 +1,11 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { StorefrontAccountAction } from "../../../components/storefront/storefront-account-action";
 import { useCart } from "../../../context/CartContext";
+import { SafeImage } from '@/components/ui/safe-image';
 
 // Category Data Dictionary
 const categoryDataMap: Record<string, { name: string; description: string }> = {
@@ -15,7 +17,18 @@ const categoryDataMap: Record<string, { name: string; description: string }> = {
   "kimyasal": { name: "Boya & Kimyasallar", description: "Şeffaf akrilik silikon mastikler, poliüretan köpükler, yapıştırıcılar ve boyalar." }
 };
 
-export default function CategoryClient({ products: allProducts }: { products: any[] }) {
+type CategoryProduct = {
+  id: string | number; name: string; slug?: string; category: string; brand: string;
+  code: string; price: string; unit: string; img: string; tags: string[]; inStock: boolean; boxQty: string;
+};
+
+export default function CategoryClient({
+  products: allProducts,
+  isAuthenticated,
+}: {
+  products: CategoryProduct[];
+  isAuthenticated: boolean;
+}) {
   const { addToCart, setIsCartOpen, itemCount, subtotal } = useCart();
   const params = useParams();
   const slug = (params?.slug as string) || "hirdavat";
@@ -85,10 +98,10 @@ export default function CategoryClient({ products: allProducts }: { products: an
     return allProducts.filter(
       (p) => p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)
     );
-  }, [searchQuery]);
+  }, [allProducts, searchQuery]);
 
   const filtered = useMemo(() => {
-    let result = allProducts.filter((p) => {
+    const result = allProducts.filter((p) => {
       const matchSearch =
         !appliedSearch ||
         p.name.toLowerCase().includes(appliedSearch.toLowerCase()) ||
@@ -124,7 +137,7 @@ export default function CategoryClient({ products: allProducts }: { products: an
       <header className="header">
         <div className="container header-container">
           <Link href="/" className="logo" aria-label="İZNİKON Ana Sayfasına Git">
-            <img src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
           </Link>
 
           <nav className="main-nav" aria-label="Ana Menü">
@@ -179,15 +192,7 @@ export default function CategoryClient({ products: allProducts }: { products: an
           </nav>
 
           <div className="header-actions">
-            <a href="#" className="nav-link user-orders-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                <path d="M3 6h18" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-              Siparişlerim
-            </a>
-            <a href="#" className="nav-link btn-login">Giriş Yap</a>
+            <StorefrontAccountAction isAuthenticated={isAuthenticated} nextPath={`/kategori/${slug}`} />
             
             {/* ULTRA-LUXURY HEADER CART WIDGET */}
             <div
@@ -229,7 +234,7 @@ export default function CategoryClient({ products: allProducts }: { products: an
 
       {/* HERO & SEARCH BAR */}
       <section className="hero" style={{ padding: "2.5rem 0" }}>
-        <img src="/hero-bg.jpg" alt="İZNİKON Arka Plan" className="hero-bg" />
+        <SafeImage src="/hero-bg.jpg" alt="İZNİKON Arka Plan" className="hero-bg" />
         <div className="hero-overlay"></div>
         <div className="container">
           <div className="hero-content">
@@ -393,7 +398,7 @@ export default function CategoryClient({ products: allProducts }: { products: an
                     {product.code}
                   </div>
                   <div style={{ height: "60px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <img src={product.img} alt={product.name} style={{ maxHeight: "50px" }} />
+                    <SafeImage src={product.img} alt={product.name} style={{ maxHeight: "50px" }} />
                   </div>
                   <div style={{ fontSize: "0.8rem", fontWeight: "700", color: "#0f172a", textTransform: "uppercase", margin: "0.5rem 0" }}>
                     {product.name}
@@ -508,7 +513,7 @@ export default function CategoryClient({ products: allProducts }: { products: an
 
               <div style={{ textAlign: "center", padding: "0.5rem", background: "#f8fafc", borderRadius: "8px", marginBottom: "0.65rem", display: "flex", alignItems: "center", justifyContent: "center", height: "80px" }}>
                 <Link href={`/urun/${product.slug || product.id}`}>
-                  <img src={product.img} alt={product.name} style={{ maxHeight: "64px", maxWidth: "100%", objectFit: "contain" }} />
+                  <SafeImage src={product.img} alt={product.name} style={{ maxHeight: "64px", maxWidth: "100%", objectFit: "contain" }} />
                 </Link>
               </div>
 
@@ -626,7 +631,7 @@ export default function CategoryClient({ products: allProducts }: { products: an
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <img src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
+              <SafeImage src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
               <p>
                 Türkiye&apos;nin en hızlı B2B toptan nalbur, cıvata, elektrik ve tesisat malzemeleri tedarik platformu. 10.000+ çeşit orijinal stoklu ürün.
               </p>
@@ -709,7 +714,7 @@ export default function CategoryClient({ products: allProducts }: { products: an
                 borderRadius: "6px"
               }}
             >
-              <img
+              <SafeImage
                 src="/tanitimx-official.png"
                 alt="TanıtımX"
                 style={{ height: "35px", width: "auto", objectFit: "contain", display: "block" }}

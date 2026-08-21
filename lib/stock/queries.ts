@@ -17,12 +17,12 @@ export type CriticalStockProduct = StockProduct & {
 
 export async function getAllStockProducts(search?: string): Promise<StockProduct[]> {
   const supabase = createAdminClient();
-  let query = supabase.from('products').select('id, sku, slug, title, stock_quantity, critical_stock, stock_status, updated_at');
+  const query = supabase.from('products').select('id, sku, slug, title, stock_quantity, critical_stock, stock_status, updated_at');
 
   if (search) {
     const term = search.replace(/[%_,]/g, ' ').trim();
     if (term) {
-      query = query.or(`title.ilike.%${term}%,sku.ilike.%${term}%`);
+      query.or(`title.ilike.%${term}%,sku.ilike.%${term}%`);
     }
   }
 
@@ -33,7 +33,7 @@ export async function getAllStockProducts(search?: string): Promise<StockProduct
 
 export async function getCriticalStockProducts(limit?: number): Promise<CriticalStockProduct[]> {
   const supabase = createAdminClient();
-  let query = supabase.from('products').select('id, sku, slug, title, stock_quantity, critical_stock, stock_status, updated_at');
+  const query = supabase.from('products').select('id, sku, slug, title, stock_quantity, critical_stock, stock_status, updated_at');
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);

@@ -1,4 +1,4 @@
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { AccountTransactionRow, CustomerProfileRow } from '@/lib/catalog/types';
 import { formatCommercePrice } from '@/lib/commerce/format';
@@ -7,7 +7,7 @@ import { ACCOUNT_TRANSACTION_LABELS } from '@/lib/accounting/types';
 export const dynamic = 'force-dynamic';
 
 export default async function AccountMovementsPage() {
-  await requireAdminSession();
+  await requireAdminPermission('account.view');
   const supabase = createAdminClient();
 
   const [txRes, profilesRes, ordersRes] = await Promise.all([

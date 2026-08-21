@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { maskPaymentConfig } from '@/lib/integrations/security';
 
 function PaymentMethodForm({ paymentMethod }: { paymentMethod?: PaymentMethodRow }) {
   const provider = (paymentMethod?.provider ?? 'offline') as PaymentProviderKey;
@@ -101,7 +102,7 @@ function PaymentMethodForm({ paymentMethod }: { paymentMethod?: PaymentMethodRow
           </Label>
 
           <PaymentMethodConfigFields
-            config={paymentMethod?.config ?? {}}
+            config={paymentMethod ? maskPaymentConfig(provider, paymentMethod.config) : {}}
             integrationType={paymentMethod?.integration_type ?? providerDefinition.defaultIntegrationType}
             provider={provider}
             sortOrder={paymentMethod?.sort_order ?? 0}
@@ -148,7 +149,7 @@ export default async function AdminPaymentMethodsPage() {
         <div className="mt-6 grid gap-4">
           <PaymentMethodForm />
           {paymentMethods.map((paymentMethod) => (
-            <PaymentMethodForm key={paymentMethod.id} paymentMethod={paymentMethod as any} />
+            <PaymentMethodForm key={paymentMethod.id} paymentMethod={paymentMethod} />
           ))}
         </div>
       </section>

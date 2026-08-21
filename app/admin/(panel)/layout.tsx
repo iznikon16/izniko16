@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminLayoutClient } from '@/components/admin/admin-layout-client';
+import { requireAdminSession } from '@/lib/auth/admin';
 
 export const dynamic = 'force-dynamic';
 
-export default function AdminPanelLayout({ children }: { children: ReactNode }) {
+export default async function AdminPanelLayout({ children }: { children: ReactNode }) {
+  await requireAdminSession();
+
   return (
     <AdminLayoutClient>
       {/* Main Content Area */}

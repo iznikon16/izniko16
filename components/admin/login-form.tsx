@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useSyncExternalStore, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, ArrowRight, LoaderCircle, Lock, Mail, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { adminLoginAction } from './login-actions';
+
+const subscribeToHydration = () => () => {};
 
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
+  const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
 
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
@@ -38,7 +41,7 @@ export function LoginForm() {
             type="email"
             required
             placeholder="admin@iznikon.com"
-            className="w-full bg-transparent text-sm font-medium text-white outline-none placeholder:text-slate-500"
+            className="w-full bg-transparent text-sm font-medium text-white outline-none placeholder:text-slate-500 [&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[transition:background-color_5000s_ease-in-out_0s]"
           />
         </div>
       </div>
@@ -55,7 +58,7 @@ export function LoginForm() {
             type={showPassword ? "text" : "password"}
             required
             placeholder="••••••••"
-            className="w-full bg-transparent text-sm font-medium text-white outline-none placeholder:text-slate-500"
+            className="w-full bg-transparent text-sm font-medium text-white outline-none placeholder:text-slate-500 [&:-webkit-autofill]:[-webkit-text-fill-color:white] [&:-webkit-autofill]:[transition:background-color_5000s_ease-in-out_0s]"
           />
           <button 
             type="button" 
@@ -89,7 +92,7 @@ export function LoginForm() {
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={!isHydrated || isPending}
         className="mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 px-6 py-4 text-xs font-black uppercase tracking-widest text-white transition-all hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}

@@ -28,7 +28,7 @@ export function CreateCustomerModal() {
 
   return (
     <>
-      <Button 
+      <Button
         onClick={() => setIsOpen(true)}
         className="gap-2 rounded-full font-semibold shadow-sm hover:shadow-md transition-all"
       >
@@ -39,7 +39,7 @@ export function CreateCustomerModal() {
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => !isPending && setIsOpen(false)}
           />
@@ -69,11 +69,11 @@ export function CreateCustomerModal() {
                 <div className="grid gap-4">
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                    <Input 
-                      name="email" 
-                      type="email" 
-                      placeholder="E-posta adresi" 
-                      required 
+                    <Input
+                      name="email"
+                      type="email"
+                      placeholder="E-posta adresi"
+                      required
                       className="pl-11 rounded-xl h-12"
                       disabled={isPending}
                     />
@@ -81,12 +81,12 @@ export function CreateCustomerModal() {
 
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                    <Input 
-                      name="password" 
-                      type="password" 
-                      placeholder="Şifre (En az 6 karakter)" 
-                      required 
-                      minLength={6}
+                    <Input
+                      name="password"
+                      type="password"
+                      placeholder="Şifre (En az 8 karakter)"
+                      required
+                      minLength={8}
                       className="pl-11 rounded-xl h-12"
                       disabled={isPending}
                     />
@@ -94,10 +94,10 @@ export function CreateCustomerModal() {
 
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                    <Input 
-                      name="full_name" 
-                      type="text" 
-                      placeholder="Ad Soyad" 
+                    <Input
+                      name="full_name"
+                      type="text"
+                      placeholder="Ad Soyad"
                       className="pl-11 rounded-xl h-12"
                       disabled={isPending}
                     />
@@ -105,10 +105,10 @@ export function CreateCustomerModal() {
 
                   <div className="relative">
                     <Phone className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                    <Input 
-                      name="phone" 
-                      type="tel" 
-                      placeholder="Telefon Numarası" 
+                    <Input
+                      name="phone"
+                      type="tel"
+                      placeholder="Telefon Numarası"
                       className="pl-11 rounded-xl h-12"
                       disabled={isPending}
                     />
@@ -116,17 +116,17 @@ export function CreateCustomerModal() {
                 </div>
 
                 <div className="mt-8 flex gap-3">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsOpen(false)} 
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsOpen(false)}
                     className="flex-1 rounded-full"
                     disabled={isPending}
                   >
                     İptal
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     className="flex-1 rounded-full"
                     disabled={isPending}
                   >

@@ -1,5 +1,5 @@
 ﻿import { Activity, CheckCircle2, FileText, Mail, Send, Server, XCircle } from 'lucide-react';
-import { saveEmailTemplateAction, saveSmtpSettingsAction, sendSmtpTestAction } from '@/app/admin/(panel)/mail/actions';
+import { saveEmailTemplateAction, saveSmtpSettingsAction, sendSmtpTestAction, verifySmtpConnectionAction } from '@/app/admin/(panel)/mail/actions';
 import { Button } from '@/components/ui/button';
 import { getAdminEmailTemplates, getAdminMailSettings, getRecentEmailLogs } from '@/lib/admin/mail-queries';
 import { Input } from '@/components/ui/input';
@@ -59,7 +59,7 @@ function getLogTone(status: string) {
     return {
       Icon: CheckCircle2,
       className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-      label: 'GÃ¶nderildi',
+      label: 'Gönderildi',
     };
   }
 
@@ -67,7 +67,7 @@ function getLogTone(status: string) {
     return {
       Icon: Activity,
       className: 'border-amber-500/20 bg-amber-500/10 text-amber-100',
-      label: 'AtlandÄ±',
+      label: 'Atlandı',
     };
   }
 
@@ -82,6 +82,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
   const resolvedSearchParams = (searchParams ? await searchParams : {}) ?? {};
   const saved = getSingleParam(resolvedSearchParams.saved);
   const test = getSingleParam(resolvedSearchParams.test);
+  const connection = getSingleParam(resolvedSearchParams.connection);
   const [settings, templates, logs] = await Promise.all([getAdminMailSettings(), getAdminEmailTemplates(), getRecentEmailLogs()]);
 
   return (
@@ -92,7 +93,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">E-posta Merkezi</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">SMTP ve E-posta Şablonları</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
-              Ãœyelik doÄŸrulama, sipariÅŸ bilgilendirme ve yÃ¶netici bildirimleri burada tanÄ±mlanan SMTP Ã¼zerinden gÃ¶nderilir.
+              Üyelik doğrulama, sipariş bilgilendirme ve yönetici bildirimleri burada tanımlanan SMTP üzerinden gönderilir.
             </p>
           </div>
 
@@ -103,30 +104,33 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
               <p className="mt-1 truncate text-xs text-gray-500">{settings.host || 'Sunucu girilmedi'}</p>
             </div>
             <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Åablon</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Şablon</p>
               <p className="mt-2 text-sm font-semibold text-gray-900">{templates.filter((template) => template.is_enabled).length} aktif</p>
-              <p className="mt-1 text-xs text-gray-500">{templates.length} toplam ÅŸablon</p>
+              <p className="mt-1 text-xs text-gray-500">{templates.length} toplam şablon</p>
             </div>
           </div>
         </div>
 
         {saved === 'smtp' ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            SMTP ayarlarÄ± kaydedildi.
+            SMTP ayarları kaydedildi.
           </div>
         ) : null}
 
         {test === 'sent' ? (
           <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-            Test E-postası gÃ¶nderildi.
+            Test E-postası gönderildi.
           </div>
         ) : null}
 
         {test === 'failed' ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            Test E-postası gÃ¶nderilemedi. LÃ¼tfen ayarlarÄ± kontrol edin.
+            Test E-postası gönderilemedi. Lütfen ayarları kontrol edin.
           </div>
         ) : null}
+
+        {connection === 'success' ? <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">SMTP bağlantısı doğrulandı; e-posta gönderilmedi.</div> : null}
+        {connection === 'failed' ? <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">SMTP bağlantısı doğrulanamadı.</div> : null}
 
         <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
           <form action={saveSmtpSettingsAction} className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
@@ -135,16 +139,16 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                 <Server className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">SMTP AyarÄ±</p>
-                <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-gray-900">GÃ¶nderici baÄŸlantÄ±sÄ±</h3>
-                <p className="mt-1 text-sm leading-6 text-gray-500">Åifre alanÄ±nÄ± boÅŸ bÄ±rakÄ±rsanÄ±z mevcut kayÄ±tlÄ± ÅŸifre korunur.</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">SMTP Ayarı</p>
+                <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-gray-900">Gönderici bağlantısı</h3>
+                <p className="mt-1 text-sm leading-6 text-gray-500">Şifre alanını boş bırakırsanız mevcut kayıtlı şifre korunur.</p>
               </div>
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 md:col-span-2">
                 <Checkbox name="is_enabled" id="is_enabled" defaultChecked={settings.is_enabled} />
-                <Label htmlFor="is_enabled" className="cursor-pointer">SMTP gÃ¶nderimini aktif et</Label>
+                <Label htmlFor="is_enabled" className="cursor-pointer">SMTP gönderimini aktif et</Label>
               </div>
 
               <div className="grid gap-2">
@@ -158,48 +162,48 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
               </div>
 
               <div className="grid gap-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">KullanÄ±cÄ±</Label>
-                <Input name="username" defaultValue={settings.username} placeholder="KullanÄ±cÄ± adÄ±" />
+                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Kullanıcı</Label>
+                <Input name="username" defaultValue={settings.username} placeholder="Kullanıcı adı" />
               </div>
 
               <div className="grid gap-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Åifre</Label>
-                <Input name="password" type="password" placeholder={settings.password ? 'KayÄ±tlÄ± ÅŸifre korunur' : 'SMTP ÅŸifresi'} />
+                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Şifre</Label>
+                <Input name="password" type="password" placeholder={settings.password ? 'Kayıtlı şifre korunur' : 'SMTP şifresi'} />
               </div>
 
               <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 md:col-span-2">
                 <Checkbox name="secure" id="secure" defaultChecked={settings.secure} />
-                <Label htmlFor="secure" className="cursor-pointer">SSL/TLS secure baÄŸlantÄ± kullan</Label>
+                <Label htmlFor="secure" className="cursor-pointer">SSL/TLS secure bağlantı kullan</Label>
               </div>
 
               <div className="grid gap-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">GÃ¶nderen adÄ±</Label>
+                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Gönderen adı</Label>
                 <Input name="from_name" defaultValue={settings.from_name} />
               </div>
 
               <div className="grid gap-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">GÃ¶nderen e-posta</Label>
+                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Gönderen e-posta</Label>
                 <Input name="from_email" type="email" defaultValue={settings.from_email} />
               </div>
 
               <div className="grid gap-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">YanÄ±t adresi</Label>
+                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Yanıt adresi</Label>
                 <Input name="reply_to" type="email" defaultValue={settings.reply_to} />
               </div>
 
               <div className="grid gap-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Admin bildirim e-postasÄ±</Label>
+                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Admin bildirim e-postası</Label>
                 <Input name="admin_notification_email" type="email" defaultValue={settings.admin_notification_email} />
               </div>
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <Button type="submit" variant="default" className="gap-2 shadow-sm">
-                SMTP AyarÄ±nÄ± Kaydet
+                SMTP Ayarını Kaydet
               </Button>
-              <button type="submit" formAction={sendSmtpTestAction} className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-700 transition-all hover:border-[#0ea5e9] hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
+              <button type="submit" formAction={verifySmtpConnectionAction} className="inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-700 transition-all hover:border-[#0ea5e9] hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500">
                 <Send className="h-4 w-4" />
-                SMTP Test Et
+                Bağlantıyı Doğrula
               </button>
             </div>
           </form>
@@ -212,15 +216,15 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                 </span>
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">Test</p>
-                  <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-gray-900">SMTP baÄŸlantÄ±sÄ±nÄ± dene</h3>
+                  <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-gray-900">SMTP bağlantısını dene</h3>
                 </div>
               </div>
               <div className="mt-5 grid gap-2">
-                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">AlÄ±cÄ± e-posta</Label>
+                <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Alıcı e-posta</Label>
                 <Input name="test_email" type="email" defaultValue={settings.admin_notification_email || settings.from_email} required />
               </div>
               <button type="submit" className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[#111111] transition-colors hover:bg-white/90">
-                Test E-postası GÃ¶nder
+                Test E-postası Gönder
               </button>
             </form>
 
@@ -230,8 +234,8 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                   <Mail className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">DeÄŸiÅŸkenler</p>
-                  <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-gray-900">Åablon anahtarlarÄ±</h3>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">Değişkenler</p>
+                  <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-gray-900">Şablon anahtarları</h3>
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -248,8 +252,8 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
 
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <div className="border-b border-gray-100 pb-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Åablonlar</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">DÃ¼zenlenebilir E-Postalar</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Şablonlar</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Düzenlenebilir E-Postalar</h2>
         </div>
 
         <div className="mt-5 grid gap-3">
@@ -275,7 +279,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                 <input type="hidden" name="key" value={template.key} />
                 <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <Checkbox name="is_enabled" id={`is_enabled_${template.key}`} defaultChecked={template.is_enabled} />
-                  <Label htmlFor={`is_enabled_${template.key}`} className="cursor-pointer">Bu ÅŸablonu aktif kullan</Label>
+                  <Label htmlFor={`is_enabled_${template.key}`} className="cursor-pointer">Bu şablonu aktif kullan</Label>
                 </div>
 
                 <div className="grid gap-3 xl:grid-cols-2">
@@ -290,17 +294,17 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                 </div>
 
                 <div className="grid gap-2">
-                  <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">HTML gÃ¶vde</Label>
+                  <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">HTML gövde</Label>
                   <Textarea name="html_body" rows={12} defaultValue={template.html_body} className="font-mono text-xs" />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">DÃ¼z metin gÃ¶vde</Label>
+                  <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Düz metin gövde</Label>
                   <Textarea name="text_body" rows={4} defaultValue={template.text_body} />
                 </div>
 
                 <button type="submit" className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700">
-                  Åablonu Kaydet
+                  Şablonu Kaydet
                 </button>
               </form>
             </details>
@@ -316,7 +320,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-gray-100">
           {logs.length === 0 ? (
-            <div className="px-5 py-12 text-center text-sm text-gray-500">HenÃ¼z E-posta kaydı bulunamadı..</div>
+            <div className="px-5 py-12 text-center text-sm text-gray-500">Henüz E-posta kaydı bulunamadı..</div>
           ) : (
             <div className="divide-y divide-white/8">
               {logs.map((log) => {

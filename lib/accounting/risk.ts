@@ -1,96 +1,61 @@
-import { getCustomerAccountWithSummary } from '@/lib/accounting/queries';
-import { roundMoney } from '@/lib/accounting/queries';
+import 'server-only';
 
-/**
- * Risk limiti kuralları.
- *
- * Yeni sipariş müşterinin limitini aşacaksa iş kuralına göre siparişi
- * engeller veya admin onayına işaretler. Sessizce limiti aşan sipariş
- * oluşturma yoktur.
- */
+import { createAdminClient } from '@/lib/supabase/admin';
+
+export type RiskPolicy = 'warn' | 'require_approval' | 'block';
+export type RiskDecision = 'approved' | 'warning' | 'approval_required' | 'blocked';
 
 export type RiskCheckResult = {
   allowed: boolean;
-  /** Limit aşılmışsa açıklama */
+  availableLimit: number;
+  currentExposure: number;
+  decision: RiskDecision;
+  ledgerExposure: number;
   message: string;
-  currentBalance: number;
-  riskLimit: number;
-  newBalanceIfApproved: number;
-  usedPercentAfter: number;
+  newExposureIfApproved: number;
+  orderExposure: number;
   requiresApproval: boolean;
+  riskLimit: number;
+  riskPolicy: RiskPolicy;
+  usedPercentAfter: number;
+  warningThreshold: number;
 };
 
+/** Authoritative risk evaluation. Calculation and locking live in PostgreSQL. */
 export async function checkRiskLimit(
   customerId: string,
-  orderTotal: number
+  proposedAmount: number,
+  orderId?: string | null
 ): Promise<RiskCheckResult> {
-  const { summary } = await getCustomerAccountWithSummary(customerId);
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc('evaluate_customer_risk', {
+    p_customer_id: customerId,
+    p_proposed_amount: Math.abs(proposedAmount),
+    p_order_id: orderId ?? null,
+  });
 
-  const currentBalance = summary.balance;
-  const riskLimit = summary.riskLimit;
-  const amount = roundMoney(Math.abs(orderTotal));
-
-  // Limit tanımlanmamışsa (0) serbest
-  if (riskLimit <= 0) {
-    return {
-      allowed: true,
-      message: 'Risk limiti tanımsız — işlem serbest.',
-      currentBalance,
-      riskLimit,
-      newBalanceIfApproved: roundMoney(currentBalance + amount),
-      usedPercentAfter: 0,
-      requiresApproval: false,
-    };
-  }
-
-  const newBalance = roundMoney(currentBalance + amount);
-  const usedPercentAfter = Math.round((newBalance / riskLimit) * 100);
-
-  // Limit aşımı
-  if (newBalance > riskLimit) {
-    return {
-      allowed: false,
-      message: `Bu sipariş risk limitini aşar (Mevcut: ${currentBalance}, Liman: ${riskLimit}, Yeni: ${newBalance}).`,
-      currentBalance,
-      riskLimit,
-      newBalanceIfApproved: newBalance,
-      usedPercentAfter,
-      requiresApproval: true,
-    };
-  }
-
-  // %80 üzeri uyarı (onay gerektirmeyen ama bilgilendirme)
-  if (usedPercentAfter >= 80) {
-    return {
-      allowed: true,
-      message: `Bu sipariş risk limitinin %${usedPercentAfter} kullanımına ulaşır.`,
-      currentBalance,
-      riskLimit,
-      newBalanceIfApproved: newBalance,
-      usedPercentAfter,
-      requiresApproval: false,
-    };
+  const result = data?.[0];
+  if (error || !result) {
+    throw new Error(error?.message ?? 'Risk değerlendirmesi yapılamadı.');
   }
 
   return {
-    allowed: true,
-    message: 'Limit uygun.',
-    currentBalance,
-    riskLimit,
-    newBalanceIfApproved: newBalance,
-    usedPercentAfter,
-    requiresApproval: false,
+    allowed: result.allowed,
+    availableLimit: Number(result.available_limit) || 0,
+    currentExposure: Number(result.used_limit) || 0,
+    decision: result.decision as RiskDecision,
+    ledgerExposure: Number(result.ledger_exposure) || 0,
+    message: result.message,
+    newExposureIfApproved: Number(result.projected_exposure) || 0,
+    orderExposure: Number(result.unposted_order_exposure) || 0,
+    requiresApproval: result.requires_approval,
+    riskLimit: Number(result.risk_limit) || 0,
+    riskPolicy: result.risk_policy as RiskPolicy,
+    usedPercentAfter: Number(result.usage_percent) || 0,
+    warningThreshold: result.warning_threshold,
   };
 }
 
-/**
- * Sipariş onay akışındaki varsayılan karar:
- * - Limit aşılırsa admin onayına (requiresApproval) işaretlenir.
- * - Aksi halde işleme izin verilir.
- *
- * @returns true = sipariş devam edebilir; false = engellendi/onay bekliyor.
- */
-export function applyRiskPolicy(result: RiskCheckResult): boolean {
-  // Varsayılan iş modeli: limit aşımı siparişi engeller; onayı admin verir.
+export function applyRiskPolicy(result: RiskCheckResult) {
   return result.allowed && !result.requiresApproval;
 }

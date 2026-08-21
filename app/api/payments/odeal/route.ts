@@ -66,42 +66,21 @@ export async function POST(request: Request) {
 
     const verify: OdealPaymentVerifyResult = await odealVerifyPayment(config, providerReference);
     const paid = verify.paid;
-    const status = paid ? 'paid' : 'failed';
-
-    // payment_attempts + orders güncelle
-    await supabase.from('payment_attempts').update({
-      status,
-      provider_reference: providerReference,
-      failure_reason: paid ? null : 'Ödeal ödeme doğrulanamadı',
-      metadata: { odeal_callback: verify.raw } as never,
-    }).eq('id', attempt.id);
 
     const order = attempt.order as { id: string; user_id: string; total: number; order_number: string } | null;
 
     if (order) {
-      await supabase.from('orders').update({
-        payment_reference: providerReference,
-        payment_status: status,
-        status: paid ? 'confirmed' : 'pending_payment',
-      }).eq('id', order.id);
+      const { error: paymentResultError } = await supabase.rpc('record_payment_result_with_accounting', {
+        p_attempt_id: attempt.id,
+        p_failure_reason: paid ? null : 'Ödeal ödeme doğrulanamadı',
+        p_metadata: { odeal_callback: verify.raw } as never,
+        p_provider_reference: providerReference,
+        p_paid: paid,
+      });
+
+      if (paymentResultError) throw new Error(paymentResultError.message);
 
       if (paid && order.user_id) {
-        // Cariye tahsilat (idempotent key)
-        const { collectPayment } = await import('@/lib/accounting/mutations');
-        await collectPayment(
-          order.user_id,
-          {
-            amount: Number(order.total) || 0,
-            orderId: order.id,
-            paymentMethod: 'Ödeal',
-            description: `Ödeal ödeme (${providerReference.slice(0, 8)})`,
-            provider: 'odeal',
-            provider_reference: providerReference,
-            idempotencyKey: `odeal:${providerReference}`,
-          },
-          { actorUserId: null }
-        );
-
         // Stok düşümü
         const { data: items } = await supabase.from('order_items').select('product_id, quantity').eq('order_id', order.id);
         for (const item of items ?? []) {

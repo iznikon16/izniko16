@@ -1,15 +1,36 @@
+import 'server-only';
+
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { NetgsmSettingsRow, SmsTemplateRow } from '@/lib/catalog/types';
+import { decryptToken } from '@/lib/security/encryption';
 
-/**
- * Netgsm SMS gönderim servisi (resmi Netgsm API).
- */
+export const PAYMENT_SMS_EVENTS = [
+  'PAYMENT_DUE_SOON',
+  'PAYMENT_DUE_TODAY',
+  'PAYMENT_OVERDUE',
+  'PAYMENT_RECEIVED',
+  'MANUAL_PAYMENT_REMINDER',
+] as const;
+
+export type PaymentSmsEvent = (typeof PAYMENT_SMS_EVENTS)[number];
+
 export type SmsSendResult = {
   ok: boolean;
+  duplicate?: boolean;
   message: string;
+  logId?: string;
 };
 
-import { decryptToken } from '@/lib/security/encryption';
+export type SmsSendOptions = {
+  templateKey?: string;
+  variables?: Record<string, string | number>;
+  customerId?: string;
+  eventType?: PaymentSmsEvent;
+  eventKey?: string;
+  dueTransactionId?: string;
+  actorUserId?: string;
+  metadata?: Record<string, unknown>;
+};
 
 export async function getNetgsmSettings(): Promise<NetgsmSettingsRow | null> {
   const supabase = createAdminClient();
@@ -21,7 +42,7 @@ export async function getNetgsmSettings(): Promise<NetgsmSettingsRow | null> {
     try {
       password = decryptToken(password);
     } catch {
-      // Fallback to plain text
+      // Eski düz metin kayıtlarla geriye dönük uyumluluk.
     }
   }
 
@@ -41,36 +62,65 @@ export function renderTemplate(template: string, variables: Record<string, strin
   });
 }
 
+export function normalizeTurkishPhone(phone: string) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('90') && digits.length === 12) return digits;
+  if (digits.startsWith('0') && digits.length === 11) return `9${digits}`;
+  if (digits.length === 10) return `90${digits}`;
+  return digits;
+}
+
 export async function sendSms(
   phone: string,
   message: string,
-  options: { templateKey?: string; variables?: Record<string, string | number> } = {}
+  options: SmsSendOptions = {}
 ): Promise<SmsSendResult> {
   const supabase = createAdminClient();
   const settings = await getNetgsmSettings();
+  const normalizedPhone = normalizeTurkishPhone(phone);
 
   let body = message;
   if (options.templateKey) {
     const template = await getSmsTemplate(options.templateKey);
-    if (template) {
-      body = renderTemplate(template.body, options.variables ?? {});
-    }
+    if (!template) return { ok: false, message: 'SMS şablonu bulunamadı veya devre dışı.' };
+    body = renderTemplate(template.body, options.variables ?? {});
   }
 
-  const logPayload = {
-    recipient_phone: phone,
-    template_key: (options.templateKey ?? null) as string | null,
+  const pendingLog = {
+    recipient_phone: normalizedPhone,
+    template_key: options.templateKey ?? null,
     body: body.slice(0, 500),
-    status: 'sent',
+    status: 'pending',
     error_message: '',
-    metadata: {} as never,
+    customer_id: options.customerId ?? null,
+    event_type: options.eventType ?? null,
+    event_key: options.eventKey ?? null,
+    due_transaction_id: options.dueTransactionId ?? null,
+    actor_user_id: options.actorUserId ?? null,
+    metadata: (options.metadata ?? {}) as never,
   };
 
-  if (!settings?.is_enabled || !settings.username || !settings.password) {
-    logPayload.status = 'failed';
-    logPayload.error_message = 'Netgsm yapılandırılmamış veya aktif değil.';
-    await supabase.from('sms_logs').insert(logPayload);
-    return { ok: false, message: 'SMS gönderilemedi: Netgsm ayarları eksik.' };
+  const { data: log, error: reserveError } = await supabase
+    .from('sms_logs')
+    .insert(pendingLog)
+    .select('id')
+    .single();
+
+  if (reserveError?.code === '23505' && options.eventKey) {
+    return { ok: true, duplicate: true, message: 'Bu bildirim daha önce işlendi.' };
+  }
+  if (reserveError || !log) {
+    return { ok: false, message: 'SMS gönderimi başlatılamadı.' };
+  }
+
+  const fail = async (internalMessage: string): Promise<SmsSendResult> => {
+    await supabase.from('sms_logs').update({ status: 'failed', error_message: internalMessage.slice(0, 200) }).eq('id', log.id);
+    return { ok: false, message: 'SMS gönderilemedi.', logId: log.id };
+  };
+
+  if (!normalizedPhone || normalizedPhone.length !== 12) return fail('Geçersiz telefon numarası.');
+  if (!settings?.is_enabled || !settings.username || !settings.password || !settings.header) {
+    return fail('Netgsm yapılandırılmamış veya aktif değil.');
   }
 
   try {
@@ -81,40 +131,32 @@ export async function sendSms(
         usercode: settings.username,
         password: settings.password,
         msgheader: settings.header,
-        gsmno: phone.replace(/\D/g, ''),
+        gsmno: normalizedPhone,
         message: body,
-        diltip: 'T',
+        diltip: 'TR',
       }),
       signal: AbortSignal.timeout(20_000),
     });
 
-    const text = await response.text();
-    const ok = response.ok && /^00\b/.test(text.trim());
+    const providerResponse = (await response.text()).trim();
+    const ok = response.ok && /^00(?:\s|$)/.test(providerResponse);
+    if (!ok) return fail(`Netgsm provider kodu: ${providerResponse.slice(0, 40)}`);
 
-    logPayload.status = ok ? 'sent' : 'failed';
-    logPayload.error_message = ok ? '' : text.slice(0, 200);
-    logPayload.metadata = { netgsm_response: text.slice(0, 120) } as never;
-    await supabase.from('sms_logs').insert(logPayload);
-
-    return ok
-      ? { ok: true, message: 'SMS gönderildi.' }
-      : { ok: false, message: `SMS gönderilemedi: ${text.slice(0, 150)}` };
+    await supabase
+      .from('sms_logs')
+      .update({ status: 'sent', error_message: '', metadata: { ...(options.metadata ?? {}), provider_code: '00' } as never })
+      .eq('id', log.id);
+    return { ok: true, message: 'SMS gönderildi.', logId: log.id };
   } catch (error) {
-    logPayload.status = 'failed';
-    logPayload.error_message = error instanceof Error ? error.message.slice(0, 200) : 'Netgsm isteği başarısız';
-    await supabase.from('sms_logs').insert(logPayload);
-    return { ok: false, message: `SMS gönderilemedi: ${error instanceof Error ? error.message : 'Ağ hatası'}` };
+    return fail(error instanceof Error ? error.message : 'Netgsm ağ isteği başarısız.');
   }
 }
 
 export async function sendCariNotification(
   phone: string,
   templateKey: string,
-  variables: Record<string, string | number>
+  variables: Record<string, string | number>,
+  options: Omit<SmsSendOptions, 'templateKey' | 'variables'> = {}
 ): Promise<SmsSendResult> {
-  const template = await getSmsTemplate(templateKey);
-  if (!template) {
-    return { ok: false, message: 'SMS şablonu bulunamadı veya devre dışı.' };
-  }
-  return sendSms(phone, template.body, { templateKey, variables });
+  return sendSms(phone, '', { ...options, templateKey, variables });
 }

@@ -213,11 +213,34 @@ export type SmtpTestResult = {
   message: string;
 };
 
+/** SMTP sunucusuna bağlanır fakat e-posta göndermez. */
+export async function verifySmtpConnection(): Promise<SmtpTestResult> {
+  const supabase = createAdminClient();
+  const { data: settings, error } = await supabase.from('smtp_settings').select('*').eq('id', SMTP_SETTINGS_ID).maybeSingle();
+  if (error || !settings?.host || !settings?.from_email) {
+    return { ok: false, message: 'SMTP ayarı eksik: sunucu ve gönderen e-posta gerekli.' };
+  }
+  let password = settings.password || '';
+  if (password) { try { password = decryptToken(password); } catch {} }
+  const transporter = nodemailer.createTransport({
+    auth: settings.username ? { pass: password, user: settings.username } : undefined,
+    host: settings.host,
+    port: settings.port,
+    secure: settings.secure,
+  });
+  try {
+    await transporter.verify();
+    return { ok: true, message: 'SMTP bağlantısı doğrulandı; e-posta gönderilmedi.' };
+  } catch (connectionError) {
+    return { ok: false, message: connectionError instanceof Error ? connectionError.message : 'SMTP bağlantısı kurulamadı.' };
+  }
+}
+
 /**
  * SMTP bağlantı testi. Kayıtlı ayarlarla bir test e-postası gönderir.
  * Toast: "SMTP bağlantısı başarıyla doğrulandı."
  */
-export async function testSmtpConnection(): Promise<SmtpTestResult> {
+export async function testSmtpConnection(recipient?: string): Promise<SmtpTestResult> {
   const supabase = createAdminClient();
   const { data: settings, error: settingsError } = await supabase
     .from('smtp_settings')
@@ -249,9 +272,9 @@ export async function testSmtpConnection(): Promise<SmtpTestResult> {
       html: '<p>Bu bir SMTP test mesajıdır. Bağlantı başarıyla doğrulandı. 🎉</p>',
       subject: 'SMTP Bağlantı Testi',
       text: 'Bu bir SMTP test mesajıdır. Bağlantı başarıyla doğrulandı.',
-      to: settings.admin_notification_email || settings.from_email,
+      to: recipient || settings.admin_notification_email || settings.from_email,
     });
-    await logEmail({ recipientEmail: settings.admin_notification_email || settings.from_email, status: 'sent', subject: 'SMTP Bağlantı Testi', templateKey: 'smtp_test' });
+    await logEmail({ recipientEmail: recipient || settings.admin_notification_email || settings.from_email, status: 'sent', subject: 'SMTP Bağlantı Testi', templateKey: 'smtp_test' });
     return { ok: true, message: 'SMTP bağlantısı başarıyla doğrulandı.' };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'SMTP bağlantısı kurulamadı.';

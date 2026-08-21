@@ -317,7 +317,7 @@ export async function getAdminProjectReferences(): Promise<ProjectReference[]> {
   }));
 }
 
-export async function getAdminPaymentMethods() {
+export async function getAdminPaymentMethods(): Promise<PaymentMethodRow[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase.from('payment_methods').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
 
@@ -341,7 +341,7 @@ export async function getAdminPaymentMethods() {
       }
     }
 
-    return { ...method, config: maskedConfig };
+    return { ...method, config: maskedConfig as PaymentMethodRow['config'] };
   });
 }
 

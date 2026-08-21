@@ -1,8 +1,11 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "../context/CartContext";
+import { StorefrontAccountAction } from "../components/storefront/storefront-account-action";
+import type { HomeSlide } from '@/lib/catalog/types';
+import { SafeImage } from '@/components/ui/safe-image';
 
 interface Product {
   id: string | number;
@@ -41,7 +44,15 @@ function normalizeTurkish(str: string): string {
     .trim();
 }
 
-export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: { products: Product[], slides?: any[] }) {
+export default function HomeClient({
+  products: SAMPLE_PRODUCTS,
+  slides = [],
+  isAuthenticated,
+}: {
+  products: Product[];
+  slides?: HomeSlide[];
+  isAuthenticated: boolean;
+}) {
   const { addToCart, setIsCartOpen, itemCount, subtotal } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -52,11 +63,17 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(24);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const searchModalRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(target) &&
+        !searchModalRef.current?.contains(target)
+      ) {
         setIsDropdownOpen(false);
       }
     }
@@ -104,7 +121,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
 
       return tokens.every((token) => combinedText.includes(token));
     });
-  }, [searchQuery]);
+  }, [searchQuery, SAMPLE_PRODUCTS]);
 
   // Active grid products after submission or empty search
   const gridProducts = useMemo(() => {
@@ -113,7 +130,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
 
     const tokens = queryNorm.split(/\s+/).filter(Boolean);
 
-    let result = SAMPLE_PRODUCTS.filter((product) => {
+    const result = SAMPLE_PRODUCTS.filter((product) => {
       const nameNorm = normalizeTurkish(product.name);
       const catNorm = normalizeTurkish(product.category);
       const brandNorm = normalizeTurkish(product.brand);
@@ -148,7 +165,10 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
   const paginatedProducts = gridProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Reset page when filters change
-  useEffect(() => { setCurrentPage(1); }, [gridProducts.length, itemsPerPage]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setCurrentPage(1));
+    return () => cancelAnimationFrame(frame);
+  }, [gridProducts.length, itemsPerPage]);
 
   const handleSearchSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -175,7 +195,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
         <div className="container header-container">
           {/* BRAND LOGO */}
           <a href="#" onClick={clearFilters} className="logo" aria-label="İZNİKON Ana Sayfasına Git">
-            <img src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
           </a>
 
           {/* CENTER NAVIGATION MENU */}
@@ -232,17 +252,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
 
           {/* RIGHT ACTION BUTTONS */}
           <div className="header-actions">
-            <a href="#" className="nav-link user-orders-link">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                <path d="M3 6h18" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-              Siparişlerim
-            </a>
-            <a href="#" className="nav-link btn-login">
-              Giriş Yap
-            </a>
+            <StorefrontAccountAction isAuthenticated={isAuthenticated} nextPath="/" />
 
             {/* ULTRA-LUXURY HEADER CART WIDGET */}
             <div
@@ -286,13 +296,13 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
 
       {/* HERO & SEMANTIC SEARCH ENGINE */}
       <section className="hero">
-        <img src={slides.length > 0 ? slides[0].imageUrl : "/hero-bg.jpg"} alt="İZNİKON Arka Plan" className="hero-bg" />
+        <SafeImage src={slides[0]?.imageUrl ?? "/hero-bg.jpg"} alt="İZNİKON Arka Plan" className="hero-bg" />
         <div className="hero-overlay"></div>
         <div className="container">
           <div className="hero-content">
             <h1 className="hero-title">{slides.length > 0 && slides[0].title ? slides[0].title : "İZNİKON Nalbur & Hırdavat Toptancısı"}</h1>
             <p className="hero-subtitle">
-              {slides.length > 0 && slides[0].subtitle ? slides[0].subtitle : "Türkiye’nin en hızlı B2B toptan nalbur, cıvata, elektrik ve tesisat ürünleri platformu. 10.000+ çeşit stoklu ürün."}
+              {slides[0]?.alt_text || "Türkiye’nin en hızlı B2B toptan nalbur, cıvata, elektrik ve tesisat ürünleri platformu. 10.000+ çeşit stoklu ürün."}
             </p>
 
             {/* LIVE SEMANTIC SEARCH BAR */}
@@ -401,6 +411,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
           }}
         >
           <div
+            ref={searchModalRef}
             className="search-modal-window"
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -417,9 +428,9 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
             }}
           >
             {/* MODAL HEADER WITH LIVE INTERACTIVE INPUT BOX */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.5rem", borderBottom: "2px solid #f1f5f9", paddingBottom: "1.25rem", marginBottom: "1.25rem" }}>
-              <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{ position: "relative", flex: 1, maxWidth: "680px" }}>
+            <div className="search-modal-header">
+              <div className="search-modal-header-main">
+                <div className="search-modal-input-wrapper">
                   <input
                     type="text"
                     autoFocus
@@ -457,7 +468,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
                   )}
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column" }}>
+                <div className="search-modal-summary">
                   <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "#0f172a" }}>
                     &quot;{searchQuery}&quot; Sonuçları
                   </span>
@@ -468,6 +479,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
               </div>
 
               <button
+                className="search-modal-close"
                 onClick={() => setIsDropdownOpen(false)}
                 style={{
                   background: "#ef4444",
@@ -490,27 +502,45 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
 
             {/* MODAL 5-COLUMN GRID */}
             {liveSearchResults.length > 0 ? (
-              <div className="b2b-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
+              <div className="live-search-grid">
                 {liveSearchResults.map((product) => (
                   <div
                     key={product.id}
-                    className="b2b-cell"
+                    className="live-search-card"
                     onClick={() => {
                       handleSelectProduct(product.name);
                       setIsDropdownOpen(false);
                     }}
                   >
-                    <div className="b2b-cell-img-wrapper">
-                      <img src={product.img} alt={product.name} className="b2b-cell-img" />
-                    </div>
-                    <div className="b2b-cell-info">
-                      <div className="b2b-cell-code">{product.code}</div>
-                      <div className="b2b-cell-title">{product.name}</div>
-                      <div className="b2b-cell-price-row">
-                        <span className="b2b-cell-price-val">{product.price}</span>
-                        <span className="b2b-cell-unit">+KDV / {product.unit}</span>
+                    <div className="live-search-product">
+                      <div className="b2b-cell-img-wrapper">
+                        <SafeImage src={product.img} alt={product.name} className="b2b-cell-img" />
+                      </div>
+                      <div className="b2b-cell-info">
+                        <div className="b2b-cell-code">{product.code}</div>
+                        <div className="b2b-cell-title">{product.name}</div>
+                        <div className="b2b-cell-price-row">
+                          <span className="b2b-cell-price-val">{product.price}</span>
+                          <span className="b2b-cell-unit">+KDV / {product.unit}</span>
+                        </div>
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      className="live-search-add-button"
+                      aria-label={`${product.name} sepete ekle`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        addToCart(product, 1);
+                      }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="21" r="1" />
+                        <circle cx="20" cy="21" r="1" />
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                      </svg>
+                      Sepete Ekle
+                    </button>
                   </div>
                 ))}
               </div>
@@ -708,7 +738,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
           </aside>
 
           {/* MAIN CATALOG AREA */}
-          <section>
+          <section className="catalog-content">
             {/* CATALOG TOOLBAR */}
             <div className="catalog-toolbar">
               <div className="catalog-stats">
@@ -721,7 +751,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
               </div>
 
               <div className="catalog-controls">
-                <div style={{ display: "flex", background: "#f1f5f9", padding: "3px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                <div className="catalog-view-switcher">
                   <button
                     onClick={() => setViewMode("b2b")}
                     style={{
@@ -768,7 +798,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
                     fontWeight: "600",
                     borderRadius: "6px",
                     border: "1px solid #cbd5e1",
-                    background: showPrices ? "#fef3c7" : "#white",
+                    background: showPrices ? "#fef3c7" : "white",
                     color: showPrices ? "#b45309" : "#334155",
                     cursor: "pointer"
                   }}
@@ -795,7 +825,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
 
             {/* PRODUCTS GRID / B2B MATRIX TABLE VIEW */}
             {viewMode === "b2b" ? (
-              <div className="b2b-grid" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
+              <div className="b2b-grid">
                 {paginatedProducts.length > 0 ? (
                   paginatedProducts.map((product) => (
                     <div
@@ -822,7 +852,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
                       {/* PRODUCT THUMBNAIL */}
                       <div style={{ textAlign: "center", padding: "0.5rem", background: "#f8fafc", borderRadius: "8px", marginBottom: "0.65rem", display: "flex", alignItems: "center", justifyContent: "center", height: "80px" }}>
                         <Link href={`/urun/${product.slug || product.id}`}>
-                          <img
+                          <SafeImage
                             src={product.img}
                             alt={product.name}
                             style={{ maxHeight: "64px", maxWidth: "100%", objectFit: "contain" }}
@@ -933,7 +963,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
 
                       <div style={{ textAlign: "center", padding: "1.25rem 0.75rem", background: "linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)", borderRadius: "10px", marginBottom: "0.875rem", display: "flex", alignItems: "center", justifyContent: "center", height: "145px" }}>
                         <Link href={`/urun/${product.slug || product.id}`}>
-                          <img
+                          <SafeImage
                             className="product-img"
                             src={product.img}
                             alt={product.name}
@@ -988,6 +1018,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
                           <button
                             className="add-cart"
                             aria-label="Sepete ekle"
+                            onClick={() => addToCart(product, 1)}
                             style={{
                               flex: 1,
                               height: "40px",
@@ -1175,7 +1206,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
           <div className="footer-grid">
             {/* BRAND COLUMN */}
             <div className="footer-brand">
-              <img src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
+              <SafeImage src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
               <p>
                 Türkiye&apos;nin en hızlı B2B toptan nalbur, cıvata, elektrik ve tesisat malzemeleri tedarik platformu. 10.000+ çeşit orijinal stoklu ürün.
               </p>
@@ -1282,7 +1313,7 @@ export default function HomeClient({ products: SAMPLE_PRODUCTS, slides = [] }: {
                 transition: "opacity 0.2s, transform 0.2s"
               }}
             >
-              <img
+              <SafeImage
                 src="/tanitimx-official.png"
                 alt="TanıtımX"
                 style={{ height: "35px", width: "auto", objectFit: "contain", display: "block" }}

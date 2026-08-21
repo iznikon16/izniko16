@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  Activity,
   BadgePercent,
   ChevronDown,
   ChevronLeft,
@@ -18,7 +19,6 @@ import {
   ListOrdered,
   Mail,
   Megaphone,
-  MessageSquare,
   MessageSquareText,
   PackageSearch,
   PanelsTopLeft,
@@ -31,18 +31,22 @@ import {
   WalletCards,
   Video,
   LogOut,
-  AlertTriangle,
   Boxes,
   ArrowDownUp,
   TriangleAlert,
   FileCode,
   ClipboardList,
   Percent,
-  Cloud,
+  CalendarClock,
+  CloudBackup,
+  CreditCard,
+  UserCog,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { createClient } from '@/lib/supabase/client';
+import { adminLogoutAction } from './login-actions';
+import { toast } from 'sonner';
+import { SafeImage } from '@/components/ui/safe-image';
 
 type NavigationItem = {
   href: string;
@@ -68,7 +72,7 @@ const navigationGroups: NavigationGroup[] = [
       { href: '/admin/accounting', label: 'Cari Hesaplar', icon: CircleDollarSign },
       { href: '/admin/accounting/tahsilatlar', label: 'Tahsilatlar', icon: ReceiptText },
       { href: '/admin/accounting/hareketler', label: 'Cari Hareketler', icon: ListOrdered },
-      { href: '/admin/accounting/geciken-odemeler', label: 'Geciken Ödemeler', icon: AlertTriangle },
+      { href: '/admin/accounting/geciken-odemeler', label: 'Geciken Ödemeler', icon: CalendarClock },
       { href: '/admin/accounting/ekstreler', label: 'Ekstreler', icon: FileText },
     ],
   },
@@ -87,6 +91,7 @@ const navigationGroups: NavigationGroup[] = [
     label: 'Entegrasyonlar',
     icon: Plug,
     items: [
+      { href: '/admin/integrations', label: 'Entegrasyon Durumu', icon: Activity },
       { href: '/admin/integrations/xml', label: 'XML Kaynakları', icon: FileCode },
       { href: '/admin/integrations/xml/aktarimlar', label: 'XML Aktarımları', icon: FileCode },
       { href: '/admin/integrations/netgsm', label: 'Netgsm', icon: MessageSquareText },
@@ -111,7 +116,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { href: '/admin/orders', label: 'Siparişler', icon: ShoppingCart },
       { href: '/admin/inquiries', label: 'Talepler', icon: Inbox },
-      { href: '/admin/payment-methods', label: 'Ödeme Yöntemleri', icon: WalletCards },
+      { href: '/admin/payment-methods', label: 'Ödeme Yöntemleri', icon: CreditCard },
     ],
   },
   {
@@ -129,8 +134,9 @@ const navigationGroups: NavigationGroup[] = [
     label: 'Yönetim',
     icon: ClipboardList,
     items: [
+      { href: '/admin/yonetim/kullanicilar', label: 'Kullanıcı & Roller', icon: UserCog },
       { href: '/admin/yonetim/audit', label: 'Audit Log', icon: ClipboardList },
-      { href: '/admin/github-sync', label: 'Yedekleme Merkezi', icon: Cloud },
+      { href: '/admin/github-sync', label: 'Yedekleme Merkezi', icon: CloudBackup },
     ],
   },
   {
@@ -166,25 +172,38 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
   const pathname = usePathname();
   const router = useRouter();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [isLoggingOut, startLogoutTransition] = useTransition();
   const isPanelActive = isNavigationItemActive(pathname, panelLink.href);
 
-  async function handleLogout() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/admin/login');
+  function handleLogout() {
+    startLogoutTransition(async () => {
+      try {
+        const result = await adminLogoutAction();
+        if (!result.success) {
+          toast.error(result.error || 'Çıkış işlemi tamamlanamadı.');
+          return;
+        }
+
+        toast.success('Oturumunuz kapatıldı.');
+        router.replace('/admin/login');
+        router.refresh();
+      } catch {
+        toast.error('Çıkış işlemi tamamlanamadı.');
+      }
+    });
   }
 
   return (
     <aside className="flex h-full flex-col bg-white">
       {/* Brand Header */}
-      <div className="flex h-16 shrink-0 items-center justify-between px-6">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
-            <MessageSquare className="h-5 w-5" />
+      <div className={cn("flex shrink-0 items-center transition-all", isCollapsed ? "h-16 justify-center px-1 gap-1" : "h-20 justify-between px-6")}>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className={cn("flex shrink-0 items-center justify-center transition-all", isCollapsed ? "h-11 w-11" : "h-14 w-14")}>
+            <SafeImage src="/admin_logo.png" alt="İZNİKON Logo" className="h-full w-full object-contain drop-shadow-sm scale-125" />
           </div>
-          {!isCollapsed && <span className="text-lg font-bold text-gray-900">Yedek Panel</span>}
+          {!isCollapsed && <span className="truncate text-2xl font-black tracking-tight text-[#090e1a]">İZNİKON</span>}
         </div>
-        <button onClick={onToggle} className="text-gray-400 hover:text-gray-600">
+        <button onClick={onToggle} className="text-gray-400 hover:text-gray-600 shrink-0">
           <ChevronLeft className={cn("h-5 w-5 transition-transform", isCollapsed && "rotate-180")} />
         </button>
       </div>
@@ -250,7 +269,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
                               : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                           )}
                         >
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
                           {item.label}
                         </Link>
                       );
@@ -268,6 +287,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
         {isCollapsed ? (
           <button
             onClick={handleLogout}
+            disabled={isLoggingOut}
             title="Çıkış Yap"
             className="flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white p-3 text-gray-400 shadow-sm transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
           >
@@ -298,7 +318,15 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
                 </span>
                 Sistem Aktif
               </div>
-              <p className="text-[10px] font-semibold tracking-[0.16em] text-gray-300">v1.1.0</p>
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 transition-colors hover:text-red-600 disabled:cursor-wait disabled:opacity-60"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                {isLoggingOut ? 'Kapatılıyor' : 'Çıkış'}
+              </button>
             </div>
           </div>
         )}

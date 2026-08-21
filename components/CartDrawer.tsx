@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useCart } from "../context/CartContext";
+import { SafeImage } from '@/components/ui/safe-image';
 
 export default function CartDrawer() {
   const {
@@ -109,14 +110,14 @@ export default function CartDrawer() {
                     alignItems: "center"
                   }}
                 >
-                  <img src={item.img} alt={item.name} style={{ width: "52px", height: "52px", objectFit: "contain", background: "white", borderRadius: "8px", padding: "4px", border: "1px solid #f1f5f9" }} />
-                  
+                  <SafeImage src={item.img} alt={item.name} style={{ width: "52px", height: "52px", objectFit: "contain", background: "white", borderRadius: "8px", padding: "4px", border: "1px solid #f1f5f9" }} />
+
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: "0.68rem", fontFamily: "monospace", color: "#64748b", fontWeight: "700" }}>{item.code}</div>
                     <div style={{ fontSize: "0.825rem", fontWeight: "700", color: "#0f172a", textTransform: "uppercase", lineHeight: "1.25", margin: "0.15rem 0 0.4rem 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {item.name}
                     </div>
-                    
+
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       {/* STEPPER */}
                       <div style={{ display: "flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "6px", background: "white", overflow: "hidden" }}>

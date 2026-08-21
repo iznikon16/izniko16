@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { Database, Json } from '@/lib/supabase/database.types';
+import type { Database } from '@/lib/supabase/database.types';
 import type { XmlFieldMappingRow, XmlSourceRow, XmlSyncRunRow, XmlTargetField } from '@/lib/catalog/types';
 import { slugify } from '@/lib/catalog/utils';
 
@@ -199,7 +199,6 @@ async function applyRecordToProduct(
   const sku = get('sku');
   const name = get('name');
   const priceRaw = get('price');
-  const retailRaw = get('retail_price');
   const stockRaw = get('stock');
   const image = get('image');
   const brandName = get('brand');
@@ -269,7 +268,7 @@ async function applyRecordToProduct(
   if (payload.featured_image_path) insertPayload.featured_image_path = payload.featured_image_path;
   if (payload.brand_id) insertPayload.brand_id = payload.brand_id;
 
-  const { error: insertError, data: created } = await supabase
+  const { error: insertError } = await supabase
     .from('products')
     .insert(insertPayload)
     .select('id')

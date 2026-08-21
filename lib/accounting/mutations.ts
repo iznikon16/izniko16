@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import { ensureCustomerAccount, roundMoney, summarizeTransactions } from '@/lib/accounting/queries';
-import type { AccountTransactionRow, CustomerAccountRow, PaymentRow } from '@/lib/catalog/types';
+import { ensureCustomerAccount, roundMoney } from '@/lib/accounting/queries';
+import type { AccountTransactionRow } from '@/lib/catalog/types';
 import type { AccountTransactionType as AccountingAccountTransactionType } from '@/lib/catalog/types';
 
 /**
@@ -29,69 +29,20 @@ export class IdempotencyHitError extends Error {
   }
 }
 
-async function getAccount(customerId: string) {
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from('customer_accounts')
-    .select('*')
-    .eq('customer_id', customerId)
-    .maybeSingle();
-  return (data ?? null) as CustomerAccountRow | null;
-}
-
-async function getTransactionsForCustomer(customerId: string) {
+async function getCurrentBalance(customerId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
-    .from('account_transactions')
-    .select('*')
+    .from('customer_account_summaries')
+    .select('balance')
     .eq('customer_id', customerId)
-    .order('created_at', { ascending: true });
-  if (error) throw new Error(error.message);
-  return (data ?? []) as AccountTransactionRow[];
-}
-
-async function getBalanceAfter(customerId: string) {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from('account_transactions')
-    .select('balance_after')
-    .eq('customer_id', customerId)
-    .order('created_at', { ascending: false })
-    .limit(1)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return roundMoney(data ? Number(data.balance_after) : 0);
-}
-
-async function getSummaryAfter(customerId: string) {
-  const [account, transactions] = await Promise.all([
-    getAccount(customerId),
-    getTransactionsForCustomer(customerId),
-  ]);
-  return summarizeTransactions(transactions, account);
+  return roundMoney(data ? Number(data.balance) : 0);
 }
 
 /**
  * customer_accounts özet alanlarını ledger'dan türetip günceller.
  */
-async function syncAccountSummary(customerId: string) {
-  const supabase = createAdminClient();
-  const [account, transactions] = await Promise.all([
-    getAccount(customerId),
-    getTransactionsForCustomer(customerId),
-  ]);
-  const summary = summarizeTransactions(transactions, account);
-  const { error } = await supabase
-    .from('customer_accounts')
-    .update({
-      overdue_balance: summary.overdueBalance,
-      last_transaction_at: summary.lastTransactionAt,
-      last_payment_at: summary.lastPaymentAt,
-    })
-    .eq('customer_id', customerId);
-  if (error) throw new Error(error.message);
-}
-
 /**
  * Yeni ledger satırı. Unique idempotency_key ile duplicate koruması.
  * balance_after her zaman güncel running balance üzerinden hesaplanır.
@@ -126,43 +77,32 @@ async function appendTransaction({
   idempotencyKey: string;
 }) {
   const supabase = createAdminClient();
-  await ensureCustomerAccount(customerId);
+  const { data, error } = await supabase.rpc('append_account_transaction', {
+    p_customer_id: customerId,
+    p_type: type,
+    p_debit: roundMoney(Math.max(0, debit)),
+    p_credit: roundMoney(Math.max(0, credit)),
+    p_order_id: orderId,
+    p_payment_id: paymentId,
+    p_due_date: dueDate,
+    p_description: description,
+    p_reference: reference,
+    p_actor_user_id: actorUserId,
+    p_is_reversal: isReversal,
+    p_reversed_transaction_id: reversedTransactionId,
+    p_idempotency_key: idempotencyKey,
+  });
 
-  const transactions = await getTransactionsForCustomer(customerId);
-  const runningBalance = transactions.reduce((sum, tx) => sum + (Number(tx.debit) || 0) - (Number(tx.credit) || 0), 0);
-  const balanceAfter = roundMoney(runningBalance + debit - credit);
+  if (error) throw new Error(error.message);
 
-  const { data, error } = await supabase
-    .from('account_transactions')
-    .insert({
-      customer_id: customerId,
-      type,
-      debit: roundMoney(Math.max(0, debit)),
-      credit: roundMoney(Math.max(0, credit)),
-      amount: roundMoney(Math.max(debit, credit)),
-      balance_after: balanceAfter,
-      order_id: orderId,
-      payment_id: paymentId,
-      due_date: dueDate,
-      description,
-      reference,
-      actor_user_id: actorUserId,
-      is_reversal: isReversal,
-      reversed_transaction_id: reversedTransactionId,
-      idempotency_key: idempotencyKey,
-    })
-    .select()
-    .single();
+  const result = data?.[0];
+  if (!result) throw new Error('Cari hareket oluşturulamadı.');
+  if (result.idempotency_hit) throw new IdempotencyHitError('Bu işlem zaten uygulanmış.');
 
-  if (error) {
-    if (error.code === '23505') {
-      throw new IdempotencyHitError('Bu işlem zaten uygulanmış.');
-    }
-    throw new Error(error.message);
-  }
-
-  await syncAccountSummary(customerId);
-  return data as AccountTransactionRow;
+  return {
+    transactionId: result.transaction_id,
+    balance: roundMoney(Number(result.resulting_balance) || 0),
+  };
 }
 
 /**
@@ -170,31 +110,31 @@ async function appendTransaction({
  * aynı sipariş iki kez cariye işlenemez.
  */
 export async function postOrderToAccount(
-  customerId: string,
-  order: { id: string; total: number; dueDate?: string | null },
-  options: { actorUserId?: string | null } = {}
+  orderId: string,
+  options: { actorUserId?: string | null; dueDate?: string | null } = {}
 ): Promise<AccountingResult> {
-  const idempotencyKey = `order:${order.id}`;
   try {
-    await appendTransaction({
-      customerId,
-      type: 'ORDER',
-      debit: Number(order.total),
-      credit: 0,
-      orderId: order.id,
-      dueDate: order.dueDate ?? null,
-      description: 'Sipariş carisinde borç hareketi',
-      reference: order.id,
-      actorUserId: options.actorUserId ?? null,
-      idempotencyKey,
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('sync_order_accounting', {
+      p_order_id: orderId,
+      p_due_date: options.dueDate ?? null,
+      p_actor_user_id: options.actorUserId ?? null,
     });
-    const summary = await getSummaryAfter(customerId);
-    return { ok: true, message: 'Sipariş cariye aktarıldı.', balance: summary.balance };
+
+    if (error) throw new Error(error.message);
+    const result = data?.[0];
+    if (!result) throw new Error('Sipariş cari entegrasyonu sonuç üretmedi.');
+
+    const message = result.accounting_action === 'posted'
+      ? 'Sipariş cariye aktarıldı.'
+      : result.accounting_action === 'reposted'
+        ? 'Sipariş tutar değişikliği ters kayıt ve yeni borç ile işlendi.'
+        : result.accounting_action === 'duplicate'
+          ? 'Sipariş zaten cariye işlenmiş.'
+          : 'Sipariş henüz cari borç oluşturacak durumda değil.';
+
+    return { ok: true, message, balance: roundMoney(Number(result.resulting_balance) || 0) };
   } catch (error) {
-    if (error instanceof IdempotencyHitError) {
-      const summary = await getSummaryAfter(customerId);
-      return { ok: true, message: 'Sipariş zaten cariye işlenmiş.', balance: summary.balance };
-    }
     return { ok: false, error: error instanceof Error ? error.message : 'Sipariş cariye işlenemedi.' };
   }
 }
@@ -204,31 +144,28 @@ export async function postOrderToAccount(
  * silinmez; audit trail korunur. Idempotent.
  */
 export async function cancelOrderInAccount(
-  customerId: string,
-  order: { id: string; total: number },
+  orderId: string,
   options: { actorUserId?: string | null } = {}
 ): Promise<AccountingResult> {
-  const idempotencyKey = `order-cancel:${order.id}`;
   try {
-    await appendTransaction({
-      customerId,
-      type: 'CANCELLATION',
-      debit: 0,
-      credit: Number(order.total),
-      orderId: order.id,
-      description: 'Sipariş iptali — ters kayıt',
-      reference: order.id,
-      actorUserId: options.actorUserId ?? null,
-      isReversal: true,
-      idempotencyKey,
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.rpc('cancel_order_with_accounting', {
+      p_order_id: orderId,
+      p_actor_user_id: options.actorUserId ?? null,
     });
-    const summary = await getSummaryAfter(customerId);
-    return { ok: true, message: 'Sipariş iptali cariye işlendi.', balance: summary.balance };
+
+    if (error) throw new Error(error.message);
+    const result = data?.[0];
+    if (!result) throw new Error('Sipariş iptali cari entegrasyonu sonuç üretmedi.');
+
+    return {
+      ok: true,
+      message: result.accounting_action === 'reversed'
+        ? 'Sipariş iptali ters kayıtla cariye işlendi.'
+        : 'Sipariş iptal edildi; ters çevrilecek cari borç bulunmuyordu.',
+      balance: roundMoney(Number(result.resulting_balance) || 0),
+    };
   } catch (error) {
-    if (error instanceof IdempotencyHitError) {
-      const summary = await getSummaryAfter(customerId);
-      return { ok: true, message: 'Sipariş iptali zaten uygulanmış.', balance: summary.balance };
-    }
     return { ok: false, error: error instanceof Error ? error.message : 'Sipariş iptali işlenemedi.' };
   }
 }
@@ -245,6 +182,7 @@ export async function collectPayment(
     paymentMethod?: string;
     referenceNumber?: string;
     description?: string;
+    note?: string;
     orderId?: string | null;
     provider?: string;
     provider_reference?: string | null;
@@ -260,52 +198,43 @@ export async function collectPayment(
   }
 
   try {
-    await ensureCustomerAccount(customerId);
-
-    const { data: payment, error: paymentError } = await supabase
-      .from('payments')
-      .insert({
-        customer_id: customerId,
-        order_id: payload.orderId ?? null,
-        amount,
-        paid_at: payload.paidAt ? new Date(payload.paidAt).toISOString() : new Date().toISOString(),
-        payment_method: payload.paymentMethod ?? 'manual',
-        reference_number: payload.referenceNumber ?? '',
-        description: payload.description ?? '',
-        status: 'completed',
-        provider: payload.provider ?? 'manual',
-        provider_reference: payload.provider_reference ?? null,
-        actor_user_id: options.actorUserId ?? null,
-        idempotency_key: payload.idempotencyKey,
-      })
-      .select()
-      .single();
-
-    if (paymentError) {
-      if (paymentError.code === '23505') {
-        const balance = await getBalanceAfter(customerId);
-        return { ok: true, message: 'Bu tahsilat zaten kaydedilmiş.', balance };
-      }
-      throw new Error(paymentError.message);
-    }
-
-    const paymentRecord = payment as PaymentRow;
-
-    await appendTransaction({
-      customerId,
-      type: payload.orderId ? 'PAYMENT' : 'PAYMENT',
-      debit: 0,
-      credit: amount,
-      orderId: payload.orderId ?? null,
-      paymentId: paymentRecord.id,
-      description: payload.description || 'Tahsilat',
-      reference: payload.referenceNumber || paymentRecord.id.slice(0, 8),
-      actorUserId: options.actorUserId ?? null,
-      idempotencyKey: `payment:${paymentRecord.id}:credit`,
+    const { data, error } = await supabase.rpc('record_account_payment', {
+      p_customer_id: customerId,
+      p_amount: amount,
+      p_paid_at: payload.paidAt ? new Date(payload.paidAt).toISOString() : new Date().toISOString(),
+      p_payment_method: payload.paymentMethod ?? 'manual',
+      p_reference_number: payload.referenceNumber ?? '',
+      p_description: payload.description ?? '',
+      p_note: payload.note ?? '',
+      p_order_id: payload.orderId ?? null,
+      p_provider: payload.provider ?? 'manual',
+      p_provider_reference: payload.provider_reference ?? null,
+      p_actor_user_id: options.actorUserId ?? null,
+      p_idempotency_key: payload.idempotencyKey,
     });
 
-    const balance = await getBalanceAfter(customerId);
-    return { ok: true, message: 'Tahsilat başarıyla işlendi.', balance };
+    if (error) throw new Error(error.message);
+    const result = data?.[0];
+    if (!result) throw new Error('Tahsilat işlemi sonuç üretmedi.');
+
+    const message = result.idempotency_hit
+      ? 'Bu tahsilat zaten kaydedilmiş.'
+      : result.payment_type === 'PARTIAL_PAYMENT'
+        ? 'Kısmi tahsilat başarıyla işlendi.'
+        : 'Tahsilat başarıyla işlendi.';
+
+    if (result.payment_id) {
+      const { sendPaymentReceivedNotification } = await import('@/lib/sms/payment-notifications');
+      await sendPaymentReceivedNotification({
+        customerId,
+        paymentId: result.payment_id,
+        paymentAmount: amount,
+        balance: roundMoney(Number(result.resulting_balance) || 0),
+        actorUserId: options.actorUserId,
+      }).catch(() => undefined);
+    }
+
+    return { ok: true, message, balance: roundMoney(Number(result.resulting_balance) || 0) };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Tahsilat kaydedilemedi.' };
   }
@@ -315,52 +244,25 @@ export async function collectPayment(
  * Tahsilat iptali — payment status 'reversed' + ters kayıt. Idempotent.
  */
 export async function reversePayment(
-  customerId: string,
   paymentId: string,
   options: { actorUserId?: string | null } = {}
 ): Promise<AccountingResult> {
   const supabase = createAdminClient();
-  const { data: payment, error: paymentError } = await supabase
-    .from('payments')
-    .select('*')
-    .eq('id', paymentId)
-    .eq('customer_id', customerId)
-    .maybeSingle();
-
-  if (paymentError) throw new Error(paymentError.message);
-  if (!payment) return { ok: false, error: 'Tahsilat bulunamadı.' };
-  if (payment.status === 'reversed') {
-    return { ok: true, message: 'Tahsilat zaten iptal edilmiş.', balance: await getBalanceAfter(customerId) };
-  }
-
-  const paymentRecord = payment as PaymentRow;
-  const idempotencyKey = `payment-reverse:${paymentId}`;
-
   try {
-    const { error: updateError } = await supabase
-      .from('payments')
-      .update({ status: 'reversed' })
-      .eq('id', paymentId)
-      .eq('customer_id', customerId);
-    if (updateError) throw new Error(updateError.message);
-
-    await appendTransaction({
-      customerId,
-      type: 'REFUND',
-      debit: Number(paymentRecord.amount),
-      credit: 0,
-      orderId: paymentRecord.order_id,
-      paymentId,
-      description: 'Tahsilat iptali — ters kayıt',
-      reference: paymentRecord.reference_number || paymentId,
-      actorUserId: options.actorUserId ?? null,
-      isReversal: true,
-      reversedTransactionId: paymentId,
-      idempotencyKey,
+    const { data, error } = await supabase.rpc('reverse_account_payment', {
+      p_payment_id: paymentId,
+      p_actor_user_id: options.actorUserId ?? null,
     });
 
-    const balance = await getBalanceAfter(customerId);
-    return { ok: true, message: 'Tahsilat iptal edildi.', balance };
+    if (error) throw new Error(error.message);
+    const result = data?.[0];
+    if (!result) throw new Error('Tahsilat iptali sonuç üretmedi.');
+
+    return {
+      ok: true,
+      message: result.idempotency_hit ? 'Tahsilat zaten iptal edilmiş.' : 'Tahsilat ters kayıtla iptal edildi.',
+      balance: roundMoney(Number(result.resulting_balance) || 0),
+    };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Tahsilat iptal edilemedi.' };
   }
@@ -378,7 +280,7 @@ export async function adjustBalance(
   if (amount <= 0) return { ok: false, error: 'Düzeltme tutarı sıfırdan büyük olmalıdır.' };
 
   try {
-    await appendTransaction({
+    const transaction = await appendTransaction({
       customerId,
       type: 'ADJUSTMENT',
       debit: payload.amount > 0 ? amount : 0,
@@ -389,8 +291,7 @@ export async function adjustBalance(
       actorUserId: options.actorUserId ?? null,
       idempotencyKey: payload.idempotencyKey,
     });
-    const balance = await getBalanceAfter(customerId);
-    return { ok: true, message: 'Cari bakiye düzeltildi.', balance };
+    return { ok: true, message: 'Cari bakiye düzeltildi.', balance: transaction.balance };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Bakiye düzeltilemedi.' };
   }
@@ -404,13 +305,22 @@ export async function updateRiskLimit(customerId: string, riskLimit: number): Pr
   const limit = roundMoney(Math.max(0, Number(riskLimit) || 0));
   try {
     await ensureCustomerAccount(customerId);
-    const { error } = await supabase
+    const { data: account, error: accountError } = await supabase
       .from('customer_accounts')
-      .update({ risk_limit: limit })
-      .eq('customer_id', customerId);
+      .select('risk_policy, risk_warning_threshold')
+      .eq('customer_id', customerId)
+      .single();
+    if (accountError) throw new Error(accountError.message);
+
+    const { error } = await supabase.rpc('update_customer_risk_settings', {
+      p_customer_id: customerId,
+      p_risk_limit: limit,
+      p_risk_policy: account.risk_policy,
+      p_warning_threshold: account.risk_warning_threshold,
+      p_actor_user_id: null,
+    });
     if (error) throw new Error(error.message);
-    const summary = await getSummaryAfter(customerId);
-    return { ok: true, message: 'Risk limiti güncellendi.', balance: summary.balance };
+    return { ok: true, message: 'Risk limiti güncellendi.', balance: await getCurrentBalance(customerId) };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'Risk limiti güncellenemedi.' };
   }

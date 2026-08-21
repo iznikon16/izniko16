@@ -2,15 +2,16 @@ import { getPublicCatalogProducts } from '@/lib/catalog/queries';
 import { getCustomerSession } from '@/lib/commerce/queries';
 import { getCustomerPricedProducts } from '@/lib/pricing/queries';
 import CategoryClient from './CategoryClient';
-import { notFound } from 'next/navigation';
+import type { CatalogProduct } from '@/lib/catalog/types';
 
 export const revalidate = 60; // revalidate every 60 seconds
 
-export default async function CategoryPage({ params }: { params: { slug: string } }) {
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const catalogProducts = await getPublicCatalogProducts();
   const session = await getCustomerSession();
   
-  let finalProducts: any[] = catalogProducts;
+  let finalProducts: Array<CatalogProduct & { customerPrice?: number | null; customerPriceSource?: string }> = catalogProducts;
   if (session?.profile?.user_id) {
     finalProducts = await getCustomerPricedProducts(session.profile.user_id, catalogProducts);
   }
@@ -21,8 +22,8 @@ export default async function CategoryPage({ params }: { params: { slug: string 
     .filter(p => {
       // Check if product's primary category slug matches the URL slug
       // For fallback, also check tags if category mapping is missing
-      const catSlugs = p.categories?.map((c: any) => c.slug) || [];
-      return catSlugs.includes(params.slug) || (p.tags || []).includes(params.slug) || params.slug === 'tum-urunler';
+      const catSlugs = p.categories?.map((category) => category.slug) || [];
+      return catSlugs.includes(slug) || (p.tags || []).includes(slug) || slug === 'tum-urunler';
     })
     .map(p => ({
       id: p.id,
@@ -39,5 +40,5 @@ export default async function CategoryPage({ params }: { params: { slug: string 
       boxQty: ''
     }));
 
-  return <CategoryClient products={products} />;
+  return <CategoryClient products={products} isAuthenticated={Boolean(session)} />;
 }

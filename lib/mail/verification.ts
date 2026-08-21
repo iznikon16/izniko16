@@ -89,7 +89,10 @@ export async function verifyCustomerEmailToken(token: string) {
   const [{ error: tokenError }, { error: profileError }, { error: authError }] = await Promise.all([
     supabase.from('email_verification_tokens').update({ consumed_at: verifiedAt }).eq('id', verificationToken.id),
     supabase.from('customer_profiles').update({ email_verified_at: verifiedAt }).eq('user_id', verificationToken.user_id),
-    supabase.auth.admin.updateUserById(verificationToken.user_id, { email_confirm: true }),
+    supabase.auth.admin.updateUserById(verificationToken.user_id, {
+      email_confirm: true,
+      user_metadata: { app_email_verified: true },
+    }),
   ]);
 
   if (tokenError || profileError || authError) {

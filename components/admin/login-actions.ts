@@ -1,9 +1,12 @@
-﻿'use server';
+'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/security/rate-limit';
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { writeAuditLog } from '@/lib/audit/queries';
+import { invalidateSupabaseSession } from '@/lib/auth/session-invalidation';
 
 export async function adminLoginAction(formData: FormData) {
   const email = String(formData.get('email') ?? '').trim();
@@ -21,7 +24,7 @@ export async function adminLoginAction(formData: FormData) {
       metadata: { reason: 'rate_limit_exceeded', email },
       ip
     });
-    return { error: 'Ã‡ok fazla giriÅŸ denemesi yapÄ±ldÄ±. LÃ¼tfen daha sonra tekrar deneyin.' };
+    return { error: 'Çok fazla giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin.' };
   }
 
   const supabase = await createClient();
@@ -37,6 +40,25 @@ export async function adminLoginAction(formData: FormData) {
     return { error: getAuthErrorMessage(error.message) };
   }
 
+  const adminSupabase = createAdminClient();
+  const { data: adminUser, error: adminUserError } = await adminSupabase
+    .from('admin_users')
+    .select('user_id, is_active')
+    .eq('user_id', data.user.id)
+    .maybeSingle();
+
+  if (adminUserError || !adminUser || adminUser.is_active === false) {
+    await supabase.auth.signOut({ scope: 'global' });
+    await writeAuditLog({
+      actorUserId: data.user.id,
+      action: 'login_failure',
+      resourceType: 'auth',
+      metadata: { reason: adminUser?.is_active === false ? 'inactive_admin' : 'not_admin', email },
+      ip
+    });
+    return { error: adminUser?.is_active === false ? 'Kullanıcı hesabınız pasif durumda.' : 'Bu hesap yönetim paneline yetkili değil.' };
+  }
+
   await writeAuditLog({
     actorUserId: data.user?.id,
     action: 'login_success',
@@ -49,16 +71,31 @@ export async function adminLoginAction(formData: FormData) {
 }
 
 function getAuthErrorMessage(message: string) {
-  const normalizedMessage = message.toLocaleLowerCase('tr');
+  const normalizedMessage = message.toLowerCase();
 
   if (normalizedMessage.includes('invalid login credentials')) {
-    return 'E-posta veya ÅŸifre hatalÄ±.';
+    return 'E-posta veya şifre hatalı.';
   }
 
   if (normalizedMessage.includes('email not confirmed')) {
-    return 'E-posta adresi henÃ¼z doÄŸrulanmamÄ±ÅŸ.';
+    return 'E-posta adresi henüz doğrulanmadı.';
   }
 
-  return message;
+  return 'Giriş yapılamadı. Lütfen tekrar deneyin.';
 }
 
+export async function adminLogoutAction() {
+  const supabase = await createClient();
+  const result = await invalidateSupabaseSession(supabase);
+
+  if (!result.ok) {
+    return { error: 'Çıkış işlemi tamamlanamadı.', success: false };
+  }
+
+  if (result.userId) {
+    await writeAuditLog({ actorUserId: result.userId, action: 'logout', resourceType: 'auth' });
+  }
+  revalidatePath('/admin', 'layout');
+
+  return { success: true };
+}

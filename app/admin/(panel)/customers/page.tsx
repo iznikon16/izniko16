@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
-import { deleteCustomerAction, saveCustomerAction } from '@/app/admin/(panel)/actions';
-import { DeleteSubmitButton } from '@/components/admin/delete-submit-button';
+import { saveCustomerAction } from '@/app/admin/(panel)/actions';
 import { CreateCustomerModal } from '@/components/admin/create-customer-modal';
+import { ChangeUserPasswordForm } from '@/components/admin/change-user-password-form';
 import { getAdminCustomers } from '@/lib/admin/commerce-queries';
 import { formatCommercePrice } from '@/lib/commerce/format';
 import { Input } from '@/components/ui/input';
@@ -132,7 +132,7 @@ function CustomerRow({ customer }: { customer: AdminCustomerRecord }) {
             <div className="flex flex-wrap gap-2">
               <Label className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500 cursor-pointer">
                 <Checkbox name="is_blocked" defaultChecked={customer.is_blocked} />
-                Alışveriş kilidi
+                Hesabı pasife al
               </Label>
             </div>
             <p className="text-xs text-gray-500">
@@ -141,18 +141,23 @@ function CustomerRow({ customer }: { customer: AdminCustomerRecord }) {
           </div>
         </form>
 
-        <div className="mt-4 flex flex-col gap-3 rounded-[18px] border border-red-200 bg-red-50 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mt-4 flex flex-wrap gap-2">
+          <ChangeUserPasswordForm userId={customer.user_id} userLabel={customer.email} />
+          <Link
+            href={`/admin/accounting/${customer.user_id}`}
+            className="inline-flex h-10 items-center justify-center rounded-full border border-gray-200 bg-white px-5 text-sm font-medium text-gray-700 transition-colors hover:border-sky-500 hover:bg-sky-50"
+          >
+            Cari Hesap / Bakiye İşlemleri
+          </Link>
+        </div>
+
+        <div className="mt-4 rounded-[18px] border border-amber-200 bg-amber-50 px-4 py-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">Kalıcı Silme</p>
-            <p className="mt-1 text-xs leading-5 text-red-700/80">Müşteri hesabı ve bağlı kayıtlar sistemden kaldırılır.</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-700">Finansal Veri Koruması</p>
+            <p className="mt-1 text-xs leading-5 text-amber-800/80">
+              Müşteriler kalıcı olarak silinmez. Hesabı pasife almak giriş ve işlem erişimini kapatır; sipariş, tahsilat ve cari geçmiş korunur.
+            </p>
           </div>
-          <form action={deleteCustomerAction}>
-            <input type="hidden" name="user_id" value={customer.user_id} />
-            <DeleteSubmitButton
-              confirmMessage={`${customer.email || customer.full_name || 'Bu müşteri'} kalıcı olarak silinsin mi? Bağlı adres, sepet, favori ve sipariş kayıtları da kaldırılır.`}
-              label="Müşteriyi Sil"
-            />
-          </form>
         </div>
       </div>
     </details>

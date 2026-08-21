@@ -411,6 +411,7 @@ export async function getAdminProductEditor(productId: string): Promise<ProductE
 }
 
 export async function getAdminDashboardMetrics(days?: number): Promise<AdminDashboardMetrics> {
+  void days;
   const supabase = createAdminClient();
 
   const [

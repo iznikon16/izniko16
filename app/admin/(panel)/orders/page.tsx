@@ -1,6 +1,7 @@
 ﻿import Link from 'next/link';
 import { ChevronDown, MapPin, MessageSquare, Search, SlidersHorizontal, X } from 'lucide-react';
 import { deleteOrderAction, saveOrderAction } from '@/app/admin/(panel)/actions';
+import { approveOrderRiskAction } from '@/app/admin/(panel)/accounting/actions';
 import { DeleteSubmitButton } from '@/components/admin/delete-submit-button';
 import { getAdminOrders, getAdminPaymentMethods } from '@/lib/admin/commerce-queries';
 import { formatCommercePrice } from '@/lib/commerce/format';
@@ -132,6 +133,8 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
           <Badge variant={order.payment_status === 'paid' ? 'success' : order.payment_status === 'failed' ? 'destructive' : 'outline'}>
             {paymentStatusLabels[order.payment_status]}
           </Badge>
+          {order.risk_decision === 'warning' ? <Badge variant="warning">Risk uyarısı</Badge> : null}
+          {order.risk_decision === 'approval_required' ? <Badge variant="destructive">Risk onayı bekliyor</Badge> : null}
         </div>
 
         <div className="min-w-0">
@@ -233,6 +236,21 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
         </div>
 
         <div className="grid content-start gap-3">
+          {order.risk_decision === 'approval_required' ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <p className="font-semibold text-amber-900">Risk limiti aşıldı</p>
+              <p className="mt-1 text-xs leading-5 text-amber-700">Bu sipariş cari hesaba işlenmeden veya ödenmiş duruma alınmadan önce yönetici onayı gerektiriyor.</p>
+              {order.risk_approved_at ? (
+                <p className="mt-3 text-sm font-semibold text-emerald-700">Onaylandı: {dateFormatter.format(new Date(order.risk_approved_at))}</p>
+              ) : (
+                <form action={approveOrderRiskAction} className="mt-3">
+                  <input type="hidden" name="order_id" value={order.id} />
+                  <input type="hidden" name="customer_id" value={order.user_id} />
+                  <Button type="submit" size="sm">Risk onayı ver</Button>
+                </form>
+              )}
+            </div>
+          ) : null}
           <form action={saveOrderAction} className="grid gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
             <input type="hidden" name="id" value={order.id} />
             <input type="hidden" name="payment_provider" value={order.payment_provider} />
@@ -309,11 +327,11 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
           </form>
 
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">Kalıcı Silme</p>
-            <p className="mt-1 text-xs leading-5 text-red-500">Sipariş ve bağlı kalem/ödeme denemesi kayıtları kaldırılır.</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">Sipariş İptali</p>
+            <p className="mt-1 text-xs leading-5 text-red-500">Sipariş geçmişi korunur; varsa cari borç ters kayıtla kapatılır.</p>
             <form action={deleteOrderAction} className="mt-3">
               <input type="hidden" name="id" value={order.id} />
-              <DeleteSubmitButton confirmMessage={`${order.order_number} numaralı sipariş kalıcı olarak silinsin mi?`} label="Siparişi Sil" />
+              <DeleteSubmitButton confirmMessage={`${order.order_number} numaralı sipariş iptal edilsin mi?`} label="Siparişi İptal Et" />
             </form>
           </div>
         </div>
@@ -336,7 +354,7 @@ function OrdersTable({ orders, paymentMethods }: { orders: AdminOrderRecord[]; p
         <span />
       </div>
       {orders.map((order) => (
-        <OrderRow key={order.id} order={order} paymentMethods={paymentMethods as any} />
+        <OrderRow key={order.id} order={order} paymentMethods={paymentMethods} />
       ))}
     </div>
   );
@@ -437,7 +455,7 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
             description="Bu filtrelerle eşleşen sipariş kaydı bulunmamaktadır."
           />
         ) : (
-          <OrdersTable orders={orders} paymentMethods={paymentMethods as any} />
+          <OrdersTable orders={orders} paymentMethods={paymentMethods} />
         )}
         </CardContent>
       </Card>

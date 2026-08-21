@@ -3,9 +3,46 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireAdminPermission } from '@/lib/auth/admin';
-import { encryptToken, decryptToken } from '@/lib/security/encryption';
+import { encryptToken, decryptToken, isLegacyEncryptedToken } from '@/lib/security/encryption';
 import { GitEngine } from '@/lib/github/git-engine';
 import { writeAuditLog } from '@/lib/audit/queries';
+
+type GitHubSyncConfig = {
+  id: string;
+  encrypted_token: string;
+};
+
+function getTokenErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : '';
+  if (message.includes('ENCRYPTION_KEY') || message.includes('Encryption key')) {
+    return 'Sunucu şifreleme anahtarı eksik veya geçersiz. Ortam değişkenlerini kontrol edin.';
+  }
+  return 'Kayıtlı GitHub tokenı okunamadı. Personal Access Token alanına tokenı yeniden girip ayarları kaydedin.';
+}
+
+async function readAndMigrateToken(
+  // github_sync_config predates the generated Database type in this repository.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
+  config: GitHubSyncConfig,
+) {
+  let token: string;
+  try {
+    token = decryptToken(config.encrypted_token);
+  } catch (error) {
+    throw new Error(getTokenErrorMessage(error));
+  }
+
+  if (isLegacyEncryptedToken(config.encrypted_token)) {
+    const { error } = await db
+      .from('github_sync_config')
+      .update({ encrypted_token: encryptToken(token) })
+      .eq('id', config.id);
+    if (error) throw new Error('GitHub tokenı yeni şifreleme formatına yükseltilemedi.');
+  }
+
+  return token;
+}
 
 export async function saveGitHubConfig(formData: FormData) {
   try {
@@ -31,9 +68,15 @@ export async function saveGitHubConfig(formData: FormData) {
       throw new Error('Veritabanı hatası: ' + selectError.message);
     }
 
-    let encryptedTokenToSave = existing?.encrypted_token;
+    let encryptedTokenToSave: string | undefined;
     if (token && token.trim() !== '') {
       encryptedTokenToSave = encryptToken(token.trim());
+    } else if (existing?.encrypted_token) {
+      try {
+        encryptedTokenToSave = encryptToken(decryptToken(existing.encrypted_token));
+      } catch (error) {
+        throw new Error(getTokenErrorMessage(error));
+      }
     }
 
     if (!encryptedTokenToSave) {
@@ -87,7 +130,7 @@ export async function testGitHubConnection() {
       throw new Error('GitHub yapılandırması bulunamadı.');
     }
 
-    const token = decryptToken(config.encrypted_token);
+    const token = await readAndMigrateToken(db, config);
     const remoteUrl = `https://github.com/${config.github_owner}/${config.github_repository}.git`;
 
     await writeAuditLog({
@@ -120,7 +163,7 @@ export async function pushToGitHub(commitMessage?: string) {
     
     if (!config) throw new Error('GitHub yapılandırması bulunamadı.');
 
-    const token = decryptToken(config.encrypted_token);
+    const token = await readAndMigrateToken(db, config);
     const remoteUrl = `https://github.com/${config.github_owner}/${config.github_repository}.git`;
     const message = commitMessage?.trim() || `Backup: ${new Date().toLocaleString('tr-TR')}`;
 

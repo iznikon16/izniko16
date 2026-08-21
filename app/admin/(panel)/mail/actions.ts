@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { requireAdminPermission } from '@/lib/auth/admin';
-import { testSmtpConnection } from '@/lib/mail/mailer';
+import { testSmtpConnection, verifySmtpConnection } from '@/lib/mail/mailer';
+import { writeAuditLog } from '@/lib/audit/queries';
+import { checkRateLimit } from '@/lib/security/rate-limit';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '@/lib/supabase/database.types';
 
@@ -14,7 +16,7 @@ function getText(formData: FormData, key: string) {
 }
 
 export async function saveSmtpSettingsAction(formData: FormData): Promise<void> {
-  await requireAdminPermission('settings.view');
+  const session = await requireAdminPermission('settings.manageIntegrations');
   const supabase = createAdminClient();
   const payload: Database['public']['Tables']['smtp_settings']['Update'] = {
     admin_notification_email: getText(formData, 'admin_notification_email'),
@@ -34,7 +36,8 @@ export async function saveSmtpSettingsAction(formData: FormData): Promise<void> 
     if (rawPassword === '******') {
       const { data: existing } = await supabase.from('smtp_settings').select('password').eq('id', SMTP_SETTINGS_ID).maybeSingle();
       if (existing?.password) {
-        payload.password = existing.password;
+        const { encryptToken, isEncryptedToken } = await import('@/lib/security/encryption');
+        payload.password = isEncryptedToken(existing.password) ? existing.password : encryptToken(existing.password);
       }
     } else {
       const { encryptToken } = await import('@/lib/security/encryption');
@@ -44,6 +47,8 @@ export async function saveSmtpSettingsAction(formData: FormData): Promise<void> 
 
   const { error } = await supabase.from('smtp_settings').upsert({ id: SMTP_SETTINGS_ID, ...payload }, { onConflict: 'id' });
   if (error) throw new Error(error.message);
+
+  await writeAuditLog({ actorUserId: session.user.id, action: 'integration_smtp_settings_update', resourceType: 'integration', resourceId: 'smtp', newValue: { enabled: payload.is_enabled, hostConfigured: Boolean(payload.host), secure: payload.secure } });
 
   revalidatePath('/admin');
   revalidatePath('/admin/mail');
@@ -70,10 +75,20 @@ export async function saveEmailTemplateAction(formData: FormData): Promise<void>
   revalidatePath('/admin/mail');
 }
 
-export async function sendSmtpTestAction(): Promise<void> {
-  await requireAdminPermission('settings.view');
-  const result = await testSmtpConnection();
+export async function sendSmtpTestAction(formData: FormData): Promise<void> {
+  const session = await requireAdminPermission('settings.manageIntegrations');
+  if (!checkRateLimit(`integration-smtp-delivery:${session.user.id}`, 3, 15 * 60 * 1000).success) redirect('/admin/mail?test=limited');
+  const result = await testSmtpConnection(getText(formData, 'test_email'));
+  await writeAuditLog({ actorUserId: session.user.id, action: 'integration_smtp_delivery_test', resourceType: 'integration', resourceId: 'smtp', newValue: { ok: result.ok } });
   redirect(`/admin/mail?test=${result.ok ? 'sent' : 'failed'}`);
+}
+
+export async function verifySmtpConnectionAction(): Promise<void> {
+  const session = await requireAdminPermission('settings.manageIntegrations');
+  if (!checkRateLimit(`integration-smtp-connection:${session.user.id}`, 5, 15 * 60 * 1000).success) redirect('/admin/mail?connection=limited');
+  const result = await verifySmtpConnection();
+  await writeAuditLog({ actorUserId: session.user.id, action: 'integration_smtp_connection_test', resourceType: 'integration', resourceId: 'smtp', newValue: { ok: result.ok } });
+  redirect(`/admin/mail?connection=${result.ok ? 'success' : 'failed'}`);
 }
 
 export type MailTestResult = {
@@ -82,6 +97,6 @@ export type MailTestResult = {
 };
 
 export async function testSmtpAction(): Promise<MailTestResult> {
-  await requireAdminPermission('settings.view');
+  await requireAdminPermission('settings.manageIntegrations');
   return testSmtpConnection();
 }
