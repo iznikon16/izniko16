@@ -25,6 +25,7 @@ Platform; müşteri yönetimi, ürün ve fiyatlandırma, sipariş operasyonları
 * Fiyat listeleri ve müşteriye özel fiyatlandırma
 * Sipariş ve sepet yönetimi
 * Sipariş durum takibi
+* Çoklu ve kısmi sevkiyat, kargo takip numarası ve teslimat geçmişi
 * Stok ve stok hareketleri
 * Kritik stok takibi
 * Cari hesap ve borç/alacak yönetimi
@@ -72,7 +73,7 @@ Başlıca özellikler:
 | Entegrasyon  | Amaç                                                   |
 | ------------ | ------------------------------------------------------ |
 | **XML**      | Ürün, fiyat, stok, kategori ve görsel senkronizasyonu  |
-| **Netgsm**   | Sipariş, vade ve ödeme SMS bildirimleri                |
+| **Netgsm**   | Sipariş, sevkiyat, vade ve ödeme SMS bildirimleri      |
 | **PayTR**    | Güvenli iframe üzerinden kredi kartı tahsilatı         |
 | **iyzico**   | Sağlayıcının güvenli sayfasında kredi kartı tahsilatı  |
 | **Ödeal**    | Ödeme işlemleri ve tahsilat entegrasyonu               |

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { OrderShipments } from '@/components/admin/order-shipments';
 import { getPaymentProviderDefinition } from '@/lib/commerce/payment-provider-presets';
 import type { AdminOrderFilters, AdminOrderRecord, OrderRow, PaymentMethodRow } from '@/lib/catalog/types';
 
@@ -236,6 +237,7 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
         </div>
 
         <div className="grid content-start gap-3">
+          <OrderShipments order={order} />
           {order.risk_decision === 'approval_required' ? (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <p className="font-semibold text-amber-900">Risk limiti aşıldı</p>

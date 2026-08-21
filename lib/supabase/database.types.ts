@@ -1765,6 +1765,27 @@ export type Database = {
         }
         Relationships: []
       }
+      shipment_items: {
+        Row: { created_at: string; id: string; order_item_id: string; quantity: number; shipment_id: string }
+        Insert: { created_at?: string; id?: string; order_item_id: string; quantity: number; shipment_id: string }
+        Update: { created_at?: string; id?: string; order_item_id?: string; quantity?: number; shipment_id?: string }
+        Relationships: [
+          { foreignKeyName: "shipment_items_order_item_id_fkey"; columns: ["order_item_id"]; isOneToOne: false; referencedRelation: "order_items"; referencedColumns: ["id"] },
+          { foreignKeyName: "shipment_items_shipment_id_fkey"; columns: ["shipment_id"]; isOneToOne: false; referencedRelation: "shipments"; referencedColumns: ["id"] },
+        ]
+      }
+      shipment_status_history: {
+        Row: { actor_user_id: string | null; created_at: string; from_status: string | null; id: string; note: string; shipment_id: string; to_status: string }
+        Insert: { actor_user_id?: string | null; created_at?: string; from_status?: string | null; id?: string; note?: string; shipment_id: string; to_status: string }
+        Update: { actor_user_id?: string | null; created_at?: string; from_status?: string | null; id?: string; note?: string; shipment_id?: string; to_status?: string }
+        Relationships: [{ foreignKeyName: "shipment_status_history_shipment_id_fkey"; columns: ["shipment_id"]; isOneToOne: false; referencedRelation: "shipments"; referencedColumns: ["id"] }]
+      }
+      shipments: {
+        Row: { carrier: string; created_at: string; created_by: string | null; delivered_at: string | null; id: string; note: string; order_id: string; shipment_number: string; shipped_at: string | null; status: string; tracking_number: string; tracking_url: string | null; updated_at: string }
+        Insert: { carrier?: string; created_at?: string; created_by?: string | null; delivered_at?: string | null; id?: string; note?: string; order_id: string; shipment_number: string; shipped_at?: string | null; status?: string; tracking_number?: string; tracking_url?: string | null; updated_at?: string }
+        Update: { carrier?: string; created_at?: string; created_by?: string | null; delivered_at?: string | null; id?: string; note?: string; order_id?: string; shipment_number?: string; shipped_at?: string | null; status?: string; tracking_number?: string; tracking_url?: string | null; updated_at?: string }
+        Relationships: [{ foreignKeyName: "shipments_order_id_fkey"; columns: ["order_id"]; isOneToOne: false; referencedRelation: "orders"; referencedColumns: ["id"] }]
+      }
       sms_logs: {
         Row: {
           actor_user_id: string | null
@@ -2475,6 +2496,10 @@ export type Database = {
         Args: { p_id: string }
         Returns: boolean
       }
+      create_order_shipment: {
+        Args: { p_actor_user_id?: string; p_carrier?: string; p_items: Json; p_note?: string; p_order_id: string; p_tracking_number?: string; p_tracking_url?: string }
+        Returns: { history_id: string; order_id: string; shipment_id: string; shipment_status: string }[]
+      }
       create_storefront_checkout: {
         Args: {
           p_billing_address: Json
@@ -2708,6 +2733,10 @@ export type Database = {
           resulting_balance: number
           transaction_id: string | null
         }[]
+      }
+      update_order_shipment: {
+        Args: { p_actor_user_id?: string; p_carrier?: string; p_note?: string; p_shipment_id: string; p_status: string; p_tracking_number?: string; p_tracking_url?: string }
+        Returns: { history_id: string; order_id: string; previous_status: string; shipment_id: string; shipment_status: string; status_changed: boolean }[]
       }
       update_order_with_accounting: {
         Args: {

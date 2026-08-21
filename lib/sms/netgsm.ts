@@ -13,6 +13,7 @@ export const PAYMENT_SMS_EVENTS = [
 ] as const;
 
 export type PaymentSmsEvent = (typeof PAYMENT_SMS_EVENTS)[number];
+export type ShipmentSmsEvent = 'SHIPMENT_STATUS_UPDATED';
 
 export type SmsSendResult = {
   ok: boolean;
@@ -25,7 +26,7 @@ export type SmsSendOptions = {
   templateKey?: string;
   variables?: Record<string, string | number>;
   customerId?: string;
-  eventType?: PaymentSmsEvent;
+  eventType?: PaymentSmsEvent | ShipmentSmsEvent;
   eventKey?: string;
   dueTransactionId?: string;
   actorUserId?: string;

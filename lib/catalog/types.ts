@@ -19,6 +19,9 @@ export type HomeVideoSettingsRow = Database['public']['Tables']['home_video_sett
 export type ProjectReferenceRow = Database['public']['Tables']['project_references']['Row'];
 export type OrderItemRow = Database['public']['Tables']['order_items']['Row'];
 export type OrderRow = Database['public']['Tables']['orders']['Row'];
+export type ShipmentRow = Database['public']['Tables']['shipments']['Row'];
+export type ShipmentItemRow = Database['public']['Tables']['shipment_items']['Row'];
+export type ShipmentStatusHistoryRow = Database['public']['Tables']['shipment_status_history']['Row'];
 export type PaymentAttemptRow = Database['public']['Tables']['payment_attempts']['Row'];
 export type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row'];
 export type PolicyPageRow = Database['public']['Tables']['policy_pages']['Row'];
@@ -197,6 +200,12 @@ export type AdminOrderRecord = OrderRow & {
   items: OrderItemRow[];
   paymentMethod: PaymentMethodRow | null;
   profile: CustomerProfileRow | null;
+  shipments: ShipmentRecord[];
+};
+
+export type ShipmentRecord = ShipmentRow & {
+  history: ShipmentStatusHistoryRow[];
+  items: Array<ShipmentItemRow & { orderItem: OrderItemRow | null }>;
 };
 
 export type CheckoutPaymentMethod = Pick<

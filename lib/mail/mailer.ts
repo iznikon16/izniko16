@@ -14,6 +14,7 @@ export type EmailTemplateKey =
   | 'customer_order_created'
   | 'customer_order_status_updated'
   | 'customer_payment_status_updated'
+  | 'customer_shipment_status_updated'
   | 'marketing_campaign_announcement'
   | 'marketing_discount_offer'
   | 'marketing_service_reminder'

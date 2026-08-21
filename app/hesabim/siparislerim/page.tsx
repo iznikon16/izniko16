@@ -37,6 +37,7 @@ export default async function CustomerOrdersPage() {
               {order.paymentAttempt && order.payment_status !== "paid" && (
                 <Link href={`/odeme/sonuc?attempt=${encodeURIComponent(order.paymentAttempt.id)}`} className="mt-4 inline-flex text-sm font-black text-sky-700">Ödeme talimatını görüntüle →</Link>
               )}
+              <Link href={`/hesabim/siparislerim/${order.id}`} className="mt-4 inline-flex text-sm font-black text-sky-700">Sipariş ve kargo detayı →</Link>
             </article>
           ))}
         </div>

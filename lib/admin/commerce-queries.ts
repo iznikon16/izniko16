@@ -20,6 +20,10 @@ import type {
   PaymentMethodRow,
   ProjectReference,
   ProjectReferenceRow,
+  ShipmentItemRow,
+  ShipmentRecord,
+  ShipmentRow,
+  ShipmentStatusHistoryRow,
 } from '@/lib/catalog/types';
 import { getStoragePublicUrl } from '@/lib/catalog/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -81,12 +85,14 @@ export async function getAdminOrders(filters?: AdminOrderFilters): Promise<Admin
     { data: paymentMethods, error: paymentMethodsError },
     { data: coupons, error: couponsError },
     { data: campaigns, error: campaignsError },
+    { data: shipments, error: shipmentsError },
   ] = await Promise.all([
     supabase.from('order_items').select('*').in('order_id', orderIds).order('created_at', { ascending: true }),
     supabase.from('customer_profiles').select('*').in('user_id', userIds),
     paymentMethodIds.length > 0 ? supabase.from('payment_methods').select('*').in('id', paymentMethodIds) : emptyResult<PaymentMethodRow>(),
     couponIds.length > 0 ? supabase.from('coupons').select('*').in('id', couponIds) : emptyResult<CouponRow>(),
     campaignIds.length > 0 ? supabase.from('campaigns').select('*').in('id', campaignIds) : emptyResult<CampaignRow>(),
+    supabase.from('shipments').select('*').in('order_id', orderIds).order('created_at', { ascending: false }),
   ]);
 
   if (itemsError) {
@@ -109,6 +115,21 @@ export async function getAdminOrders(filters?: AdminOrderFilters): Promise<Admin
     throw new Error(campaignsError.message);
   }
 
+  if (shipmentsError) {
+    throw new Error(shipmentsError.message);
+  }
+
+  const shipmentIds = (shipments ?? []).map((shipment) => shipment.id);
+  const [{ data: shipmentItems, error: shipmentItemsError }, { data: shipmentHistory, error: shipmentHistoryError }] = await Promise.all([
+    shipmentIds.length > 0 ? supabase.from('shipment_items').select('*').in('shipment_id', shipmentIds) : emptyResult<ShipmentItemRow>(),
+    shipmentIds.length > 0
+      ? supabase.from('shipment_status_history').select('*').in('shipment_id', shipmentIds).order('created_at', { ascending: false })
+      : emptyResult<ShipmentStatusHistoryRow>(),
+  ]);
+
+  if (shipmentItemsError) throw new Error(shipmentItemsError.message);
+  if (shipmentHistoryError) throw new Error(shipmentHistoryError.message);
+
   const itemsByOrderId = new Map<string, OrderItemRow[]>();
   for (const item of items ?? []) {
     const group = itemsByOrderId.get(item.order_id) ?? [];
@@ -120,11 +141,35 @@ export async function getAdminOrders(filters?: AdminOrderFilters): Promise<Admin
   const paymentMethodsById = new Map((paymentMethods ?? []).map((method) => [method.id, method]));
   const couponsById = new Map((coupons ?? []).map((coupon) => [coupon.id, coupon]));
   const campaignsById = new Map((campaigns ?? []).map((campaign) => [campaign.id, campaign]));
+  const orderItemsById = new Map((items ?? []).map((item) => [item.id, item]));
+  const shipmentItemsByShipmentId = new Map<string, ShipmentRecord['items']>();
+  for (const item of shipmentItems ?? []) {
+    const group = shipmentItemsByShipmentId.get(item.shipment_id) ?? [];
+    group.push({ ...item, orderItem: orderItemsById.get(item.order_item_id) ?? null });
+    shipmentItemsByShipmentId.set(item.shipment_id, group);
+  }
+  const shipmentHistoryByShipmentId = new Map<string, ShipmentStatusHistoryRow[]>();
+  for (const entry of shipmentHistory ?? []) {
+    const group = shipmentHistoryByShipmentId.get(entry.shipment_id) ?? [];
+    group.push(entry);
+    shipmentHistoryByShipmentId.set(entry.shipment_id, group);
+  }
+  const shipmentsByOrderId = new Map<string, ShipmentRecord[]>();
+  for (const shipment of (shipments ?? []) as ShipmentRow[]) {
+    const group = shipmentsByOrderId.get(shipment.order_id) ?? [];
+    group.push({
+      ...shipment,
+      history: shipmentHistoryByShipmentId.get(shipment.id) ?? [],
+      items: shipmentItemsByShipmentId.get(shipment.id) ?? [],
+    });
+    shipmentsByOrderId.set(shipment.order_id, group);
+  }
 
   return (orders as OrderRow[]).map((order) => ({
     ...order,
     items: itemsByOrderId.get(order.id) ?? [],
     profile: profilesByUserId.get(order.user_id) ?? null,
+    shipments: shipmentsByOrderId.get(order.id) ?? [],
     paymentMethod: order.payment_method_id ? paymentMethodsById.get(order.payment_method_id) ?? null : null,
     coupon: order.coupon_id ? couponsById.get(order.coupon_id) ?? null : null,
     campaign: order.campaign_id ? campaignsById.get(order.campaign_id) ?? null : null,

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { getCustomerAccessStatus } from '@/lib/auth/customer-access';
 import { getSafeCustomerRedirectPath } from '@/lib/auth/safe-redirect';
-import type { CatalogProduct, CustomerAddressRow, CustomerProfileRow, OrderItemRow, OrderRow, PaymentAttemptRow, PaymentMethodRow } from '@/lib/catalog/types';
+import type { CatalogProduct, CustomerAddressRow, CustomerProfileRow, OrderItemRow, OrderRow, PaymentAttemptRow, PaymentMethodRow, ShipmentItemRow, ShipmentRecord, ShipmentStatusHistoryRow } from '@/lib/catalog/types';
 import type { ResolvedCommerceCoupon } from '@/lib/commerce/coupons';
 import type { GuestCartItem } from '@/lib/commerce/guest-cart';
 import type { BankTransferDetails } from '@/lib/commerce/payment-display';
@@ -52,6 +52,8 @@ export type CustomerOrder = OrderRow & {
     bankDetails: BankTransferDetails;
   }) | null;
 };
+
+export type CustomerOrderDetail = CustomerOrder & { shipments: ShipmentRecord[] };
 
 export async function getCustomerSession() {
   const supabase = await createClient();
@@ -395,4 +397,40 @@ export async function getCustomerOrders(userId: string): Promise<CustomerOrder[]
     paymentAttempt: attemptsByOrderId.get(order.id) ?? null,
     paymentMethod: order.payment_method_id ? methodsById.get(order.payment_method_id) ?? null : null,
   }));
+}
+
+export async function getCustomerOrderDetail(userId: string, orderId: string): Promise<CustomerOrderDetail | null> {
+  const orders = await getCustomerOrders(userId);
+  const order = orders.find((candidate) => candidate.id === orderId);
+  if (!order) return null;
+
+  const supabase = await createClient();
+  const { data: shipments, error } = await supabase
+    .from('shipments')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+
+  const shipmentIds = (shipments ?? []).map((shipment) => shipment.id);
+  if (shipmentIds.length === 0) return { ...order, shipments: [] };
+
+  const [{ data: shipmentItems, error: itemsError }, { data: history, error: historyError }] = await Promise.all([
+    supabase.from('shipment_items').select('*').in('shipment_id', shipmentIds),
+    supabase.from('shipment_status_history').select('*').in('shipment_id', shipmentIds).order('created_at', { ascending: false }),
+  ]);
+  if (itemsError) throw new Error(itemsError.message);
+  if (historyError) throw new Error(historyError.message);
+
+  const orderItemsById = new Map(order.items.map((item) => [item.id, item]));
+  return {
+    ...order,
+    shipments: (shipments ?? []).map((shipment) => ({
+      ...shipment,
+      history: (history ?? []).filter((entry: ShipmentStatusHistoryRow) => entry.shipment_id === shipment.id),
+      items: (shipmentItems ?? [])
+        .filter((item: ShipmentItemRow) => item.shipment_id === shipment.id)
+        .map((item: ShipmentItemRow) => ({ ...item, orderItem: orderItemsById.get(item.order_item_id) ?? null })),
+    })),
+  };
 }

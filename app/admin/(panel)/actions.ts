@@ -13,6 +13,8 @@ import { encryptToken, isEncryptedToken } from '@/lib/security/encryption';
 import { SECRET_MASK, assertNoUnknownSecrets, getPaymentSecretKeys } from '@/lib/integrations/security';
 import { writeAuditLog } from '@/lib/audit/queries';
 import { sendOrderUpdateEmails } from '@/lib/mail/notifications';
+import { sendShipmentStatusNotifications } from '@/lib/shipping/notifications';
+import { isShipmentStatus } from '@/lib/shipping/status';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { cancelOrderInAccount } from '@/lib/accounting/mutations';
 import type { Database } from '@/lib/supabase/database.types';
@@ -1492,6 +1494,82 @@ export async function changeManagedUserPasswordAction(formData: FormData) {
   });
 
   return { ok: true };
+}
+
+function getOptionalHttpUrl(value: string) {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') throw new Error();
+    return url.toString();
+  } catch {
+    throw new Error('Takip bağlantısı geçerli bir http/https adresi olmalıdır.');
+  }
+}
+
+export async function createShipmentAction(formData: FormData) {
+  const session = await requireAdminPermission('order.changeStatus');
+  const orderId = getText(formData, 'order_id');
+  if (!orderId) throw new Error('Sipariş bilgisi eksik.');
+
+  const items = Array.from(formData.entries())
+    .filter(([key]) => key.startsWith('quantity:'))
+    .map(([key, value]) => ({ order_item_id: key.slice('quantity:'.length), quantity: Number(value) }))
+    .filter((item) => Number.isInteger(item.quantity) && item.quantity > 0);
+  if (items.length === 0) throw new Error('En az bir ürün için sevkiyat miktarı girin.');
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc('create_order_shipment', {
+    p_actor_user_id: session.user.id,
+    p_carrier: getText(formData, 'carrier'),
+    p_items: items,
+    p_note: getText(formData, 'note'),
+    p_order_id: orderId,
+    p_tracking_number: getText(formData, 'tracking_number'),
+    p_tracking_url: getOptionalHttpUrl(getText(formData, 'tracking_url')),
+  });
+  const created = data?.[0];
+  if (error || !created) throw new Error(error?.message ?? 'Sevkiyat oluşturulamadı.');
+
+  await sendShipmentStatusNotifications({
+    actorUserId: session.user.id,
+    historyId: created.history_id,
+    shipmentId: created.shipment_id,
+  }).catch((notificationError) => console.error('Shipment notification failed:', notificationError));
+
+  revalidateAdminCommerce();
+  revalidatePath(`/hesabim/siparislerim/${orderId}`);
+}
+
+export async function updateShipmentAction(formData: FormData) {
+  const session = await requireAdminPermission('order.changeStatus');
+  const shipmentId = getText(formData, 'shipment_id');
+  const status = getText(formData, 'status');
+  if (!shipmentId || !isShipmentStatus(status)) throw new Error('Sevkiyat bilgisi geçersiz.');
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc('update_order_shipment', {
+    p_actor_user_id: session.user.id,
+    p_carrier: getText(formData, 'carrier'),
+    p_note: getText(formData, 'note'),
+    p_shipment_id: shipmentId,
+    p_status: status,
+    p_tracking_number: getText(formData, 'tracking_number'),
+    p_tracking_url: getOptionalHttpUrl(getText(formData, 'tracking_url')),
+  });
+  const updated = data?.[0];
+  if (error || !updated) throw new Error(error?.message ?? 'Sevkiyat güncellenemedi.');
+
+  if (updated.status_changed && updated.history_id) {
+    await sendShipmentStatusNotifications({
+      actorUserId: session.user.id,
+      historyId: updated.history_id,
+      shipmentId: updated.shipment_id,
+    }).catch((notificationError) => console.error('Shipment notification failed:', notificationError));
+  }
+
+  revalidateAdminCommerce();
+  revalidatePath(`/hesabim/siparislerim/${updated.order_id}`);
 }
 
 export async function deleteManagedUserAction(formData: FormData) {

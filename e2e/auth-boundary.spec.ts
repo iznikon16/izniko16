@@ -86,6 +86,11 @@ test.describe('müşteri session sınırı', () => {
     await expect(page.getByRole('heading', { name: /^giriş yap$/i })).toBeVisible();
   });
 
+  test('oturumsuz sipariş sevkiyat detayını güvenli next ile girişe yönlendirir', async ({ page }) => {
+    await page.goto('/hesabim/siparislerim/00000000-0000-0000-0000-000000000001');
+    await expect(page).toHaveURL(/\/giris\?next=%2Fhesabim%2Fsiparislerim%2F00000000-0000-0000-0000-000000000001$/);
+  });
+
   test('stale ve uydurma cookie müşteri portalına erişim sağlamaz', async ({ context, page }) => {
     await context.addCookies([{
       name: 'sb-invalid-auth-token',
