@@ -16,6 +16,7 @@ import {
   setStoredGuestCartItems,
 } from '@/lib/commerce/guest-cart';
 import { getBankTransferDetails } from '@/lib/commerce/payment-display';
+import { isCheckoutPaymentMethodReady } from '@/lib/commerce/payment-method-readiness';
 import { sendCustomerVerificationEmail } from '@/lib/mail/verification';
 import { sendOrderCreatedEmails } from '@/lib/mail/notifications';
 import { startPaymentAttempt } from '@/lib/payments/gateway';
@@ -173,28 +174,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function hasConfigText(config: Json, key: string) {
-  if (!isRecord(config)) {
-    return false;
-  }
-
-  return typeof config[key] === 'string' && config[key].trim().length > 0;
-}
-
 function assertPaymentMethodConfigured(provider: string, integrationType: string, config: Json) {
-  if (integrationType === 'manual' || provider === 'offline') {
-    return;
+  if (!isCheckoutPaymentMethodReady(provider, integrationType, config)) {
+    throw new Error('Seçilen ödeme yöntemi için zorunlu API kimlik bilgileri eksik.');
   }
-
-  if (provider === 'paytr' && hasConfigText(config, 'merchantId') && hasConfigText(config, 'merchantKey') && hasConfigText(config, 'merchantSalt')) {
-    return;
-  }
-
-  if (provider === 'iyzico' && hasConfigText(config, 'apiKey') && hasConfigText(config, 'secretKey')) {
-    return;
-  }
-
-  throw new Error('Seçilen ödeme yöntemi için zorunlu API kimlik bilgileri eksik.');
 }
 
 function buildAddressSnapshot(formData: FormData): CustomerAddressRow {

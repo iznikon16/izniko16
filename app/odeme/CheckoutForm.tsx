@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import type { CheckoutPaymentMethod, CustomerAddressRow } from "@/lib/catalog/types";
 import type { CommerceCartSnapshot } from "@/lib/commerce/contracts";
 import { submitOrderAction, type CheckoutActionState } from "@/lib/commerce/actions";
+import { isCardPaymentProvider } from '@/lib/commerce/payment-method-readiness';
 import type { CheckoutAccountStatus } from '@/lib/accounting/checkout';
 
 const initialState: CheckoutActionState = { ok: false };
@@ -34,8 +35,13 @@ export default function CheckoutForm({
   const [selectedAddressId, setSelectedAddressId] = useState(addresses[0]?.id ?? "new");
   const usesNewAddress = selectedAddressId === "new";
   const accountPaymentUnavailable = accountStatus ? !accountStatus.allowed || accountStatus.requiresApproval : true;
-  const firstEnabledMethodIndex = paymentMethods.findIndex((method) => method.code !== 'cari-bakiye' || !accountPaymentUnavailable);
-  const hasUsablePaymentMethod = firstEnabledMethodIndex >= 0;
+  const cardPaymentMethods = paymentMethods.filter((method) => isCardPaymentProvider(method.provider, method.integration_type));
+  const otherPaymentMethods = paymentMethods.filter((method) => !isCardPaymentProvider(method.provider, method.integration_type));
+  const firstEnabledMethod = paymentMethods.find((method) => method.code !== 'cari-bakiye' || !accountPaymentUnavailable);
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(firstEnabledMethod?.id ?? '');
+  const selectedPaymentMethod = paymentMethods.find((method) => method.id === selectedPaymentMethodId);
+  const cardPaymentSelected = Boolean(selectedPaymentMethod && isCardPaymentProvider(selectedPaymentMethod.provider, selectedPaymentMethod.integration_type));
+  const hasUsablePaymentMethod = Boolean(firstEnabledMethod);
 
   useEffect(() => {
     if (state.error) toast.error(state.error);
@@ -101,12 +107,12 @@ export default function CheckoutForm({
           <div className="mt-5 space-y-3">
             {paymentMethods.length === 0 ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Aktif ödeme yöntemi bulunmuyor. Lütfen yöneticiyle iletişime geçin.</div>
-            ) : paymentMethods.map((method, index) => {
+            ) : otherPaymentMethods.map((method) => {
               const isAccountPayment = method.code === 'cari-bakiye';
               const disabled = isAccountPayment && accountPaymentUnavailable;
               return (
                 <label key={method.id} className={`flex items-start gap-3 rounded-2xl border p-4 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-50 ${disabled ? 'cursor-not-allowed border-red-200 bg-red-50 opacity-75' : 'cursor-pointer border-slate-200'}`}>
-                  <input type="radio" name="payment_method_id" value={method.id} required disabled={disabled} defaultChecked={index === firstEnabledMethodIndex} className="mt-1 h-4 w-4" />
+                  <input type="radio" name="payment_method_id" value={method.id} required disabled={disabled} checked={selectedPaymentMethodId === method.id} onChange={() => setSelectedPaymentMethodId(method.id)} className="mt-1 h-4 w-4" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2 text-sm font-black text-slate-900">{isAccountPayment ? <WalletCards className="h-4 w-4 text-sky-700" /> : null}{method.name}</span>
                     <span className="mt-1 block text-xs leading-5 text-slate-500">{method.description || method.instructions || "Güvenli ödeme yöntemi"}</span>
@@ -122,6 +128,41 @@ export default function CheckoutForm({
                 </label>
               );
             })}
+
+            <div className={`rounded-2xl border p-4 ${cardPaymentSelected ? 'border-sky-500 bg-sky-50' : cardPaymentMethods.length > 0 ? 'border-slate-200' : 'border-slate-200 bg-slate-50 opacity-75'}`}>
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  aria-label="Kredi Kartı ile Öde"
+                  checked={cardPaymentSelected}
+                  disabled={cardPaymentMethods.length === 0}
+                  onChange={() => setSelectedPaymentMethodId(cardPaymentMethods[0]?.id ?? '')}
+                  className="mt-1 h-4 w-4"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 text-sm font-black text-slate-900"><CreditCard className="h-4 w-4 text-violet-700" /> Kredi Kartı ile Öde</div>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">Aktif sanal POS sağlayıcınızı seçin. Kart bilgilerinizi bir sonraki güvenli ödeme ekranında gireceksiniz.</p>
+
+                  {cardPaymentMethods.length > 0 ? (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {cardPaymentMethods.map((method) => (
+                        <label key={method.id} className={`cursor-pointer rounded-xl border bg-white p-3 transition ${selectedPaymentMethodId === method.id ? 'border-violet-500 ring-2 ring-violet-100' : 'border-slate-200 hover:border-violet-300'}`}>
+                          <input type="radio" name="payment_method_id" value={method.id} required checked={selectedPaymentMethodId === method.id} onChange={() => setSelectedPaymentMethodId(method.id)} className="sr-only" />
+                          <span className="block text-sm font-black text-slate-900">{method.name}</span>
+                          <span className="mt-1 block text-xs text-slate-500">{method.description || `${method.provider.toUpperCase()} güvenli sanal POS`}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">
+                      Aktif ve API bilgileri tamamlanmış bir sanal POS bulunmuyor. Yönetim panelinden PayTR veya iyzico yapılandırıldığında burada otomatik görünecek.
+                    </div>
+                  )}
+
+                  <div className="mt-3 flex gap-2 text-xs leading-5 text-emerald-700"><ShieldCheck className="h-4 w-4 shrink-0" /> Kart numarası ve CVV İZNİKON sunucularında saklanmaz.</div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -156,7 +197,7 @@ export default function CheckoutForm({
         {state.error && <div role="alert" className="mt-4 flex gap-2 rounded-xl bg-red-50 p-3 text-xs text-red-700"><AlertCircle className="h-4 w-4 shrink-0" />{state.error}</div>}
         <button disabled={pending || !hasUsablePaymentMethod} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 py-3.5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50">
           {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : <LockKeyhole className="h-5 w-5" />}
-          {pending ? "Sipariş oluşturuluyor…" : "Siparişi güvenle tamamla"}
+          {pending ? "Sipariş oluşturuluyor…" : cardPaymentSelected ? "Güvenli kart ekranına geç" : "Siparişi güvenle tamamla"}
         </button>
         <div className="mt-4 flex gap-2 text-xs leading-5 text-emerald-700"><ShieldCheck className="h-5 w-5 shrink-0" /> Tutarlar sunucuda yeniden hesaplanır; aynı işlem iki kez sipariş oluşturmaz.</div>
         <Link href="/sepet" className="mt-4 block text-center text-xs font-bold text-slate-500 hover:text-slate-800">Sepete geri dön</Link>

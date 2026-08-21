@@ -63,6 +63,7 @@ const ACTION_LABELS: Record<string, string> = {
   managed_user_create: 'Kullanıcı Oluşturma',
   managed_user_update: 'Kullanıcı ve Rol Güncelleme',
   managed_user_password_change: 'Kullanıcı Şifresi Değiştirme',
+  managed_user_delete: 'Kullanıcı Silme',
 };
 
 export function getAuditActionLabel(action: string) {

@@ -24,6 +24,7 @@ import type {
 import { getStoragePublicUrl } from '@/lib/catalog/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { PAYMENT_PROVIDER_DEFINITIONS, type PaymentProviderKey } from '@/lib/commerce/payment-provider-presets';
+import { isCheckoutPaymentMethodReady } from '@/lib/commerce/payment-method-readiness';
 
 function mapHomeVideoSettings(settings: HomeVideoSettingsRow): HomeVideoSettings {
   return {
@@ -349,7 +350,7 @@ export async function getCheckoutPaymentMethods(): Promise<CheckoutPaymentMethod
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('payment_methods')
-    .select('id, code, name, description, instructions, provider, integration_type')
+    .select('id, code, name, description, instructions, provider, integration_type, config')
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true });
@@ -358,7 +359,17 @@ export async function getCheckoutPaymentMethods(): Promise<CheckoutPaymentMethod
     throw new Error(error.message);
   }
 
-  return (data ?? []) as CheckoutPaymentMethod[];
+  return (data ?? [])
+    .filter((method) => isCheckoutPaymentMethodReady(method.provider, method.integration_type, method.config))
+    .map((method) => ({
+      code: method.code,
+      description: method.description,
+      id: method.id,
+      instructions: method.instructions,
+      integration_type: method.integration_type,
+      name: method.name,
+      provider: method.provider,
+    }) satisfies CheckoutPaymentMethod);
 }
 
 export async function getCheckoutPaymentMethodById(paymentMethodId: string) {

@@ -1494,6 +1494,92 @@ export async function changeManagedUserPasswordAction(formData: FormData) {
   return { ok: true };
 }
 
+export async function deleteManagedUserAction(formData: FormData) {
+  const session = await requireAdminPermission('user.manage');
+  if (!session.adminUser.is_super_admin) {
+    throw new Error('Kullanıcı silme işlemini yalnızca süper yönetici yapabilir.');
+  }
+
+  const supabase = createAdminClient();
+  const userId = getText(formData, 'user_id');
+  if (!userId) throw new Error('Kullanıcı kimliği eksik.');
+  if (userId === session.user.id) throw new Error('Kendi hesabınızı silemezsiniz.');
+
+  const [adminResult, customerResult, authResult] = await Promise.all([
+    supabase
+      .from('admin_users')
+      .select('user_id, email, full_name, role, is_super_admin')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('customer_profiles')
+      .select('user_id, email, full_name')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase.auth.admin.getUserById(userId),
+  ]);
+
+  if (adminResult.error || customerResult.error || authResult.error || !authResult.data.user) {
+    throw new Error('Silinecek kullanıcı bulunamadı.');
+  }
+
+  const targetAdmin = adminResult.data;
+  const targetCustomer = customerResult.data;
+  if (targetAdmin?.is_super_admin) throw new Error('Süper yönetici hesabı silinemez.');
+  if (targetAdmin?.role === 'admin') throw new Error('Admin hesabı silinemez; önce Yetkili rolüne düşürün.');
+  if (!targetAdmin && !targetCustomer) throw new Error('Kullanıcının yönetilebilir bir profili bulunamadı.');
+
+  const [ordersResult, attemptsResult, transactionsResult, paymentsResult] = await Promise.all([
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    supabase.from('payment_attempts').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+    supabase.from('account_transactions').select('id', { count: 'exact', head: true }).eq('customer_id', userId),
+    supabase.from('payments').select('id', { count: 'exact', head: true }).eq('customer_id', userId),
+  ]);
+
+  const dependencyError = [ordersResult, attemptsResult, transactionsResult, paymentsResult]
+    .find((result) => result.error)?.error;
+  if (dependencyError) throw new Error('Kullanıcının işlem geçmişi doğrulanamadı; silme iptal edildi.');
+
+  const hasBusinessHistory = [ordersResult, attemptsResult, transactionsResult, paymentsResult]
+    .some((result) => (result.count ?? 0) > 0);
+  if (hasBusinessHistory) {
+    throw new Error('Sipariş, ödeme veya cari geçmişi bulunan müşteri silinemez; hesabı pasife alın.');
+  }
+
+  if (targetCustomer) {
+    const { error: accountDeleteError } = await supabase
+      .from('customer_accounts')
+      .delete()
+      .eq('customer_id', userId);
+    if (accountDeleteError) throw new Error('Boş cari hesap kaydı temizlenemedi; silme iptal edildi.');
+
+    const { error: profileDeleteError } = await supabase
+      .from('customer_profiles')
+      .delete()
+      .eq('user_id', userId);
+    if (profileDeleteError) throw new Error('Kullanıcı profili silinemedi.');
+  }
+
+  const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
+  if (authDeleteError) throw new Error('Kullanıcı Supabase Auth üzerinden silinemedi.');
+
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: 'managed_user_delete',
+    resourceType: 'user',
+    resourceId: userId,
+    oldValue: {
+      email: authResult.data.user.email ?? targetAdmin?.email ?? targetCustomer?.email ?? '',
+      fullName: targetAdmin?.full_name ?? targetCustomer?.full_name ?? '',
+      role: targetAdmin?.role ?? 'customer',
+    },
+    metadata: { authUserDeleted: true },
+  });
+
+  revalidateAdminCommerce();
+  return { ok: true };
+}
+
 export async function saveCustomerAction(formData: FormData) {
   const supabase = await ensureAdmin('customer.update');
   const userId = getText(formData, 'user_id');

@@ -1,17 +1,19 @@
 import Link from 'next/link';
 import { ShieldCheck, UserCog, UsersRound, WalletCards } from 'lucide-react';
-import { updateManagedUserAction } from '@/app/admin/(panel)/actions';
+import { deleteManagedUserAction, updateManagedUserAction } from '@/app/admin/(panel)/actions';
 import { ChangeUserPasswordForm } from '@/components/admin/change-user-password-form';
 import { CreateManagedUserModal } from '@/components/admin/create-managed-user-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ConfirmActionForm } from '@/components/ui/confirm-action-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
 import { getManagedUsers, type ManagedUserRole } from '@/lib/admin/managed-users';
+import { requireAdminPermission } from '@/lib/auth/admin';
 
 const roleLabels: Record<ManagedUserRole, string> = {
   admin: 'Admin',
@@ -22,7 +24,10 @@ const roleLabels: Record<ManagedUserRole, string> = {
 const dateFormatter = new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' });
 
 export default async function ManagedUsersPage() {
-  const users = await getManagedUsers();
+  const [users, session] = await Promise.all([
+    getManagedUsers(),
+    requireAdminPermission('user.manage'),
+  ]);
   const counts = users.reduce((result, user) => {
     result[user.role] += 1;
     return result;
@@ -110,6 +115,21 @@ export default async function ManagedUsersPage() {
                   ) : (
                     <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-medium text-slate-600"><ShieldCheck className="h-4 w-4" /> Panel erişimi RBAC ile sınırlandırılır</span>
                   )}
+                  {session.adminUser.is_super_admin && (user.role === 'customer' || user.role === 'staff') ? (
+                    <ConfirmActionForm
+                      action={deleteManagedUserAction}
+                      fields={{ user_id: user.userId }}
+                      buttonLabel={user.role === 'staff' ? 'Yetkiliyi Sil' : 'Müşteriyi Sil'}
+                      title={`${roleLabels[user.role]} hesabı kalıcı olarak silinsin mi?`}
+                      description={user.role === 'customer'
+                        ? `${user.email} Supabase Auth ve müşteri profilinden silinecek. Sipariş, ödeme veya cari geçmişi varsa işlem güvenlik nedeniyle reddedilir.`
+                        : `${user.email} Supabase Auth ve yetkili profilinden kalıcı olarak silinecek.`}
+                      confirmLabel="Kalıcı Olarak Sil"
+                      successMessage={`${roleLabels[user.role]} hesabı Supabase üzerinden silindi.`}
+                      errorMessage="Hesap silinemedi. Yetkinizi veya kullanıcının işlem geçmişini kontrol edin."
+                      variant="destructive"
+                    />
+                  ) : null}
                 </div>
               </div>
             </details>
