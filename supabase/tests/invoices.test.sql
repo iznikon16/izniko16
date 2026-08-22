@@ -16,8 +16,8 @@ on conflict(user_id) do update set email=excluded.email,full_name=excluded.full_
 insert into public.admin_users(user_id,email,full_name,role,is_active)
 values('61000000-0000-0000-0000-000000000002','invoice-admin@example.test','Fatura Admin','admin',true);
 
-insert into public.products(id,sku,slug,title,status,stock_quantity)
-values('62000000-0000-0000-0000-000000000001','INVOICE-SKU','invoice-product','Fatura Ürünü','published',20);
+insert into public.products(id,sku,slug,title,status,stock_quantity,tax_rate)
+values('62000000-0000-0000-0000-000000000001','INVOICE-SKU','invoice-product','Fatura Ürünü','published',20,20);
 insert into public.orders(id,order_number,user_id,status,subtotal,discount_total,shipping_total,total,customer_name,customer_email,customer_phone,billing_address)
 values
   ('63000000-0000-0000-0000-000000000001','FAZ25-ORDER-1','61000000-0000-0000-0000-000000000001','completed',250,20,10,240,'Fatura Müşterisi','invoice-customer@example.test','05550000000','{"city":"Bursa","district":"İznik"}'),

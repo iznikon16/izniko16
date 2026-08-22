@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import type { PriceListItemRow, ProductRow } from '@/lib/catalog/types';
@@ -26,7 +28,12 @@ export function roundMoney(value: number) {
 }
 
 export async function getCustomerPricingContext(customerId: string) {
-  const supabase = await createServerClient();
+  const authenticatedSupabase = await createServerClient();
+  const { data: userData, error: userError } = await authenticatedSupabase.auth.getUser();
+  if (userError || !userData.user || userData.user.id !== customerId) {
+    throw new Error('Müşteri fiyatı doğrulanamadı.');
+  }
+  const supabase = createAdminClient();
 
   const [specialRes, listAssignRes, discountRes] = await Promise.all([
     supabase.from('customer_product_prices').select('product_id, price').eq('customer_id', customerId),
@@ -112,10 +119,19 @@ export function resolveProductPriceForCustomer(
  * Katalog ürün listesini müşteri fiyatlarıyla zenginleştirir (B2B katalog görünümü).
  */
 export async function getCustomerPricedProducts<T extends Pick<ProductRow, 'id' | 'price'>>(customerId: string, products: T[]) {
-  const context = await getCustomerPricingContext(customerId);
+  if (products.length === 0) return [];
+  const supabase = createAdminClient();
+  const [context, standardPriceResult] = await Promise.all([
+    getCustomerPricingContext(customerId),
+    supabase.from('products').select('id, price').in('id', products.map((product) => product.id)),
+  ]);
+  if (standardPriceResult.error) throw new Error(standardPriceResult.error.message);
+  const standardPrices = new Map((standardPriceResult.data ?? []).map((product) => [product.id, product.price]));
+
   return products.map((product) => {
+    const standardPrice = standardPrices.get(product.id);
     const resolved = resolveProductPriceForCustomer(context, {
-      standardPrice: product.price != null ? Number(product.price) : null,
+      standardPrice: standardPrice != null ? Number(standardPrice) : null,
       customerId,
       productId: product.id,
     });

@@ -10,6 +10,7 @@ export const INVOICE_DOCUMENT_LABELS = {
   cancellation: 'İptal Belgesi',
   invoice: 'Fatura',
   refund: 'İade Belgesi',
+  sales_document: 'Satış Belgesi',
 } as const;
 
 export type InvoiceDocumentType = keyof typeof INVOICE_DOCUMENT_LABELS;

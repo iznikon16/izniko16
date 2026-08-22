@@ -27,8 +27,9 @@ function companySnapshot():Json {
 export async function createOrderInvoiceAction(formData:FormData){
   const session=await requireAdminPermission('invoice.manage');
   const orderId=text(formData,'order_id');
-  const taxRate=Number(text(formData,'tax_rate')||'20');
-  if(!orderId||!Number.isFinite(taxRate)||taxRate<0||taxRate>100) throw new Error('Sipariş veya KDV oranı geçersiz.');
+  const taxRateText=text(formData,'tax_rate');
+  const taxRate=Number(taxRateText);
+  if(!orderId||!taxRateText||!Number.isFinite(taxRate)||taxRate<0||taxRate>100) throw new Error('Sipariş veya KDV oranı geçersiz.');
   const supabase=createAdminClient();
   const {data:order,error:orderError}=await supabase.from('orders').select('billing_address').eq('id',orderId).maybeSingle();
   if(orderError||!order) throw new Error(orderError?.message??'Sipariş bulunamadı.');
@@ -73,6 +74,7 @@ export async function checkEInvoiceProviderAction(formData:FormData){
   const action=text(formData,'provider_action')==='cancel'?'cancel':'send';
   const invoice=await getAdminInvoice(invoiceId);
   if(!invoice) throw new Error('Fatura bulunamadı.');
+  if(invoice.document_type!=='invoice') throw new Error('Yalnız resmî fatura taslakları sağlayıcıya gönderilebilir.');
   const provider=getEInvoiceProvider();
   let result;
   try {

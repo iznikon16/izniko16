@@ -24,6 +24,8 @@ Platform; müşteri yönetimi, ürün ve fiyatlandırma, sipariş operasyonları
 * Ürün, kategori ve marka yönetimi
 * Fiyat listeleri ve müşteriye özel fiyatlandırma
 * Sipariş ve sepet yönetimi
+* Ürün bazlı gerçek KDV oranı, KDV dahil fiyat gösterimi ve sipariş/fatura vergi snapshot'ı
+* Ürün bazlı minimum sipariş miktarı ve üye girişiyle korunan B2B fiyatlar
 * Sipariş durum takibi
 * Çoklu ve kısmi sevkiyat, kargo takip numarası ve teslimat geçmişi
 * Sipariş kalemi bazlı iade, ürün kabulü, stok iadesi ve idempotent geri ödeme
@@ -51,6 +53,7 @@ Platform; müşteri yönetimi, ürün ve fiyatlandırma, sipariş operasyonları
 * Ekran filtresiyle birebir uyumlu, formül enjeksiyonuna karşı korumalı Excel / CSV çıktıları
 * Yetkiye göre müşteri, ürün/SKU, sipariş ve cari hareket sonuçlarını getiren yönetim paneli global araması
 * Aktif route'u otomatik açan, masaüstü/mobil uyumlu ve RBAC izinlerine göre filtrelenen yönetim menüsü
+* Bireysel/kurumsal müşteri profili ve canlı il, ilçe, mahalle, posta kodu adres seçimi
 
 ---
 

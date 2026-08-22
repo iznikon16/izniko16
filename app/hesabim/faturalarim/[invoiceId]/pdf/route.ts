@@ -13,5 +13,5 @@ export async function GET(
   const session=await requireCustomerSession(`/hesabim/faturalarim/${invoiceId}/pdf`);
   const invoice=await getCustomerInvoice(session.user.id,invoiceId);
   if(!invoice) return new Response('Fatura bulunamadı.',{status:404});
-  return new Response(await buildInvoicePdf(invoice),{headers:attachmentHeaders(createInvoiceFileName(invoice.invoice_number),'application/pdf')});
+  return new Response(await buildInvoicePdf(invoice),{headers:attachmentHeaders(createInvoiceFileName(invoice.invoice_number,invoice.document_type),'application/pdf')});
 }

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import type { AdminUserRow } from '@/lib/catalog/types';
 import { createClient } from '@/lib/supabase/server';
+import { resolveAdminAuthorization } from '@/lib/auth/admin-authorization';
 
 export type AdminSession = {
   user: User;
@@ -21,19 +22,10 @@ export async function getAdminSession() {
   }
   if (!user) return null;
 
-  const { data: adminUser, error } = await supabase
-    .from('admin_users')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle();
-  if (
-    error ||
-    !adminUser ||
-    adminUser.is_active === false ||
-    !['admin', 'staff'].includes(adminUser.role)
-  ) return null;
+  const authorization = await resolveAdminAuthorization(supabase, user.id);
+  if (authorization.status !== 'AUTHORIZED') return null;
 
-  return { user, adminUser } satisfies AdminSession;
+  return { user, adminUser: authorization.adminUser } satisfies AdminSession;
 }
 
 export async function requireAdminSession() {

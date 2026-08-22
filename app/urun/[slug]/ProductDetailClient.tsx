@@ -21,11 +21,13 @@ type ProductDetail = {
   boxQty: string;
   description: string;
   customerPriceSource: string | null;
+  minimumOrderQuantity: number;
+  taxRate: number | null;
 };
 
 export default function ProductDetailClient({ product, isAuthenticated }: { product: ProductDetail; isAuthenticated: boolean }) {
   const { addToCart, setIsCartOpen, itemCount, subtotal } = useCart();
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState(product.minimumOrderQuantity);
 
   return (
     <>
@@ -33,7 +35,7 @@ export default function ProductDetailClient({ product, isAuthenticated }: { prod
       <header className="header">
         <div className="container header-container">
           <Link href="/" className="logo" aria-label="İZNİKON Ana Sayfasına Git">
-            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" width={1024} height={682} className="logo-img" />
           </Link>
 
           <nav className="main-nav" aria-label="Ana Menü">
@@ -69,7 +71,7 @@ export default function ProductDetailClient({ product, isAuthenticated }: { prod
               </div>
               <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
                 <span style={{ fontSize: "0.68rem", fontWeight: "800", color: "#f59e0b", letterSpacing: "0.05em" }}>SEPETİM</span>
-                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>+KDV</span></span>
+                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>KDV dahil</span></span>
               </div>
             </div>
 
@@ -145,22 +147,23 @@ export default function ProductDetailClient({ product, isAuthenticated }: { prod
               )}
             </div>
             
-            <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
+            {isAuthenticated ? <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
               <span style={{ fontSize: "3.5rem", fontWeight: "900", color: "#0f172a", lineHeight: "1", letterSpacing: "-0.03em" }}>{product.price}</span>
-              <span style={{ fontSize: "1.25rem", fontWeight: "800", color: "#94a3b8" }}>+KDV / {product.unit}</span>
-            </div>
+              <span style={{ fontSize: "1.1rem", fontWeight: "800", color: product.taxRate == null ? "#b91c1c" : "#64748b" }}>{product.taxRate == null ? 'KDV oranı tanımlanmamış' : `%${product.taxRate} KDV dahil / ${product.unit}`}</span>
+            </div> : <div><p style={{ color: '#475569', fontWeight: 700 }}>Fiyatları görmek için giriş yapın</p><Link href={`/giris?next=/urun/${product.slug ?? ''}`} style={{ display: 'inline-flex', marginTop: '0.75rem', borderRadius: '10px', background: '#d97706', color: 'white', fontWeight: 800, padding: '0.75rem 1rem' }}>Giriş Yap</Link></div>}
             
-            <div style={{ marginTop: "1.5rem", paddingTop: "1.5rem", borderTop: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "1.5rem" }}>
+            {isAuthenticated ? <div style={{ marginTop: "1.5rem", paddingTop: "1.5rem", borderTop: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "1.5rem" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                 <span style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: "600" }}>Miktar</span>
                 <input 
                   type="number" 
                   value={qty} 
-                  onChange={(e) => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-                  min={1} 
+                  onChange={(e) => setQty(Math.max(product.minimumOrderQuantity, parseInt(e.target.value) || product.minimumOrderQuantity))}
+                  min={product.minimumOrderQuantity}
                   style={{ width: "90px", height: "54px", fontSize: "1.25rem", textAlign: "center", fontWeight: "800", border: "2px solid #cbd5e1", borderRadius: "12px", outline: "none", color: "#0f172a", background: "white" }} 
                 />
               </div>
+              {product.minimumOrderQuantity > 1 ? <p style={{ color: '#b45309', fontSize: '0.8rem', fontWeight: 700 }}>Minimum: {product.minimumOrderQuantity} Adet</p> : null}
               <button 
                 onClick={() => {
                   addToCart(product, qty);
@@ -175,7 +178,7 @@ export default function ProductDetailClient({ product, isAuthenticated }: { prod
                 </svg>
                 Sepete Ekle
               </button>
-            </div>
+            </div> : null}
           </div>
 
           {/* QUICK FEATURES */}
@@ -217,7 +220,7 @@ export default function ProductDetailClient({ product, isAuthenticated }: { prod
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <SafeImage src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
+              <SafeImage src="/logo.png" alt="İZNİKON Logo" width={1024} height={682} className="footer-logo" />
               <p>Türkiye&apos;nin en hızlı B2B toptan nalbur, cıvata, elektrik ve tesisat malzemeleri tedarik platformu. 10.000+ çeşit orijinal stoklu ürün.</p>
             </div>
           </div>

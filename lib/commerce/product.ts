@@ -1,10 +1,12 @@
 import type { CatalogProduct } from '@/lib/catalog/types';
-export function getProductCheckoutPrice(product: CatalogProduct) {
-  if (product.price_mode !== 'fixed' || typeof product.price !== 'number') {
+type CheckoutPricedProduct = CatalogProduct & { customerPrice?: number | null };
+
+export function getProductCheckoutPrice(product: CheckoutPricedProduct) {
+  if (product.price_mode !== 'fixed' || typeof product.customerPrice !== 'number') {
     return null;
   }
 
-  return product.price;
+  return product.customerPrice;
 }
 
 export function getProductHref(product: CatalogProduct) {

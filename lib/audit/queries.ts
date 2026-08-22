@@ -160,6 +160,7 @@ const ACTION_LABELS: Record<string, string> = {
   product_created: 'Ürün oluşturma',
   product_updated: 'Ürün güncelleme',
   product_deleted: 'Ürün silme',
+  product_min_order_changed: 'Minimum sipariş adedi değiştirme',
   customer_update: 'Müşteri güncelleme',
   stock_change: 'Stok değişimi',
   stock_critical_level_updated: 'Kritik stok seviyesi güncelleme',
@@ -183,6 +184,7 @@ const ACTION_LABELS: Record<string, string> = {
   'invoice.refund': 'Fatura iade belgesi',
   'invoice.provider_send': 'e-Fatura gönderim hazırlığı',
   'invoice.provider_cancel': 'e-Fatura iptal hazırlığı',
+  order_document_created: 'Sipariş satış belgesi oluşturma',
 };
 
 export function getAuditActionLabel(action: string) {

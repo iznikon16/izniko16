@@ -30,7 +30,7 @@ export default async function AdminInvoicesPage(){
         <div className="grid gap-1.5 md:col-span-2"><Label>Sipariş</Label><Select name="order_id" required><option value="">Sipariş seçin</option>{orders.map((order)=><option key={order.id} value={order.id}>{order.order_number} · {order.customer_name||order.customer_email} · {formatCommercePrice(order.total)}</option>)}</Select></div>
         <div className="grid gap-1.5"><Label>Vergi / T.C. No</Label><Input name="customer_tax_number" maxLength={20}/></div>
         <div className="grid gap-1.5"><Label>Vergi dairesi</Label><Input name="customer_tax_office" maxLength={100}/></div>
-        <div className="grid gap-1.5"><Label>KDV oranı (%)</Label><Input name="tax_rate" type="number" min={0} max={100} step="0.01" defaultValue="20" required/></div>
+        <div className="grid gap-1.5"><Label>KDV oranı (%)</Label><Input name="tax_rate" type="number" min={0} max={100} step="0.01" placeholder="Üründeki gerçek oran" required/></div>
         <div className="grid gap-1.5"><Label>Vade tarihi</Label><Input name="due_date" type="date"/></div>
         <div className="grid gap-1.5 md:col-span-2"><Label>Fatura notu</Label><Textarea name="note" rows={2} maxLength={1000}/></div>
         <div className="flex items-end justify-end md:col-span-2 xl:col-span-4"><Button type="submit" size="lg"><ReceiptText className="h-4 w-4"/>Fatura Oluştur</Button></div>

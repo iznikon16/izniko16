@@ -19,6 +19,8 @@ interface Product {
   tags: string[];
   inStock: boolean;
   boxQty: string;
+  minimumOrderQuantity: number;
+  taxRate: number | null;
   slug?: string;
 }
 
@@ -195,7 +197,7 @@ export default function HomeClient({
         <div className="container header-container">
           {/* BRAND LOGO */}
           <a href="#" onClick={clearFilters} className="logo" aria-label="İZNİKON Ana Sayfasına Git">
-            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" width={1024} height={682} className="logo-img" />
           </a>
 
           {/* CENTER NAVIGATION MENU */}
@@ -283,7 +285,7 @@ export default function HomeClient({
               </div>
               <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
                 <span style={{ fontSize: "0.68rem", fontWeight: "800", color: "#f59e0b", letterSpacing: "0.05em" }}>SEPETİM</span>
-                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>+KDV</span></span>
+                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>KDV dahil</span></span>
               </div>
             </div>
 
@@ -520,8 +522,7 @@ export default function HomeClient({
                         <div className="b2b-cell-code">{product.code}</div>
                         <div className="b2b-cell-title">{product.name}</div>
                         <div className="b2b-cell-price-row">
-                          <span className="b2b-cell-price-val">{product.price}</span>
-                          <span className="b2b-cell-unit">+KDV / {product.unit}</span>
+                          {isAuthenticated ? <><span className="b2b-cell-price-val">{product.price}</span><span className="b2b-cell-unit">{product.taxRate == null ? 'KDV oranı bekleniyor' : `%${product.taxRate} KDV dahil / ${product.unit}`}</span></> : <Link href="/giris?next=/" className="b2b-cell-price-val">Giriş Yap</Link>}
                         </div>
                       </div>
                     </div>
@@ -531,7 +532,7 @@ export default function HomeClient({
                       aria-label={`${product.name} sepete ekle`}
                       onClick={(event) => {
                         event.stopPropagation();
-                        addToCart(product, 1);
+                        addToCart(product, product.minimumOrderQuantity);
                       }}
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -885,15 +886,14 @@ export default function HomeClient({
                       {/* B2B PRICE & USER-FRIENDLY ORDER CONTROL */}
                       <div style={{ marginTop: "auto", paddingTop: "0.6rem", borderTop: "1px solid #f1f5f9" }}>
                         <div style={{ marginBottom: "0.6rem", textAlign: "left" }}>
-                          <span style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0f172a" }}>{product.price}</span>
-                          <span style={{ fontSize: "0.7rem", color: "#94a3b8", fontWeight: "600", marginLeft: "4px" }}>+KDV / {product.unit}</span>
+                  {isAuthenticated ? <><span style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0f172a" }}>{product.price}</span><span style={{ fontSize: "0.7rem", color: "#94a3b8", fontWeight: "600", marginLeft: "4px" }}>{product.taxRate == null ? 'KDV oranı bekleniyor' : `%${product.taxRate} KDV dahil / ${product.unit}`}</span></> : <Link href="/giris?next=/" style={{ color: '#b45309', fontSize: '0.8rem', fontWeight: 700 }}>Fiyatları görmek için giriş yapın</Link>}
                         </div>
 
                         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                           <input
                             type="number"
-                            defaultValue={1}
-                            min={1}
+                            defaultValue={product.minimumOrderQuantity}
+                            min={product.minimumOrderQuantity}
                             style={{
                               width: "46px",
                               height: "34px",
@@ -909,7 +909,7 @@ export default function HomeClient({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              addToCart(product, 1);
+                              addToCart(product, product.minimumOrderQuantity);
                             }}
                             style={{
                               flex: 1,
@@ -997,13 +997,13 @@ export default function HomeClient({
                         <div style={{ marginBottom: "0.75rem", display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
                           <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "500" }}>Birim: {product.unit}</span>
                           <div style={{ textAlign: "right" }}>
-                            {showPrices ? (
+                            {isAuthenticated && showPrices ? (
                               <>
                                 <span style={{ fontSize: "1.25rem", fontWeight: "800", color: "#0f172a" }}>{product.price}</span>
-                                <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600", marginLeft: "4px" }}>+KDV</span>
+                                <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600", marginLeft: "4px" }}>{product.taxRate == null ? 'KDV oranı bekleniyor' : `%${product.taxRate} KDV dahil`}</span>
                               </>
                             ) : (
-                              <span style={{ fontSize: "0.875rem", fontWeight: "700", color: "#0f172a" }}>Fiyatı görmek için giriş yapın</span>
+                              <Link href="/giris?next=/" style={{ fontSize: "0.875rem", fontWeight: "700", color: "#b45309" }}>Fiyatları görmek için giriş yapın</Link>
                             )}
                           </div>
                         </div>
@@ -1011,14 +1011,14 @@ export default function HomeClient({
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                           <input
                             type="number"
-                            defaultValue={1}
-                            min={1}
+                            defaultValue={product.minimumOrderQuantity}
+                            min={product.minimumOrderQuantity}
                             style={{ width: "56px", height: "40px", textAlign: "center", border: "1px solid #cbd5e1", borderRadius: "8px", fontWeight: "700", fontSize: "0.95rem", color: "#0f172a", outline: "none" }}
                           />
                           <button
                             className="add-cart"
                             aria-label="Sepete ekle"
-                            onClick={() => addToCart(product, 1)}
+                            onClick={() => addToCart(product, product.minimumOrderQuantity)}
                             style={{
                               flex: 1,
                               height: "40px",
@@ -1196,7 +1196,7 @@ export default function HomeClient({
         </div>
         <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
           <span style={{ fontSize: "0.7rem", fontWeight: "800", color: "#f59e0b", letterSpacing: "0.06em" }}>SEPETİM</span>
-          <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.68rem", color: "#94a3b8", fontWeight: "600" }}>+KDV</span></span>
+          <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.68rem", color: "#94a3b8", fontWeight: "600" }}>KDV dahil</span></span>
         </div>
       </div>
 
@@ -1206,7 +1206,7 @@ export default function HomeClient({
           <div className="footer-grid">
             {/* BRAND COLUMN */}
             <div className="footer-brand">
-              <SafeImage src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
+              <SafeImage src="/logo.png" alt="İZNİKON Logo" width={1024} height={682} className="footer-logo" />
               <p>
                 Türkiye&apos;nin en hızlı B2B toptan nalbur, cıvata, elektrik ve tesisat malzemeleri tedarik platformu. 10.000+ çeşit orijinal stoklu ürün.
               </p>

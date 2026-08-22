@@ -165,12 +165,12 @@ export default function CartDrawer() {
           <div style={{ borderTop: "2px solid #f1f5f9", padding: "1.25rem", background: "#ffffff" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem", color: "#64748b" }}>
-                <span>Ara Toplam:</span>
+                <span>KDV Dahil Ara Toplam:</span>
                 <strong style={{ color: "#0f172a" }}>{formatCurrency(subtotal)}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.875rem", color: "#64748b" }}>
-                <span>KDV (%20):</span>
-                <strong style={{ color: "#0f172a" }}>{formatCurrency(vatAmount)}</strong>
+                <span>Dahil Olan KDV:</span>
+                <strong style={{ color: vatAmount == null ? "#b45309" : "#0f172a" }}>{vatAmount == null ? 'Ödemede doğrulanacak' : formatCurrency(vatAmount)}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1.15rem", fontWeight: "800", color: "#0f172a", paddingTop: "0.5rem", borderTop: "1px stroke #e2e8f0" }}>
                 <span>Genel Toplam:</span>

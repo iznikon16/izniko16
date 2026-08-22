@@ -42,7 +42,7 @@ export default async function CustomerLoginPage({
       <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col">
         <header className="flex items-center justify-between gap-4">
           <Link href="/" className="group inline-flex items-center gap-3" aria-label="İZNİKON ana sayfası">
-            <SafeImage src="/logo.png" alt="İZNİKON" className="h-11 w-auto transition group-hover:scale-105" />
+            <SafeImage src="/logo.png" alt="İZNİKON" width={1024} height={682} className="h-11 w-auto transition group-hover:scale-105" />
             <span className="hidden border-l border-slate-700 pl-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-400 sm:inline">
               Müşteri Portalı
             </span>

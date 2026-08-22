@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ExternalLink, PackageCheck, Truck } from 'lucide-react';
+import { ArrowLeft, Download, ExternalLink, FileText, PackageCheck, Truck } from 'lucide-react';
 import { formatCommercePrice, getCustomerOrderDetail, requireCustomerSession } from '@/lib/commerce/queries';
 import { SHIPMENT_STATUS_LABELS, type ShipmentStatus } from '@/lib/shipping/status';
+import { getCustomerOrderDocuments } from '@/lib/invoices/queries';
+import { INVOICE_DOCUMENT_LABELS, type InvoiceDocumentType } from '@/lib/invoices/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +17,10 @@ const dateFormatter = new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', ti
 export default async function CustomerOrderDetailPage({ params }: { params: Promise<{ orderId: string }> }) {
   const { orderId } = await params;
   const session = await requireCustomerSession(`/hesabim/siparislerim/${orderId}`);
-  const order = await getCustomerOrderDetail(session.user.id, orderId);
+  const [order, documents] = await Promise.all([
+    getCustomerOrderDetail(session.user.id, orderId),
+    getCustomerOrderDocuments(session.user.id, orderId),
+  ]);
   if (!order) notFound();
 
   return (
@@ -31,6 +36,11 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
           {order.items.map((item) => <div key={item.id} className="flex justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3 text-sm"><span className="text-slate-700">{item.product_title} × {item.quantity}</span><strong>{formatCommercePrice(item.line_total)}</strong></div>)}
         </div>
       </article>
+
+      {documents.length > 0 ? <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+        <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><FileText className="h-5 w-5" /></span><div><h2 className="text-xl font-black text-slate-950">Sipariş belgeleri</h2><p className="text-sm text-slate-500">Bu siparişe ait sistem içi satış belgeleri ve faturalar</p></div></div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">{documents.map((document)=><div key={document.id} className="rounded-2xl border border-slate-200 p-4"><p className="text-xs font-bold uppercase tracking-wider text-amber-700">{INVOICE_DOCUMENT_LABELS[document.document_type as InvoiceDocumentType]??document.document_type}</p><p className="mt-1 font-black text-slate-950">{document.invoice_number}</p><Link href={`/hesabim/faturalarim/${document.id}/pdf`} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-black text-white"><Download className="h-4 w-4" />PDF İndir</Link></div>)}</div>
+      </article> : null}
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
         <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 text-sky-700"><Truck className="h-5 w-5" /></span><div><h2 className="text-xl font-black text-slate-950">Sevkiyat geçmişi</h2><p className="text-sm text-slate-500">Kısmi gönderiler ve kargo hareketleri</p></div></div>

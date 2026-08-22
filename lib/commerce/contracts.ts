@@ -20,6 +20,8 @@ export type CommerceCartLineSnapshot = {
   };
   productHref: string;
   quantity: number;
+  taxAmount: number | null;
+  taxRate: number | null;
   unitPrice: number | null;
 };
 
@@ -30,6 +32,7 @@ export type CommerceCartSnapshot = {
   itemCount: number;
   lines: CommerceCartLineSnapshot[];
   subtotal: number;
+  taxTotal: number;
   total: number;
 };
 

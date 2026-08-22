@@ -30,7 +30,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     category: finalProduct.categories?.[0]?.name || 'Diğer',
     brand: finalProduct.brand?.name || 'İznikon',
     code: finalProduct.sku,
-    price: `₺${(finalProduct.customerPrice ?? finalProduct.price)?.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) || '0,00'}`,
+    price: session ? `₺${finalProduct.customerPrice?.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) || '0,00'}` : '',
     unit: finalProduct.price_note || 'Adet',
     img: finalProduct.images?.[0]?.publicUrl || '/logo.png',
     tags: finalProduct.tags || [],
@@ -38,6 +38,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     boxQty: '',
     description: finalProduct.body || '',
     customerPriceSource: finalProduct.customerPriceSource || null,
+    minimumOrderQuantity: finalProduct.minimum_order_quantity,
+    taxRate: finalProduct.tax_rate,
   };
 
   return <ProductDetailClient product={simpleProduct} isAuthenticated={Boolean(session)} />;

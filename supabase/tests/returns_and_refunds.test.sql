@@ -16,8 +16,8 @@ on conflict(user_id) do update set email=excluded.email,full_name=excluded.full_
 insert into public.admin_users(user_id,email,full_name,role,is_active)
 values('51000000-0000-0000-0000-000000000002','return-admin@example.test','İade Admin','admin',true);
 
-insert into public.products(id,sku,slug,title,status,stock_quantity)
-values('52000000-0000-0000-0000-000000000001','RETURN-SKU','return-product','İade Ürünü','published',10);
+insert into public.products(id,sku,slug,title,status,stock_quantity,tax_rate)
+values('52000000-0000-0000-0000-000000000001','RETURN-SKU','return-product','İade Ürünü','published',10,20);
 insert into public.orders(id,order_number,user_id,status,total,customer_name,customer_email)
 values('53000000-0000-0000-0000-000000000001','FAZ24-ORDER-1','51000000-0000-0000-0000-000000000001','completed',300,'İade Müşterisi','return-customer@example.test');
 insert into public.order_items(id,order_id,product_id,product_title,unit_price,quantity,line_total)

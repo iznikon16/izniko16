@@ -28,7 +28,7 @@ export default function ContactClient({ isAuthenticated }: { isAuthenticated: bo
       <header className="header">
         <div className="container header-container">
           <Link href="/" className="logo">
-            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" width={1024} height={682} className="logo-img" />
           </Link>
 
           <nav className="main-nav" aria-label="Ana Menü">
@@ -113,7 +113,7 @@ export default function ContactClient({ isAuthenticated }: { isAuthenticated: bo
               </div>
               <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
                 <span style={{ fontSize: "0.68rem", fontWeight: "800", color: "#f59e0b", letterSpacing: "0.05em" }}>SEPETİM</span>
-                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>+KDV</span></span>
+                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>KDV dahil</span></span>
               </div>
             </div>
 

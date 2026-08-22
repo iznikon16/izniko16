@@ -22,7 +22,10 @@ export function invoiceAddressLines(value:Json):string[]{
   return [address.neighborhood,address.address_line,[address.district,address.city].filter(Boolean).join(' / '),address.postal_code].filter((line):line is string=>Boolean(line));
 }
 
-export function createInvoiceFileName(invoiceNumber:string){return `fatura-${invoiceNumber.toLocaleLowerCase('tr-TR')}.pdf`;}
+export function createInvoiceFileName(invoiceNumber:string, documentType = 'invoice'){
+  const prefix = documentType === 'sales_document' ? 'satis-belgesi' : 'fatura';
+  return `${prefix}-${invoiceNumber.toLocaleLowerCase('tr-TR')}.pdf`;
+}
 
 export async function buildInvoicePdf(invoice:InvoiceRecord){
   const company=object(invoice.company_snapshot);

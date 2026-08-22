@@ -12,15 +12,19 @@ import { resolveStoredCommerceCoupon } from '@/lib/commerce/coupons';
 import { getPublicProductsByIds } from '@/lib/catalog/queries';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
+import { getCustomerPricedProducts } from '@/lib/pricing/queries';
+import { getOrderQuantityError } from '@/lib/commerce/quantity';
 export { formatCommercePrice } from '@/lib/commerce/format';
 export { getProductCheckoutPrice, getProductHref } from '@/lib/commerce/product';
 
 export type CommerceCartLine = {
   id: string;
   lineTotal: number;
-  product: CatalogProduct;
+  product: CatalogProduct & { customerPrice?: number | null; customerPriceSource?: string };
   productHref: string;
   quantity: number;
+  taxAmount: number | null;
+  taxRate: number | null;
   unitPrice: number | null;
 };
 
@@ -31,6 +35,7 @@ export type CommerceCart = {
   itemCount: number;
   lines: CommerceCartLine[];
   subtotal: number;
+  taxTotal: number;
   total: number;
 };
 
@@ -69,8 +74,7 @@ export async function getCustomerSession() {
     return null;
   }
 
-  const adminSupabase = createAdminClient();
-  const { data: profile, error: profileError } = await adminSupabase
+  const { data: profile, error: profileError } = await supabase
     .from('customer_profiles')
     .select('*')
     .eq('user_id', user.id)
@@ -194,10 +198,13 @@ function normalizeCartEntries(entries: CommerceCartEntry[]) {
   return [...entriesByProductId.values()];
 }
 
-async function buildCommerceCart(entries: CommerceCartEntry[], options?: { couponCode?: string | null }): Promise<CommerceCart> {
+async function buildCommerceCart(entries: CommerceCartEntry[], options?: { couponCode?: string | null }, customerId?: string): Promise<CommerceCart> {
   const normalizedEntries = normalizeCartEntries(entries);
   const productIds = normalizedEntries.map((entry) => entry.productId);
-  const products = await getPublicProductsByIds(productIds);
+  const publicProducts = await getPublicProductsByIds(productIds);
+  const products = customerId
+    ? await getCustomerPricedProducts(customerId, publicProducts)
+    : publicProducts;
   const productsById = new Map(products.map((product) => [product.id, product]));
   const lines = normalizedEntries
     .map((entry) => {
@@ -209,6 +216,10 @@ async function buildCommerceCart(entries: CommerceCartEntry[], options?: { coupo
 
       const unitPrice = getProductCheckoutPrice(product);
       const lineTotal = (unitPrice ?? 0) * entry.quantity;
+      const taxRate = product.tax_rate;
+      const taxAmount = unitPrice == null || taxRate == null
+        ? null
+        : lineTotal - (lineTotal / (1 + taxRate / 100));
 
       return {
         id: entry.id,
@@ -216,6 +227,8 @@ async function buildCommerceCart(entries: CommerceCartEntry[], options?: { coupo
         product,
         productHref: getProductHref(product),
         quantity: entry.quantity,
+        taxAmount,
+        taxRate,
         unitPrice,
       } satisfies CommerceCartLine;
     })
@@ -228,15 +241,19 @@ async function buildCommerceCart(entries: CommerceCartEntry[], options?: { coupo
     options && Object.prototype.hasOwnProperty.call(options, 'couponCode') ? options.couponCode ?? '' : undefined
   );
   const discountTotal = coupon?.discountAmount ?? 0;
+  const total = Math.max(0, subtotal - discountTotal);
+  const includedTaxBeforeDiscount = lines.reduce((sum, line) => sum + (line.taxAmount ?? 0), 0);
+  const taxTotal = subtotal > 0 ? includedTaxBeforeDiscount * (total / subtotal) : 0;
 
   return {
-    checkoutReady: lines.length > 0 && lines.every((line) => line.unitPrice != null),
+    checkoutReady: lines.length > 0 && lines.every((line) => line.unitPrice != null && line.taxRate != null && !getOrderQuantityError(line.product, line.quantity)),
     coupon,
     discountTotal,
     itemCount,
     lines,
     subtotal,
-    total: Math.max(0, subtotal - discountTotal),
+    taxTotal,
+    total,
   };
 }
 
@@ -247,7 +264,7 @@ export async function getGuestCart(guestItems: GuestCartItem[], options?: { coup
       productId: item.productId,
       quantity: item.quantity,
     })),
-    options
+    options,
   );
 }
 
@@ -278,7 +295,8 @@ export async function getCart(userId: string, options?: { couponCode?: string | 
         quantity: item.quantity,
       })),
     ],
-    options
+    options,
+    userId,
   );
 }
 

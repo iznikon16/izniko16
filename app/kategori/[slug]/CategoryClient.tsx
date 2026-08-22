@@ -19,7 +19,7 @@ const categoryDataMap: Record<string, { name: string; description: string }> = {
 
 type CategoryProduct = {
   id: string | number; name: string; slug?: string; category: string; brand: string;
-  code: string; price: string; unit: string; img: string; tags: string[]; inStock: boolean; boxQty: string;
+  code: string; price: string; unit: string; img: string; tags: string[]; inStock: boolean; boxQty: string; minimumOrderQuantity: number; taxRate: number | null;
 };
 
 export default function CategoryClient({
@@ -137,7 +137,7 @@ export default function CategoryClient({
       <header className="header">
         <div className="container header-container">
           <Link href="/" className="logo" aria-label="İZNİKON Ana Sayfasına Git">
-            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="logo-img" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" width={1024} height={682} className="logo-img" />
           </Link>
 
           <nav className="main-nav" aria-label="Ana Menü">
@@ -223,7 +223,7 @@ export default function CategoryClient({
               </div>
               <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
                 <span style={{ fontSize: "0.68rem", fontWeight: "800", color: "#f59e0b", letterSpacing: "0.05em" }}>SEPETİM</span>
-                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>+KDV</span></span>
+                <span style={{ fontSize: "0.9rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>KDV dahil</span></span>
               </div>
             </div>
 
@@ -404,7 +404,7 @@ export default function CategoryClient({
                     {product.name}
                   </div>
                   <div style={{ fontSize: "1rem", fontWeight: "800", color: "#0f172a", marginTop: "auto" }}>
-                    {product.price} <span style={{ fontSize: "0.68rem", color: "#94a3b8" }}>+KDV</span>
+                    {isAuthenticated ? <>{product.price} <span style={{ fontSize: "0.68rem", color: "#94a3b8" }}>{product.taxRate == null ? 'KDV oranı bekleniyor' : `%${product.taxRate} KDV dahil`}</span></> : <Link href={`/giris?next=/kategori/${slug}`} style={{ color: '#b45309' }}>Giriş Yap</Link>}
                   </div>
                 </div>
               ))}
@@ -540,15 +540,14 @@ export default function CategoryClient({
 
               <div style={{ marginTop: "auto", paddingTop: "0.6rem", borderTop: "1px solid #f1f5f9" }}>
                 <div style={{ marginBottom: "0.6rem", textAlign: "left" }}>
-                  <span style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0f172a" }}>{product.price}</span>
-                  <span style={{ fontSize: "0.7rem", color: "#94a3b8", fontWeight: "600", marginLeft: "4px" }}>+KDV / {product.unit}</span>
+                  {isAuthenticated ? <><span style={{ fontSize: "1.1rem", fontWeight: "800", color: "#0f172a" }}>{product.price}</span><span style={{ fontSize: "0.7rem", color: "#94a3b8", fontWeight: "600", marginLeft: "4px" }}>{product.taxRate == null ? 'KDV oranı bekleniyor' : `%${product.taxRate} KDV dahil / ${product.unit}`}</span></> : <Link href={`/giris?next=/kategori/${slug}`} style={{ color: '#b45309', fontSize: '0.8rem', fontWeight: 700 }}>Fiyatları görmek için giriş yapın</Link>}
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                   <input
                     type="number"
-                    defaultValue={1}
-                    min={1}
+                    defaultValue={product.minimumOrderQuantity}
+                    min={product.minimumOrderQuantity}
                     style={{
                       width: "46px",
                       height: "34px",
@@ -562,7 +561,7 @@ export default function CategoryClient({
                     }}
                   />
                   <button
-                    onClick={() => addToCart(product, 1)}
+                    onClick={() => addToCart(product, product.minimumOrderQuantity)}
                     style={{
                       flex: 1,
                       height: "34px",
@@ -622,7 +621,7 @@ export default function CategoryClient({
         </div>
         <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
           <span style={{ fontSize: "0.7rem", fontWeight: "800", color: "#f59e0b", letterSpacing: "0.06em" }}>SEPETİM</span>
-          <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.68rem", color: "#94a3b8", fontWeight: "600" }}>+KDV</span></span>
+          <span style={{ fontSize: "0.95rem", fontWeight: "800", color: "#ffffff", lineHeight: "1.1" }}>₺{subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} <span style={{ fontSize: "0.68rem", color: "#94a3b8", fontWeight: "600" }}>KDV dahil</span></span>
         </div>
       </div>
 
@@ -631,7 +630,7 @@ export default function CategoryClient({
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <SafeImage src="/logo.png" alt="İZNİKON Logo" style={{ height: "48px", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))" }} />
+              <SafeImage src="/logo.png" alt="İZNİKON Logo" width={1024} height={682} className="footer-logo" />
               <p>
                 Türkiye&apos;nin en hızlı B2B toptan nalbur, cıvata, elektrik ve tesisat malzemeleri tedarik platformu. 10.000+ çeşit orijinal stoklu ürün.
               </p>

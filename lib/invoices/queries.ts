@@ -93,3 +93,10 @@ export async function getCustomerInvoice(userId:string,invoiceId:string) {
   if(!data) return null;
   return (await hydrateInvoices(client,[data as InvoiceRow]))[0]??null;
 }
+
+export async function getCustomerOrderDocuments(userId:string,orderId:string) {
+  const client=await createClient();
+  const {data,error}=await client.from('invoices').select('*').eq('user_id',userId).eq('order_id',orderId).order('issued_at',{ascending:false});
+  if(error) throw new Error(error.message);
+  return hydrateInvoices(client,(data??[]) as InvoiceRow[]);
+}

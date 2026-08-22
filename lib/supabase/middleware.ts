@@ -5,6 +5,7 @@ import {
   isProtectedAdminPath as matchesProtectedAdminPath,
   isProtectedCustomerPath as matchesProtectedCustomerPath,
 } from '@/lib/auth/session-policy';
+import { getPublicSupabaseConfig, SupabaseConfigurationError } from '@/lib/supabase/config';
 
 function copyResponseCookies(source: NextResponse, target: NextResponse) {
   source.cookies.getAll().forEach((cookie) => target.cookies.set(cookie));
@@ -23,11 +24,11 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
     request,
   });
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
-
-  if (!supabaseUrl || !publishableKey) {
-    console.warn('Supabase environment variables are not configured in updateSession. Skipping session update.');
+  let supabaseConfig;
+  try {
+    supabaseConfig = getPublicSupabaseConfig();
+  } catch (error) {
+    if (!(error instanceof SupabaseConfigurationError)) throw error;
     if (isProtectedAdminPath) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
@@ -38,8 +39,8 @@ export async function updateSession(request: NextRequest) {
   }
 
   const supabase = createServerClient(
-    supabaseUrl,
-    publishableKey,
+    supabaseConfig.url,
+    supabaseConfig.publishableKey,
     {
       cookies: {
         getAll() {

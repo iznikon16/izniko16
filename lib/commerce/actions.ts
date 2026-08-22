@@ -29,6 +29,9 @@ import { invalidateSupabaseSession } from '@/lib/auth/session-invalidation';
 import { getSafeCustomerRedirectPath } from '@/lib/auth/safe-redirect';
 import { getPasswordPolicyError } from '@/lib/auth/password-policy';
 import { checkRateLimit } from '@/lib/security/rate-limit';
+import { getCustomerPricedProducts } from '@/lib/pricing/queries';
+import { assertOrderQuantity } from '@/lib/commerce/quantity';
+import { isTurkeyProvince } from '@/lib/commerce/turkey-provinces';
 
 export type CustomerSettingsActionResult = {
   error?: string;
@@ -198,7 +201,7 @@ function buildAddressSnapshot(formData: FormData): CustomerAddressRow {
   };
 }
 
-function serializeAddress(address: CustomerAddressRow): Json {
+function serializeAddress(address: CustomerAddressRow): Record<string, Json> {
   return {
     label: address.label,
     full_name: address.full_name,
@@ -226,7 +229,7 @@ export async function addToCartAction(formData: FormData) {
 
   const { data: product, error: productError } = await supabase
     .from('products')
-    .select('id, price, price_mode, stock_status, status, is_active')
+    .select('id, price, price_mode, stock_status, status, is_active, minimum_order_quantity, stock_quantity')
     .eq('id', productId)
     .maybeSingle();
 
@@ -250,9 +253,11 @@ export async function addToCartAction(formData: FormData) {
   }
 
   if (existingItem) {
+    const nextQuantity = existingItem.quantity + quantity;
+    assertOrderQuantity(product, nextQuantity);
     const { error } = await supabase
       .from('cart_items')
-      .update({ quantity: normalizeQuantity(existingItem.quantity + quantity) })
+      .update({ quantity: normalizeQuantity(nextQuantity) })
       .eq('id', existingItem.id)
       .eq('user_id', user.id);
 
@@ -260,6 +265,7 @@ export async function addToCartAction(formData: FormData) {
       throw new Error(error.message);
     }
   } else {
+    assertOrderQuantity(product, quantity);
     const { error } = await supabase
       .from('cart_items')
       .insert({
@@ -294,6 +300,20 @@ export async function updateCartItemAction(formData: FormData) {
     const { error } = await supabase.from('cart_items').delete().eq('id', itemId).eq('user_id', user.id);
     if (error) throw new Error(error.message);
   } else {
+    const { data: item, error: itemError } = await supabase
+      .from('cart_items')
+      .select('product_id')
+      .eq('id', itemId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (itemError || !item) throw new Error(itemError?.message ?? 'Sepet ürünü bulunamadı.');
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('minimum_order_quantity, stock_quantity')
+      .eq('id', item.product_id)
+      .maybeSingle();
+    if (productError || !product) throw new Error(productError?.message ?? 'Ürün bulunamadı.');
+    assertOrderQuantity(product, quantity);
     const { error } = await supabase
       .from('cart_items')
       .update({ quantity: normalizeQuantity(quantity) })
@@ -385,14 +405,30 @@ export async function saveProfileAction(formData: FormData): Promise<CustomerSet
   const adminSupabase = createAdminClient();
   const fullName = getText(formData, 'full_name');
   const phone = getText(formData, 'phone');
+  const accountType = getText(formData, 'account_type') === 'corporate' ? 'corporate' : 'individual';
+  const companyTitle = accountType === 'corporate' ? getText(formData, 'company_title') : '';
+  const taxOffice = accountType === 'corporate' ? getText(formData, 'tax_office') : '';
+  const taxNumber = accountType === 'corporate' ? getText(formData, 'tax_number').replace(/\D/g, '') : '';
   const marketingConsent = formData.get('marketing_consent') === 'on';
+
+  if (!fullName || !validatePhone(phone)) {
+    return { error: 'Ad soyad ve geçerli bir telefon numarası zorunludur.', ok: false };
+  }
+
+  if (accountType === 'corporate' && (!companyTitle || !taxOffice || !/^\d{10}$/.test(taxNumber))) {
+    return { error: 'Kurumsal hesap için şirket unvanı, vergi dairesi ve 10 haneli vergi numarası zorunludur.', ok: false };
+  }
 
   const { error } = await supabase
     .from('customer_profiles')
     .update({
+      account_type: accountType,
+      company_title: companyTitle,
       full_name: fullName,
       phone,
       marketing_consent: marketingConsent,
+      tax_number: taxNumber,
+      tax_office: taxOffice,
     })
     .eq('user_id', user.id);
 
@@ -406,14 +442,22 @@ export async function saveProfileAction(formData: FormData): Promise<CustomerSet
       full_name: fullName,
       marketing_consent: marketingConsent,
       phone,
+      account_type: accountType,
+      company_title: companyTitle,
+      tax_number: taxNumber,
+      tax_office: taxOffice,
     },
   });
 
   if (authError) {
     await supabase.from('customer_profiles').update({
+      account_type: profile.account_type,
+      company_title: profile.company_title,
       full_name: profile.full_name,
       marketing_consent: profile.marketing_consent,
       phone: profile.phone,
+      tax_number: profile.tax_number,
+      tax_office: profile.tax_office,
     }).eq('user_id', user.id);
     return { error: getAuthErrorMessage(authError.message), ok: false };
   }
@@ -423,8 +467,8 @@ export async function saveProfileAction(formData: FormData): Promise<CustomerSet
     action: 'customer_profile_update',
     resourceId: user.id,
     resourceType: 'customer_profile',
-    oldValue: { full_name: profile.full_name, marketing_consent: profile.marketing_consent, phone: profile.phone },
-    newValue: { full_name: fullName, marketing_consent: marketingConsent, phone },
+    oldValue: { account_type: profile.account_type, company_title: profile.company_title, full_name: profile.full_name, marketing_consent: profile.marketing_consent, phone: profile.phone, tax_number: profile.tax_number ? 'configured' : '', tax_office: profile.tax_office },
+    newValue: { account_type: accountType, company_title: companyTitle, full_name: fullName, marketing_consent: marketingConsent, phone, tax_number: taxNumber ? 'configured' : '', tax_office: taxOffice },
   });
 
   revalidatePath('/hesabim');
@@ -432,7 +476,7 @@ export async function saveProfileAction(formData: FormData): Promise<CustomerSet
   revalidatePath('/odeme');
 
   return {
-    message: fullName !== profile.full_name || phone !== profile.phone || marketingConsent !== profile.marketing_consent
+    message: fullName !== profile.full_name || phone !== profile.phone || marketingConsent !== profile.marketing_consent || accountType !== profile.account_type || companyTitle !== profile.company_title || taxOffice !== profile.tax_office || taxNumber !== profile.tax_number
       ? 'Profil bilgileriniz güncellendi.'
       : 'Profil bilgileriniz zaten güncel.',
     ok: true,
@@ -617,8 +661,8 @@ export async function saveAddressAction(formData: FormData): Promise<CustomerSet
   const district = getText(formData, 'district');
   const addressLine = getText(formData, 'address_line');
 
-  if (!fullName || !validatePhone(phone) || !city || !district || !addressLine) {
-    return { error: 'Ad soyad, geçerli telefon, şehir, ilçe ve açık adres zorunludur.', ok: false };
+  if (!fullName || !validatePhone(phone) || !isTurkeyProvince(city) || !district || !getText(formData, 'neighborhood') || addressLine.length < 10) {
+    return { error: 'Ad soyad, geçerli telefon, il, ilçe, mahalle ve açık adres zorunludur.', ok: false };
   }
 
   const { data: addressId, error } = await supabase.rpc('save_customer_address', {
@@ -720,7 +764,7 @@ async function createOrder(formData: FormData) {
   }
 
   const productIds = cart.lines.map((line) => line.product.id);
-  const products = await getPublicProductsByIds(productIds);
+  const products = await getCustomerPricedProducts(session.user.id, await getPublicProductsByIds(productIds));
   const productsById = new Map(products.map((product) => [product.id, product]));
   const selectedAddressId = getText(formData, 'selected_address_id');
   const selectedPaymentMethodId = getText(formData, 'payment_method_id');
@@ -749,6 +793,10 @@ async function createOrder(formData: FormData) {
   const customerName = finalAddress.full_name || session?.profile.full_name || session?.user.email || '';
   const customerPhone = finalAddress.phone || session?.profile.phone || '';
   const customerEmail = normalizeEmail(getText(formData, 'customer_email') || session?.profile.email || session?.user.email || '');
+  const customerType = getText(formData, 'customer_type') === 'corporate' ? 'corporate' : 'individual';
+  const companyTitle = getText(formData, 'company_title');
+  const taxOffice = getText(formData, 'tax_office');
+  const taxNumber = getText(formData, 'tax_number').replace(/\D/g, '');
   const paymentMethod = selectedPaymentMethodId ? await getCheckoutPaymentMethodById(selectedPaymentMethodId) : null;
 
   if (!paymentMethod) {
@@ -758,8 +806,16 @@ async function createOrder(formData: FormData) {
   assertSupportedPaymentMethod(paymentMethod.provider, paymentMethod.integration_type);
   assertPaymentMethodConfigured(paymentMethod.provider, paymentMethod.integration_type, paymentMethod.config);
 
-  if (!customerName || !customerPhone || !customerEmail || !finalAddress.district || !finalAddress.address_line) {
+  if (!customerName || !customerPhone || !customerEmail || !finalAddress.city || !finalAddress.district || !finalAddress.address_line) {
     throw new Error('Ödeme için ad, telefon, e-posta ve teslimat adresi zorunludur.');
+  }
+
+  if (!isTurkeyProvince(finalAddress.city)) {
+    throw new Error('Geçerli bir il seçin.');
+  }
+
+  if (customerType === 'corporate' && (!companyTitle || !taxOffice || !/^\d{10}$/.test(taxNumber))) {
+    throw new Error('Kurumsal sipariş için şirket unvanı, vergi dairesi ve 10 haneli vergi numarası zorunludur.');
   }
 
   if (!validateEmail(customerEmail)) {
@@ -806,6 +862,10 @@ async function createOrder(formData: FormData) {
     if (unitPrice == null) {
       throw new Error(`${product.title} için doğrudan ödeme fiyatı yok.`);
     }
+    if (product.tax_rate == null) {
+      throw new Error(`${product.title} için KDV oranı tanımlanmamış. Sipariş oluşturulamaz.`);
+    }
+    assertOrderQuantity(product, line.quantity);
 
     return {
       product,
@@ -831,9 +891,18 @@ async function createOrder(formData: FormData) {
     full_name: customerName,
     phone: customerPhone,
   });
+  const billingSnapshot: Record<string, Json> = customerType === 'corporate'
+    ? {
+        ...shippingSnapshot,
+        customer_type: 'corporate',
+        company_title: companyTitle,
+        tax_number: taxNumber,
+        tax_office: taxOffice,
+      }
+    : { ...shippingSnapshot, customer_type: 'individual' };
   const checkoutIdempotencyKey = getText(formData, 'checkout_idempotency_key');
   const checkoutArgs = {
-    p_billing_address: shippingSnapshot,
+    p_billing_address: billingSnapshot,
     p_coupon_code: cart.coupon?.code ?? null,
     p_coupon_id: cart.coupon?.id ?? null,
     p_customer_email: customerEmail,

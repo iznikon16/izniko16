@@ -6,6 +6,7 @@ import { CheckCircle2, LoaderCircle, MapPin, Pencil, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ConfirmActionForm } from '@/components/ui/confirm-action-form';
+import { AddressLocationFields } from '@/components/customer/address-location-fields';
 import type { CustomerAddressRow } from '@/lib/catalog/types';
 import { deleteAddressAction, saveAddressAction, setDefaultAddressAction } from '@/lib/commerce/actions';
 
@@ -61,10 +62,7 @@ export function AddressManager({ addresses, defaultName, defaultPhone }: { addre
               <label className="grid gap-2 text-sm font-bold text-slate-700">Adres başlığı<input className={inputClass} name="address_label" defaultValue={editing?.label || 'Teslimat'} required /></label>
               <label className="grid gap-2 text-sm font-bold text-slate-700">Ad soyad<input className={inputClass} name="customer_name" defaultValue={editing?.full_name || defaultName} required autoComplete="name" /></label>
               <label className="grid gap-2 text-sm font-bold text-slate-700">Telefon<input className={inputClass} name="customer_phone" defaultValue={editing?.phone || defaultPhone} required autoComplete="tel" /></label>
-              <label className="grid gap-2 text-sm font-bold text-slate-700">Şehir<input className={inputClass} name="city" defaultValue={editing?.city || ''} required autoComplete="address-level1" /></label>
-              <label className="grid gap-2 text-sm font-bold text-slate-700">İlçe<input className={inputClass} name="district" defaultValue={editing?.district || ''} required autoComplete="address-level2" /></label>
-              <label className="grid gap-2 text-sm font-bold text-slate-700">Mahalle<input className={inputClass} name="neighborhood" defaultValue={editing?.neighborhood || ''} /></label>
-              <label className="grid gap-2 text-sm font-bold text-slate-700">Posta kodu<input className={inputClass} name="postal_code" defaultValue={editing?.postal_code || ''} autoComplete="postal-code" /></label>
+              <AddressLocationFields defaultCity={editing?.city || 'İstanbul'} defaultDistrict={editing?.district || ''} defaultNeighborhood={editing?.neighborhood || ''} defaultPostalCode={editing?.postal_code || ''} />
             </div>
             <label className="grid gap-2 text-sm font-bold text-slate-700">Açık adres<textarea className={`${inputClass} min-h-28 resize-y`} name="address_line" defaultValue={editing?.address_line || ''} required autoComplete="street-address" /></label>
             <label className="flex items-center gap-3 text-sm font-semibold text-slate-700"><input type="checkbox" name="is_default" defaultChecked={editing?.is_default || addresses.length === 0} className="h-4 w-4" />Varsayılan teslimat adresim yap</label>

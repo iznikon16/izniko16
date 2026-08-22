@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/database.types';
+import { assertOrderQuantity } from '@/lib/commerce/quantity';
 
 function normalizeQuantity(value: number) {
   return Math.max(1, Math.min(value, 99));
@@ -8,7 +9,7 @@ function normalizeQuantity(value: number) {
 async function requirePurchasableProduct(supabase: SupabaseClient<Database>, productId: string) {
   const { data: product, error } = await supabase
     .from('products')
-    .select('id, price, price_mode, stock_status, status, is_active')
+    .select('id, price, price_mode, stock_status, status, is_active, minimum_order_quantity, stock_quantity')
     .eq('id', productId)
     .maybeSingle();
 
@@ -19,12 +20,13 @@ async function requirePurchasableProduct(supabase: SupabaseClient<Database>, pro
   if (!product || product.status !== 'published' || !product.is_active || product.stock_status === 'out_of_stock' || product.price_mode !== 'fixed' || typeof product.price !== 'number') {
     throw new Error('Bu urun dogrudan sepete eklenemez. Teklif al akisini kullanin.');
   }
+  return product;
 }
 
 export { requirePurchasableProduct };
 
 export async function addProductToCart(supabase: SupabaseClient<Database>, userId: string, productId: string, quantity: number) {
-  await requirePurchasableProduct(supabase, productId);
+  const product = await requirePurchasableProduct(supabase, productId);
 
   const { data: existingItem, error: existingError } = await supabase
     .from('cart_items')
@@ -38,9 +40,11 @@ export async function addProductToCart(supabase: SupabaseClient<Database>, userI
   }
 
   if (existingItem) {
+    const nextQuantity = existingItem.quantity + normalizeQuantity(quantity);
+    assertOrderQuantity(product, nextQuantity);
     const { error } = await supabase
       .from('cart_items')
-      .update({ quantity: normalizeQuantity(existingItem.quantity + normalizeQuantity(quantity)) })
+      .update({ quantity: normalizeQuantity(nextQuantity) })
       .eq('id', existingItem.id)
       .eq('user_id', userId);
 
@@ -51,9 +55,11 @@ export async function addProductToCart(supabase: SupabaseClient<Database>, userI
     return;
   }
 
+  const normalizedQuantity = normalizeQuantity(quantity);
+  assertOrderQuantity(product, normalizedQuantity);
   const { error } = await supabase.from('cart_items').insert({
     product_id: productId,
-    quantity: normalizeQuantity(quantity),
+    quantity: normalizedQuantity,
     user_id: userId,
   });
 
@@ -68,9 +74,14 @@ export async function setCartItemQuantity(supabase: SupabaseClient<Database>, us
     return;
   }
 
+  const { data: item, error: itemError } = await supabase.from('cart_items').select('product_id').eq('id', itemId).eq('user_id', userId).maybeSingle();
+  if (itemError || !item) throw new Error(itemError?.message ?? 'Sepet ürünü bulunamadı.');
+  const product = await requirePurchasableProduct(supabase, item.product_id);
+  const normalizedQuantity = normalizeQuantity(quantity);
+  assertOrderQuantity(product, normalizedQuantity);
   const { error } = await supabase
     .from('cart_items')
-    .update({ quantity: normalizeQuantity(quantity) })
+    .update({ quantity: normalizedQuantity })
     .eq('id', itemId)
     .eq('user_id', userId);
 

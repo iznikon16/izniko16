@@ -44,7 +44,7 @@ export default async function AdminLoginPage() {
         {/* TOP BRAND HEADER */}
         <header className="relative z-10 mx-auto w-full max-w-7xl px-6 pt-8 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
-            <SafeImage src="/logo.png" alt="İZNİKON Logo" className="h-10 w-auto transition-transform group-hover:scale-105" />
+            <SafeImage src="/logo.png" alt="İZNİKON Logo" width={1024} height={682} className="h-10 w-auto transition-transform group-hover:scale-105" />
             <span className="hidden sm:inline-block border-l border-slate-800/60 pl-3 text-xs font-bold tracking-widest text-slate-400 uppercase">
               B2B Toptan Portalı
             </span>

@@ -417,7 +417,9 @@ export type Database = {
       }
       customer_profiles: {
         Row: {
+          account_type: string
           admin_note: string
+          company_title: string
           created_at: string
           email: string
           email_verified_at: string | null
@@ -426,11 +428,15 @@ export type Database = {
           is_vip: boolean
           marketing_consent: boolean
           phone: string
+          tax_number: string
+          tax_office: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          account_type?: string
           admin_note?: string
+          company_title?: string
           created_at?: string
           email: string
           email_verified_at?: string | null
@@ -439,11 +445,15 @@ export type Database = {
           is_vip?: boolean
           marketing_consent?: boolean
           phone?: string
+          tax_number?: string
+          tax_office?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          account_type?: string
           admin_note?: string
+          company_title?: string
           created_at?: string
           email?: string
           email_verified_at?: string | null
@@ -452,6 +462,8 @@ export type Database = {
           is_vip?: boolean
           marketing_consent?: boolean
           phone?: string
+          tax_number?: string
+          tax_office?: string
           updated_at?: string
           user_id?: string
         }
@@ -704,6 +716,8 @@ export type Database = {
           product_slug: string
           product_title: string
           quantity: number
+          tax_amount: number | null
+          tax_rate: number | null
           unit_price: number
         }
         Insert: {
@@ -716,6 +730,8 @@ export type Database = {
           product_slug?: string
           product_title: string
           quantity: number
+          tax_amount?: number | null
+          tax_rate?: number | null
           unit_price?: number
         }
         Update: {
@@ -728,6 +744,8 @@ export type Database = {
           product_slug?: string
           product_title?: string
           quantity?: number
+          tax_amount?: number | null
+          tax_rate?: number | null
           unit_price?: number
         }
         Relationships: [
@@ -1183,6 +1201,7 @@ export type Database = {
           featured_image_path: string | null
           id: string
           is_active: boolean
+          minimum_order_quantity: number
           price: number | null
           price_mode: Database["public"]["Enums"]["price_mode"]
           price_note: string | null
@@ -1196,6 +1215,7 @@ export type Database = {
           stock_status: Database["public"]["Enums"]["stock_status"]
           summary: string
           tags: string[]
+          tax_rate: number | null
           title: string
           updated_at: string
           warranty_years: number | null
@@ -1214,6 +1234,7 @@ export type Database = {
           featured_image_path?: string | null
           id?: string
           is_active?: boolean
+          minimum_order_quantity?: number
           price?: number | null
           price_mode?: Database["public"]["Enums"]["price_mode"]
           price_note?: string | null
@@ -1227,6 +1248,7 @@ export type Database = {
           stock_status?: Database["public"]["Enums"]["stock_status"]
           summary?: string
           tags?: string[]
+          tax_rate?: number | null
           title: string
           updated_at?: string
           warranty_years?: number | null
@@ -1245,6 +1267,7 @@ export type Database = {
           featured_image_path?: string | null
           id?: string
           is_active?: boolean
+          minimum_order_quantity?: number
           price?: number | null
           price_mode?: Database["public"]["Enums"]["price_mode"]
           price_note?: string | null
@@ -1258,6 +1281,7 @@ export type Database = {
           stock_status?: Database["public"]["Enums"]["stock_status"]
           summary?: string
           tags?: string[]
+          tax_rate?: number | null
           title?: string
           updated_at?: string
           warranty_years?: number | null

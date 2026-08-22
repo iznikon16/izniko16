@@ -87,7 +87,7 @@ export default function CartClient({
                   </div>
                   <div className="flex items-center justify-between gap-3 sm:justify-end">
                     <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-1">
-                      <button type="button" aria-label={`${item.name} adedini azalt`} onClick={() => updateQuantity(item.id, item.quantity - 1)} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-white">
+                      <button type="button" disabled={item.quantity <= item.minimumOrderQuantity} aria-label={`${item.name} adedini azalt`} onClick={() => updateQuantity(item.id, item.quantity - 1)} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-white disabled:cursor-not-allowed disabled:opacity-40">
                         <Minus className="h-4 w-4" />
                       </button>
                       <span className="w-10 text-center text-sm font-black">{item.quantity}</span>
@@ -100,6 +100,7 @@ export default function CartClient({
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
+                  {item.minimumOrderQuantity > 1 ? <p className="text-xs font-semibold text-amber-700">Minimum: {item.minimumOrderQuantity} adet</p> : null}
                 </article>
               ))}
             </section>
@@ -109,7 +110,7 @@ export default function CartClient({
               <dl className="mt-5 space-y-3 text-sm">
                 <div className="flex justify-between"><dt className="text-slate-500">Ürün adedi</dt><dd className="font-bold">{itemCount}</dd></div>
                 <div className="flex justify-between"><dt className="text-slate-500">KDV dahil ara toplam</dt><dd className="font-bold">{formatCurrency(subtotal)}</dd></div>
-                <div className="flex justify-between"><dt className="text-slate-500">Dahil olan KDV</dt><dd className="font-bold">{formatCurrency(vatAmount)}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-500">Dahil olan KDV</dt><dd className={`font-bold ${vatAmount == null ? 'text-amber-700' : ''}`}>{vatAmount == null ? 'Ödemede doğrulanacak' : formatCurrency(vatAmount)}</dd></div>
                 <div className="flex justify-between border-t border-slate-200 pt-4 text-lg"><dt className="font-black">Toplam</dt><dd className="font-black text-sky-700">{formatCurrency(total)}</dd></div>
               </dl>
 

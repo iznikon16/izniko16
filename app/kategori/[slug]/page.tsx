@@ -32,12 +32,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       category: p.categories?.[0]?.name || 'Diğer',
       brand: p.brand?.name || 'İznikon',
       code: p.sku,
-      price: `₺${(p.customerPrice ?? p.price)?.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) || '0,00'}`,
+      price: session ? `₺${p.customerPrice?.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) || '0,00'}` : '',
       unit: p.price_note || 'Adet',
       img: p.images?.[0]?.publicUrl || '/logo.png',
       tags: p.tags || [],
       inStock: p.stock_status === 'in_stock',
-      boxQty: ''
+      boxQty: '',
+      minimumOrderQuantity: p.minimum_order_quantity,
+      taxRate: p.tax_rate,
     }));
 
   return <CategoryClient products={products} isAuthenticated={Boolean(session)} />;

@@ -18,6 +18,49 @@ const catalogSelect = `
   product_attributes(*)
 `;
 
+// Anonymous catalog payload must never include standard/private price fields.
+// Keep this list explicit so adding a new product column cannot leak it via `*`.
+const publicCatalogSelect = `
+  badge,
+  body,
+  brand_id,
+  capacity_kw,
+  created_at,
+  critical_stock,
+  currency,
+  energy_class,
+  featured,
+  featured_image_path,
+  id,
+  is_active,
+  minimum_order_quantity,
+  price_mode,
+  price_note,
+  published_at,
+  seo_description,
+  seo_title,
+  sku,
+  slug,
+  status,
+  stock_quantity,
+  stock_status,
+  summary,
+  tags,
+  tax_rate,
+  title,
+  updated_at,
+  warranty_years,
+  brand:brands(*),
+  product_categories(
+    is_primary,
+    sort_order,
+    category:categories(*)
+  ),
+  product_images(*),
+  product_highlights(*),
+  product_attributes(*)
+`;
+
 type RawCatalogProduct = {
   product_attributes: ProductAttributeRow[];
   product_highlights: ProductHighlightRow[];
@@ -56,11 +99,15 @@ function mapCatalogProduct(rawProduct: RawCatalogProduct): CatalogProduct {
   };
 }
 
+function mapPublicCatalogProduct(rawProduct: Omit<RawCatalogProduct, 'compare_at_price' | 'price'>): CatalogProduct {
+  return mapCatalogProduct({ ...rawProduct, compare_at_price: null, price: null } as RawCatalogProduct);
+}
+
 export async function getPublicCatalogProducts(rootCategorySlug?: string) {
   const supabase = await createServerClient();
   const query = supabase
     .from('products')
-    .select(catalogSelect)
+    .select(publicCatalogSelect)
     .eq('status', 'published')
     .eq('is_active', true)
     .order('featured', { ascending: false })
@@ -72,7 +119,7 @@ export async function getPublicCatalogProducts(rootCategorySlug?: string) {
     throw new Error(error.message);
   }
 
-  const products = (data as unknown as RawCatalogProduct[]).map(mapCatalogProduct);
+  const products = (data as unknown as Array<Omit<RawCatalogProduct, 'compare_at_price' | 'price'>>).map(mapPublicCatalogProduct);
 
   if (!rootCategorySlug) {
     return products;
@@ -85,7 +132,7 @@ export async function getFeaturedPublicProducts(limit = 4) {
   const supabase = await createServerClient();
   const { data, error } = await supabase
     .from('products')
-    .select(catalogSelect)
+    .select(publicCatalogSelect)
     .eq('status', 'published')
     .eq('is_active', true)
     .eq('featured', true)
@@ -99,12 +146,12 @@ export async function getFeaturedPublicProducts(limit = 4) {
   const featuredProducts = (data as unknown as RawCatalogProduct[]) ?? [];
 
   if (featuredProducts.length >= limit) {
-    return featuredProducts.map(mapCatalogProduct);
+    return featuredProducts.map(mapPublicCatalogProduct);
   }
 
   const { data: fallbackData, error: fallbackError } = await supabase
     .from('products')
-    .select(catalogSelect)
+    .select(publicCatalogSelect)
     .eq('status', 'published')
     .eq('is_active', true)
     .eq('featured', false)
@@ -115,7 +162,7 @@ export async function getFeaturedPublicProducts(limit = 4) {
     throw new Error(fallbackError.message);
   }
 
-  return [...featuredProducts, ...((fallbackData as unknown as RawCatalogProduct[]) ?? [])].map(mapCatalogProduct);
+  return [...featuredProducts, ...((fallbackData as unknown as Array<Omit<RawCatalogProduct, 'compare_at_price' | 'price'>>) ?? [])].map(mapPublicCatalogProduct);
 }
 
 function isCampaignCurrentlyActive(campaign: CampaignRow) {
@@ -230,7 +277,7 @@ export async function getPublicProductsByIds(productIds: string[]) {
   const supabase = await createServerClient();
   const { data, error } = await supabase
     .from('products')
-    .select(catalogSelect)
+    .select(publicCatalogSelect)
     .in('id', productIds)
     .eq('status', 'published')
     .eq('is_active', true);
@@ -239,7 +286,7 @@ export async function getPublicProductsByIds(productIds: string[]) {
     throw new Error(error.message);
   }
 
-  return (data as unknown as RawCatalogProduct[]).map(mapCatalogProduct);
+  return (data as unknown as Array<Omit<RawCatalogProduct, 'compare_at_price' | 'price'>>).map(mapPublicCatalogProduct);
 }
 
 export function deriveCatalogTaxonomies(products: CatalogProduct[]) {
@@ -288,7 +335,7 @@ export async function getPublicProductBySlug(slug: string, rootCategorySlug?: st
   const supabase = await createServerClient();
   const query = supabase
     .from('products')
-    .select(catalogSelect)
+    .select(publicCatalogSelect)
     .eq('slug', slug)
     .eq('status', 'published')
     .eq('is_active', true);
@@ -303,7 +350,7 @@ export async function getPublicProductBySlug(slug: string, rootCategorySlug?: st
     return null;
   }
 
-  const product = mapCatalogProduct(data as unknown as RawCatalogProduct);
+  const product = mapPublicCatalogProduct(data as unknown as Omit<RawCatalogProduct, 'compare_at_price' | 'price'>);
 
   if (rootCategorySlug && getRootCategorySlug(product.categories) !== rootCategorySlug) {
     return null;

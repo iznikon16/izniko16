@@ -906,9 +906,13 @@ export async function saveProductAction(formData: FormData) {
   const rawSelectedCategoryIds = parseJsonField<string[]>(formData, 'selectedCategoryIds', []);
   const availableCategories = await getCategoryRecords(supabase);
   const normalizedCategorySelection = resolveProductCategorySelection(availableCategories, rawSelectedCategoryIds);
+  const taxRate = getOptionalNumber(formData, 'tax_rate');
+  if (taxRate == null || taxRate < 0 || taxRate > 100) {
+    throw new Error('Ürünün gerçek KDV oranını 0 ile 100 arasında girin. KDV oranı olmadan ürün kaydedilemez.');
+  }
   const previousProduct = productId ? await getProductRouteInfo(supabase, productId, availableCategories) : null;
   const { data: previousAuditProduct, error: previousAuditError } = productId
-    ? await supabase.from('products').select('id, sku, title, slug, status, is_active, price_mode, price, compare_at_price, stock_status, brand_id').eq('id', productId).maybeSingle()
+    ? await supabase.from('products').select('id, sku, title, slug, status, is_active, price_mode, price, compare_at_price, stock_status, brand_id, minimum_order_quantity, tax_rate').eq('id', productId).maybeSingle()
     : { data: null, error: null };
   if (previousAuditError) throw new Error(previousAuditError.message);
   const productPayload: ProductInsert = {
@@ -932,6 +936,8 @@ export async function saveProductAction(formData: FormData) {
     tags: parseTagInput(getText(formData, 'tags')),
     featured: formData.get('featured') === 'on',
     is_active: formData.get('is_active') === 'on',
+    minimum_order_quantity: Math.max(1, getOptionalInteger(formData, 'minimum_order_quantity') ?? 1),
+    tax_rate: taxRate,
     seo_title: getText(formData, 'seo_title') || null,
     seo_description: getText(formData, 'seo_description') || null,
     published_at: status === 'published' ? new Date().toISOString() : null,
@@ -1021,9 +1027,22 @@ export async function saveProductAction(formData: FormData) {
       id: product.id, sku: product.sku, title: product.title, slug: product.slug, status: product.status,
       isActive: product.is_active, priceMode: product.price_mode, price: product.price,
       compareAtPrice: product.compare_at_price, stockStatus: product.stock_status, brandId: product.brand_id,
+      minimumOrderQuantity: product.minimum_order_quantity,
+      taxRate: product.tax_rate,
       categoryIds: normalizedCategorySelection.selectedCategoryIds,
     },
   });
+
+  if (previousAuditProduct && previousAuditProduct.minimum_order_quantity !== product.minimum_order_quantity) {
+    await writeAuditLog({
+      actorUserId: session.user.id,
+      action: 'product_min_order_changed',
+      resourceType: 'product',
+      resourceId: product.id,
+      oldValue: { minimumOrderQuantity: previousAuditProduct.minimum_order_quantity },
+      newValue: { minimumOrderQuantity: product.minimum_order_quantity },
+    });
+  }
 
   revalidatePath('/admin');
   revalidatePath('/admin/products');

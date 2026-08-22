@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useState, useEffect } from "react";
+import { toast } from 'sonner';
 
 export interface CartItem {
   id: string | number;
@@ -11,18 +12,20 @@ export interface CartItem {
   unit: string;
   img: string;
   quantity: number;
+  minimumOrderQuantity: number;
+  taxRate: number | null;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: { id: string | number; name: string; code: string; price: string; unit: string; img: string }, qty?: number) => void;
+  addToCart: (product: { id: string | number; name: string; code: string; price: string; unit: string; img: string; minimumOrderQuantity?: number; taxRate?: number | null }, qty?: number) => void;
   removeFromCart: (productId: string | number) => void;
   updateQuantity: (productId: string | number, qty: number) => void;
   clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
   subtotal: number;
-  vatAmount: number;
+  vatAmount: number | null;
   total: number;
   itemCount: number;
   isHydrated: boolean;
@@ -45,7 +48,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (savedCart) {
           const parsed = JSON.parse(savedCart);
           if (Array.isArray(parsed)) {
-            setCart(parsed);
+            setCart(parsed.map((item) => ({ ...item, minimumOrderQuantity: Math.max(1, Number(item.minimumOrderQuantity) || 1), taxRate: Number.isFinite(Number(item.taxRate)) ? Number(item.taxRate) : null })));
           }
         }
       } catch (error) {
@@ -75,13 +78,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Add to cart without opening popup drawer
-  const addToCart = (product: { id: string | number; name: string; code: string; price: string; unit: string; img: string }, qty: number = 1) => {
+  const addToCart = (product: { id: string | number; name: string; code: string; price: string; unit: string; img: string; minimumOrderQuantity?: number; taxRate?: number | null }, qty?: number) => {
     const numPrice = parsePrice(product.price);
+    const minimumOrderQuantity = Math.max(1, Math.trunc(product.minimumOrderQuantity ?? 1));
+    const requestedQuantity = Math.max(minimumOrderQuantity, Math.trunc(qty ?? minimumOrderQuantity));
     setCart((prevCart) => {
       const existingIndex = prevCart.findIndex((item) => item.id === product.id);
       if (existingIndex > -1) {
         const updated = [...prevCart];
-        updated[existingIndex].quantity += qty;
+        updated[existingIndex].quantity = Math.max(minimumOrderQuantity, updated[existingIndex].quantity + requestedQuantity);
+        updated[existingIndex].minimumOrderQuantity = minimumOrderQuantity;
+        updated[existingIndex].taxRate = product.taxRate ?? null;
         return updated;
       } else {
         return [
@@ -94,11 +101,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             numericPrice: numPrice,
             unit: product.unit,
             img: product.img,
-            quantity: qty
+            quantity: requestedQuantity,
+            minimumOrderQuantity,
+            taxRate: product.taxRate ?? null,
           }
         ];
       }
     });
+    toast.success('Ürün sepete eklendi.');
     // DO NOT trigger popup drawer automatically as requested!
   };
 
@@ -111,9 +121,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeFromCart(productId);
       return;
     }
-    setCart((prev) =>
-      prev.map((item) => (item.id === productId ? { ...item, quantity: qty } : item))
-    );
+    setCart((prev) => prev.map((item) => {
+      if (item.id !== productId) return item;
+      if (qty < item.minimumOrderQuantity) {
+        toast.error(`Bu ürün için minimum sipariş adedi ${item.minimumOrderQuantity}'tir.`);
+        return item;
+      }
+      return { ...item, quantity: qty };
+    }));
   };
 
   const clearCart = useCallback(() => {
@@ -128,7 +143,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const subtotal = cart.reduce((sum, item) => sum + item.numericPrice * item.quantity, 0);
   // Storefront prices are KDV dahil; checkout recalculates the authoritative total on the server.
   const total = subtotal;
-  const vatAmount = subtotal - subtotal / 1.20;
+  const vatAmount = cart.every((item) => item.taxRate != null)
+    ? cart.reduce((sum, item) => {
+        const lineTotal = item.numericPrice * item.quantity;
+        return sum + lineTotal - (lineTotal / (1 + (item.taxRate ?? 0) / 100));
+      }, 0)
+    : null;
   const itemCount = cart.reduce((count, item) => count + item.quantity, 0);
 
   return (

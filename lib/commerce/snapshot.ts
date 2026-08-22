@@ -29,9 +29,12 @@ export function serializeCommerceCart(cart: CommerceCart): CommerceCartSnapshot 
       },
       productHref: line.productHref,
       quantity: line.quantity,
+      taxAmount: line.taxAmount,
+      taxRate: line.taxRate,
       unitPrice: line.unitPrice,
     })),
     subtotal: cart.subtotal,
+    taxTotal: cart.taxTotal,
     total: cart.total,
   };
 }

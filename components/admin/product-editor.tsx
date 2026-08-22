@@ -683,6 +683,38 @@ export function ProductEditor({
                   className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
                 />
 
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-gray-900" htmlFor="tax_rate">KDV Oranı (%)</label>
+                  <input
+                    id="tax_rate"
+                    name="tax_rate"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    required
+                    defaultValue={initialProduct?.tax_rate ?? ''}
+                    placeholder="Gerçek ürün KDV oranını girin"
+                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                  />
+                  <p className="text-xs text-gray-500">Bu oran ödeme, sipariş ve satış belgesinde ürün bazında snapshot olarak saklanır. Otomatik veya tahmini oran kullanılmaz.</p>
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium text-gray-900" htmlFor="minimum_order_quantity">Minimum Sipariş Adedi</label>
+                  <input
+                    id="minimum_order_quantity"
+                    name="minimum_order_quantity"
+                    type="number"
+                    min={1}
+                    step={1}
+                    required
+                    defaultValue={initialProduct?.minimum_order_quantity ?? 1}
+                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                  />
+                  <p className="text-xs text-gray-500">Müşterinin bu üründen verebileceği minimum sipariş miktarı.</p>
+                </div>
+
                 <div className="grid gap-4 md:grid-cols-3">
                   <input
                     name="warranty_years"

@@ -1,12 +1,19 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit } from '@/lib/security/rate-limit';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { writeAuditLog } from '@/lib/audit/queries';
 import { invalidateSupabaseSession } from '@/lib/auth/session-invalidation';
+import { resolveAdminAuthorization, type AdminAuthorizationStatus } from '@/lib/auth/admin-authorization';
+
+const adminAuthorizationMessages: Record<Exclude<AdminAuthorizationStatus, 'AUTHORIZED'>, string> = {
+  ADMIN_INACTIVE: 'Kullanıcı hesabınız pasif durumda.',
+  ADMIN_PROFILE_NOT_FOUND: 'Bu hesap yönetim paneline yetkili değil.',
+  ADMIN_RLS_QUERY_FAILED: 'Yönetici yetkisi doğrulanamadı. Lütfen tekrar deneyin.',
+  ADMIN_ROLE_INVALID: 'Bu hesap yönetim paneline yetkili değil.',
+};
 
 export async function adminLoginAction(formData: FormData) {
   const email = String(formData.get('email') ?? '').trim();
@@ -40,27 +47,35 @@ export async function adminLoginAction(formData: FormData) {
     return { error: getAuthErrorMessage(error.message) };
   }
 
-  const adminSupabase = createAdminClient();
-  const { data: adminUser, error: adminUserError } = await adminSupabase
-    .from('admin_users')
-    .select('user_id, is_active')
-    .eq('user_id', data.user.id)
-    .maybeSingle();
-
-  if (adminUserError || !adminUser || adminUser.is_active === false) {
+  const { data: verifiedUserData, error: verifiedUserError } = await supabase.auth.getUser();
+  const verifiedUser = verifiedUserData.user;
+  if (verifiedUserError || !verifiedUser || verifiedUser.id !== data.user.id) {
     await supabase.auth.signOut({ scope: 'global' });
     await writeAuditLog({
       actorUserId: data.user.id,
       action: 'login_failure',
       resourceType: 'auth',
-      metadata: { reason: adminUser?.is_active === false ? 'inactive_admin' : 'not_admin', email },
+      metadata: { reason: 'server_user_verification_failed', email },
       ip
     });
-    return { error: adminUser?.is_active === false ? 'Kullanıcı hesabınız pasif durumda.' : 'Bu hesap yönetim paneline yetkili değil.' };
+    return { error: 'Oturum doğrulanamadı. Lütfen tekrar giriş yapın.' };
+  }
+
+  const authorization = await resolveAdminAuthorization(supabase, verifiedUser.id);
+  if (authorization.status !== 'AUTHORIZED') {
+    await supabase.auth.signOut({ scope: 'global' });
+    await writeAuditLog({
+      actorUserId: verifiedUser.id,
+      action: 'login_failure',
+      resourceType: 'auth',
+      metadata: { reason: authorization.status.toLocaleLowerCase('en-US'), email },
+      ip
+    });
+    return { error: adminAuthorizationMessages[authorization.status] };
   }
 
   await writeAuditLog({
-    actorUserId: data.user?.id,
+    actorUserId: verifiedUser.id,
     action: 'login_success',
     resourceType: 'auth',
     metadata: { email },

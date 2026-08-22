@@ -13,5 +13,5 @@ export async function GET(
   const {invoiceId}=await context.params;
   const invoice=await getAdminInvoice(invoiceId);
   if(!invoice) return new Response('Fatura bulunamadı.',{status:404});
-  return new Response(await buildInvoicePdf(invoice),{headers:attachmentHeaders(createInvoiceFileName(invoice.invoice_number),'application/pdf')});
+  return new Response(await buildInvoicePdf(invoice),{headers:attachmentHeaders(createInvoiceFileName(invoice.invoice_number,invoice.document_type),'application/pdf')});
 }

@@ -34,8 +34,8 @@ on conflict (user_id) do update set
   phone = excluded.phone,
   email_verified_at = excluded.email_verified_at;
 
-insert into public.products (id, sku, slug, title, price, price_mode, status, is_active)
-values ('26000000-0000-0000-0000-000000000010', 'CHECKOUT-1', 'checkout-product', 'Checkout Product', 125, 'fixed', 'published', true);
+insert into public.products (id, sku, slug, title, price, price_mode, status, is_active, tax_rate)
+values ('26000000-0000-0000-0000-000000000010', 'CHECKOUT-1', 'checkout-product', 'Checkout Product', 125, 'fixed', 'published', true, 20);
 
 insert into public.payment_methods (id, code, name, provider, integration_type, is_active)
 values ('26000000-0000-0000-0000-000000000020', 'checkout-bank', 'Checkout Bank', 'offline', 'manual', true);
