@@ -48,22 +48,22 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
 
   return (
     <div className="grid min-w-0 gap-4">
-      <section className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
-        <div className="flex flex-col gap-6 border-b border-gray-100 pb-6 xl:flex-row xl:items-end xl:justify-between">
+      <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#cbd5e1] bg-white/95 p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-sm md:p-8">
+        <div className="flex flex-col gap-6 border-b border-[#cbd5e1] pb-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Medya</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Medya kütüphanesi</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-500">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#0284c7]">Medya</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[#020617]">Medya Kütüphanesi</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#475569]">
               Ürün görsellerini tek yerden tarayın, yeni dosya yükleyin, kapak görselini değiştirin veya gereksiz kayıtları kaldırın.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[360px]">
-            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+            <div className="rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500">Toplam görsel</p>
               <p className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-gray-900">{mediaImages.length}</p>
             </div>
-            <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+            <div className="rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500">Kapak görseli</p>
               <p className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-gray-900">{featuredCount}</p>
             </div>
@@ -71,7 +71,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
         </div>
 
         <div className="mt-5 grid min-w-0 items-start gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(300px,400px)]">
-          <form className="grid min-w-0 gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3 md:p-4">
+          <form className="grid min-w-0 gap-3 rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] p-3 md:p-4">
             <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(180px,220px)]">
               <label className="flex min-w-0 items-center gap-3 rounded-[14px] border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-600">
                 <Search className="h-4 w-4 text-gray-500" />
@@ -117,7 +117,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#111111] transition-colors hover:bg-white/90"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0ea5e9] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   Filtrele
@@ -125,7 +125,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
                 {activeFilterCount > 0 ? (
                   <Link
                     href="/admin/media"
-                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-900"
+                    className="inline-flex items-center gap-2 rounded-xl border border-[#cbd5e1] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition-colors hover:border-[#0ea5e9] hover:bg-sky-50 hover:text-[#0284c7]"
                   >
                     <X className="h-4 w-4" />
                     Temizle
@@ -135,13 +135,13 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
             </div>
           </form>
 
-          <form action={uploadMediaImagesAction} encType="multipart/form-data" className="grid min-w-0 gap-3 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 p-3 md:p-4">
+          <form action={uploadMediaImagesAction} className="grid min-w-0 gap-3 overflow-hidden rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] p-3 md:p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">Yükleme</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">Yükleme</p>
                 <h3 className="mt-1 text-lg font-semibold tracking-tight text-gray-900">Görsel ekle</h3>
               </div>
-              <UploadCloud className="h-5 w-5 text-blue-600" />
+              <UploadCloud className="h-5 w-5 text-sky-500" />
             </div>
 
             <div className="grid min-w-0 gap-2.5">
@@ -167,10 +167,10 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
               <AdminFormPendingNotice label="Görseller yükleniyor..." description="Dosya sayısı ve boyutuna göre bu işlem birkaç saniye sürebilir." />
 
               <FormSubmitButton
-                idleLabel="Yükle"
+                idleLabel="Görselleri Yükle"
                 pendingLabel="Yükleniyor..."
                 icon={<UploadCloud className="h-4 w-4" />}
-                className="inline-flex w-full max-w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.14em] text-[#111111] transition-colors hover:bg-white/90 disabled:opacity-70"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#0ea5e9] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md disabled:opacity-70"
               />
             </div>
           </form>
@@ -217,7 +217,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
                       {media.product ? (
                         <Link
                           href={`/admin/products/${media.product.id}`}
-                          className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-900"
+                          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                         >
                           <Edit3 className="h-4 w-4" />
                           Ürünü düzenle
@@ -231,7 +231,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
                             idleLabel="Kapak yap"
                             pendingLabel="İşleniyor..."
                             icon={<Star className="h-4 w-4" />}
-                            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-900"
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                           />
                         </form>
                       ) : null}
@@ -242,7 +242,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
                           idleLabel="Sil"
                           pendingLabel="Siliniyor..."
                           icon={<Trash2 className="h-4 w-4" />}
-                          className="inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-100 transition-colors hover:border-red-500/35 hover:bg-red-500/15"
+                          className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-100"
                         />
                       </form>
                     </div>

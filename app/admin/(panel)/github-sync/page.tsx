@@ -23,7 +23,7 @@ export default async function GitHubSyncPage() {
   return (
     <div className="grid gap-6 pb-20">
       <div className="flex flex-col gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Yönetim</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Yönetim</p>
         <h2 className="text-3xl font-semibold tracking-[-0.04em] text-gray-900">Yedekleme Merkezi</h2>
         <p className="max-w-2xl text-sm leading-relaxed text-gray-500">
           Uygulama kaynak kodunu, konfigürasyonları ve statik dosyaları GitHub&apos;a yedekleyin. Veritabanı yedeği içermez.

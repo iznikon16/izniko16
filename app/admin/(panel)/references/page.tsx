@@ -1,4 +1,4 @@
-﻿import { CalendarDays, ChevronDown, ImageIcon, MapPin, Star } from 'lucide-react';
+import { CalendarDays, ChevronDown, ImageIcon, MapPin, Star } from 'lucide-react';
 import { deleteProjectReferenceAction, saveProjectReferenceAction } from '@/app/admin/(panel)/actions';
 import { AdminFilePicker, AdminFormPendingNotice } from '@/components/admin/admin-form-feedback';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
@@ -29,7 +29,7 @@ function ReferenceForm({ reference }: { reference?: ProjectReference }) {
                   {reference.service_type}
                 </span>
               ) : null}
-              <span className={reference.is_featured ? 'rounded-full border border-blue-300/24 bg-blue-600/12 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-600' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
+              <span className={reference.is_featured ? 'rounded-full border border-sky-300/24 bg-sky-500/12 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-500' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
                 {reference.is_featured ? 'Öne çıkan' : 'Standart'}
               </span>
               <span className={reference.is_active ? 'rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700' : 'rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500'}>
@@ -37,7 +37,7 @@ function ReferenceForm({ reference }: { reference?: ProjectReference }) {
               </span>
             </>
           ) : (
-            <span className="rounded-full border border-blue-300/20 bg-blue-600/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-600">
+            <span className="rounded-full border border-sky-300/20 bg-sky-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-500">
               Yeni kayıt
             </span>
           )}
@@ -50,7 +50,7 @@ function ReferenceForm({ reference }: { reference?: ProjectReference }) {
       </summary>
 
       <div className="border-t border-gray-100 px-5 pb-5 pt-4">
-        <form action={saveProjectReferenceAction} encType="multipart/form-data" className="grid gap-4">
+        <form action={saveProjectReferenceAction} className="grid gap-4">
           {reference?.id ? <input type="hidden" name="id" value={reference.id} /> : null}
 
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)_150px]">
@@ -154,7 +154,7 @@ function ReferenceForm({ reference }: { reference?: ProjectReference }) {
                 </Label>
                 <Label className="inline-flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 cursor-pointer">
                   <Checkbox name="is_featured" defaultChecked={reference?.is_featured ?? false} />
-                  <Star className="h-4 w-4 text-blue-600" />
+                  <Star className="h-4 w-4 text-sky-500" />
                   Öne çıkar
                 </Label>
               </div>
@@ -195,8 +195,8 @@ export default async function AdminReferencesPage() {
     <div className="grid gap-4">
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <div className="border-b border-gray-100 pb-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Referanslar</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Referans yönetimi</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Referanslar</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Referans Yönetimi</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
             Tamamlanan işleri hizmet tipi, lokasyon, görsel ve yayın durumuyla aynı ekrandan yönetin.
           </p>

@@ -1161,7 +1161,7 @@ export default function HomeClient({
           padding: "0.65rem 1.35rem 0.65rem 0.85rem",
           borderRadius: "9999px",
           cursor: "pointer",
-          boxShadow: "0 15px 40px rgba(0, 0, 0, 0.45), 0 0 25px rgba(217, 119, 6, 0.35)",
+          boxShadow: "0 12px 30px rgba(0, 0, 0, 0.38)",
           display: "flex",
           alignItems: "center",
           gap: "0.85rem",

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
@@ -36,11 +36,13 @@ import {
   TriangleAlert,
   FileCode,
   ClipboardList,
+  ShieldCheck,
   Percent,
   CalendarClock,
   CloudBackup,
   CreditCard,
   UserCog,
+  UserRound,
   RotateCcw,
   BarChart3,
   type LucideIcon,
@@ -50,6 +52,7 @@ import { adminLogoutAction } from './login-actions';
 import { toast } from 'sonner';
 import { SafeImage } from '@/components/ui/safe-image';
 import { canViewAdminNavigationItem, getActiveAdminNavigationHref, isAdminNavigationHrefActive } from '@/lib/admin/navigation';
+import { UserAvatar } from '@/components/ui/user-avatar';
 
 type NavigationItem = {
   href: string;
@@ -110,10 +113,12 @@ const navigationGroups: NavigationGroup[] = [
   ] },
   { key: 'management', label: 'Yönetim', icon: ClipboardList, items: [
     { href: '/admin/yonetim/kullanicilar', label: 'Kullanıcı & Roller', icon: UserCog, permission: 'user.manage' },
+    { href: '/admin/yonetim/roller', label: 'Roller ve Yetkiler', icon: ShieldCheck, permission: 'role.manage' },
     { href: '/admin/yonetim/audit', label: 'Audit Log', icon: ClipboardList, permission: 'audit.view' },
     { href: '/admin/github-sync', label: 'Yedekleme Merkezi', icon: CloudBackup, permission: 'settings.view' },
   ] },
   { key: 'settings', label: 'Ayarlar', icon: Mail, items: [
+    { href: '/admin/profil', label: 'Profilim', icon: UserRound },
     { href: '/admin/mail', label: 'SMTP & E-posta', icon: Mail, permission: 'settings.view' },
   ] },
   { key: 'marketing', label: 'Pazarlama', icon: Megaphone, items: [
@@ -130,6 +135,7 @@ const navigationGroups: NavigationGroup[] = [
 ];
 
 type AdminSidebarProps = {
+  avatarUrl?: string | null;
   isCollapsed?: boolean;
   onNavigate?: () => void;
   onToggle?: () => void;
@@ -138,7 +144,7 @@ type AdminSidebarProps = {
   userRole?: string;
 };
 
-export function AdminSidebar({ isCollapsed = false, onNavigate, onToggle, permissions = ['*'], userName = 'Admin', userRole = 'Yönetici' }: AdminSidebarProps) {
+export function AdminSidebar({ avatarUrl, isCollapsed = false, onNavigate, onToggle, permissions = ['*'], userName = 'Admin', userRole = 'Yönetici' }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
@@ -150,7 +156,6 @@ export function AdminSidebar({ isCollapsed = false, onNavigate, onToggle, permis
     return items.length ? [{ ...group, items }] : [];
   });
   const activeHref = getActiveAdminNavigationHref(pathname, visibleGroups.flatMap((group) => group.items.map((item) => item.href)));
-  const initials = userName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('tr-TR') || 'AD';
 
   function handleLogout() {
     startLogoutTransition(async () => {
@@ -271,22 +276,20 @@ export function AdminSidebar({ isCollapsed = false, onNavigate, onToggle, permis
             onClick={handleLogout}
             disabled={isLoggingOut}
             title="Çıkış Yap"
-            className="flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white p-3 text-gray-400 shadow-sm transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            className="flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white p-3 text-gray-400 shadow-sm transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
           >
             <LogOut className="h-5 w-5 shrink-0" />
           </button>
         ) : (
-          <div className="group relative overflow-hidden rounded-2xl border border-gray-200/60 bg-white p-4 shadow-sm transition-all hover:border-blue-500/30 hover:shadow-md">
+          <div className="group relative overflow-hidden rounded-2xl border border-gray-200/60 bg-white p-4 shadow-sm transition-all hover:border-sky-500/30 hover:shadow-md">
             {/* Subtle gradient background effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-amber-50/30 opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-gradient-to-br from-sky-50/50 via-transparent to-amber-50/30 opacity-0 transition-opacity group-hover:opacity-100" />
             
             <div className="relative flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-inner">
-                  <span className="text-sm font-bold">{initials}</span>
-                </div>
+                <UserAvatar avatarUrl={avatarUrl} name={userName} className="h-10 w-10 rounded-xl text-sm" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-gray-900">{userName}</p>
+                  <Link href="/admin/profil" onClick={onNavigate} className="truncate text-sm font-bold text-gray-900 hover:text-sky-700">{userName}</Link>
                   <p className="truncate text-[11px] font-medium text-gray-500">{userRole}</p>
                 </div>
               </div>
@@ -304,7 +307,7 @@ export function AdminSidebar({ isCollapsed = false, onNavigate, onToggle, permis
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 transition-colors hover:text-red-600 disabled:cursor-wait disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 transition-colors hover:text-rose-600 disabled:cursor-wait disabled:opacity-60"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 {isLoggingOut ? 'Kapatılıyor' : 'Çıkış'}

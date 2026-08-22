@@ -9,6 +9,7 @@ import {
   removeCustomerProductPriceAction,
 } from '@/app/admin/(panel)/pricing/actions';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
+import { BadgeTurkishLira, Users } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,13 +42,15 @@ export default async function CustomerPricingPage() {
   const assignmentByCustomer = new Map((assignments ?? []).map((a) => [a.customer_id, a.price_list_id]));
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Müşteri Fiyatları</h1>
-        <p className="mt-1 text-gray-500">Müşteri bazında fiyat listesi, özel indirim ve özel ürün fiyatı yönetimi.</p>
-      </div>
+    <div className="mx-auto grid max-w-[1600px] gap-6">
+      <header className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-500">Fiyatlandırma</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Müşteri Fiyatları</h1>
+        <p className="mt-2 text-sm text-slate-500">Müşteri bazında fiyat listesi, özel indirim ve özel ürün fiyatı yönetimi.</p>
+        <div className="mt-5 inline-flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3"><Users className="size-5 text-sky-500" /><span className="font-medium text-slate-700">{customers.length} müşteri</span></div>
+      </header>
 
-      <div className="rounded-[2rem] border border-[#cbd5e1]/60 bg-white shadow-sm shadow-[#cbd5e1]/10">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50">
@@ -79,7 +82,7 @@ export default async function CustomerPricingPage() {
                             <option key={list.id} value={list.id}>{list.name}</option>
                           ))}
                         </select>
-                        <button className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">Ata</button>
+                        <button className="rounded-lg border border-sky-300 bg-white px-3 py-1.5 text-xs font-medium text-sky-600 transition hover:bg-sky-50">Ata</button>
                       </ToastActionForm>
                     </td>
                     <td className="px-4 py-3">
@@ -94,7 +97,7 @@ export default async function CustomerPricingPage() {
                           max="100"
                           className="w-20 rounded-lg border border-gray-200 px-2 py-1.5 text-xs text-right"
                         />
-                        <button className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">%</button>
+                        <button aria-label="İndirimi kaydet" className="grid size-8 place-items-center rounded-lg bg-sky-500 text-white transition hover:bg-sky-600"><BadgeTurkishLira className="size-4" /></button>
                       </ToastActionForm>
                     </td>
                     <td className="px-4 py-3">
@@ -107,20 +110,20 @@ export default async function CustomerPricingPage() {
                           ))}
                         </select>
                         <input type="number" name="price" step="0.01" min="0" placeholder="₺" className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-right" />
-                        <button className="rounded-full bg-sky-500 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">Ekle</button>
+                        <button className="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-sky-600">Ekle</button>
                       </ToastActionForm>
                       {customerSpecial.length > 0 && (
                         <div className="space-y-1">
                           {customerSpecial.slice(0, 3).map((sp) => {
                             const product = products.find((p) => p.id === sp.product_id);
                             return (
-                              <div key={sp.id} className="flex items-center justify-between rounded bg-blue-50/60 px-2 py-1 text-xs">
+                              <div key={sp.id} className="flex items-center justify-between rounded bg-sky-50/60 px-2 py-1 text-xs">
                                 <span className="truncate text-gray-600">{product?.title || sp.product_id}</span>
-                                <span className="ml-2 font-semibold text-blue-700">{formatCommercePrice(Number(sp.price))}</span>
+                                <span className="ml-2 font-semibold text-sky-600">{formatCommercePrice(Number(sp.price))}</span>
                                 <ToastActionForm action={removeCustomerProductPriceAction} successMessage="Özel fiyat kaldırıldı." errorMessage="Özel fiyat kaldırılamadı." className="ml-1">
                                   <input type="hidden" name="customer_id" value={customer.user_id} />
                                   <input type="hidden" name="product_id" value={sp.product_id} />
-                                  <button className="text-red-400 hover:text-red-600">×</button>
+                                  <button className="text-rose-400 hover:text-rose-600">×</button>
                                 </ToastActionForm>
                               </div>
                             );

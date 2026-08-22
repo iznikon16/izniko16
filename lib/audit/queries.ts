@@ -102,7 +102,7 @@ export async function queryAuditLogs(filters: AuditLogFilters = {}) {
     supabase.from('admin_users').select('user_id, full_name, email, role').in('user_id', actorIds),
     supabase.from('customer_profiles').select('user_id, full_name, email').in('user_id', actorIds),
   ]) : [{ data: [], error: null }, { data: [], error: null }];
-  if (admins.error || customers.error) throw new Error('Aktör bilgileri alınamadı.');
+  if (admins.error || customers.error) throw new Error('Kullanıcı bilgileri alınamadı.');
   const adminMap = new Map((admins.data ?? []).map((actor) => [actor.user_id, actor]));
   const customerMap = new Map((customers.data ?? []).map((actor) => [actor.user_id, actor]));
   const enriched: EnrichedAuditLog[] = rows.map((row) => {
@@ -173,6 +173,19 @@ const ACTION_LABELS: Record<string, string> = {
   managed_user_update: 'Kullanıcı ve rol güncelleme',
   managed_user_password_change: 'Kullanıcı şifresi değiştirme',
   managed_user_delete: 'Kullanıcı silme',
+  managed_user_mfa_reset: 'Kullanıcı 2FA sıfırlama',
+  customer_profile_update: 'Profil güncelleme',
+  customer_email_update: 'E-posta güncelleme',
+  customer_password_update: 'Şifre değiştirme',
+  profile_avatar_upload: 'Profil fotoğrafı yükleme',
+  profile_avatar_update: 'Profil fotoğrafı değiştirme',
+  profile_avatar_remove: 'Profil fotoğrafı kaldırma',
+  mfa_enabled: 'İki aşamalı doğrulama etkinleştirme',
+  mfa_disabled: 'İki aşamalı doğrulama kapatma',
+  mfa_challenge_success: 'İki aşamalı giriş doğrulaması',
+  other_sessions_revoked: 'Diğer oturumları kapatma',
+  all_sessions_revoked: 'Tüm oturumları kapatma',
+  staff_permissions_updated: 'Yetkili izinlerini güncelleme',
   integration_payment_method_create: 'Ödeme yöntemi oluşturma',
   integration_payment_method_update: 'Ödeme yöntemi güncelleme',
   integration_payment_method_delete: 'Ödeme yöntemi silme',
@@ -194,7 +207,7 @@ export function getAuditActionLabel(action: string) {
 export function getAuditResourceLabel(resourceType: string) {
   const labels: Record<string, string> = {
     account_transaction: 'Cari hareket', customer_account: 'Cari hesap', payment: 'Tahsilat', order: 'Sipariş',
-    product: 'Ürün', stock: 'Stok', user: 'Kullanıcı', customer: 'Müşteri', integration: 'Entegrasyon',
+    product: 'Ürün', stock: 'Stok', user: 'Kullanıcı', customer: 'Müşteri', profile: 'Profil', role: 'Rol ve yetki', integration: 'Entegrasyon',
     xml_source: 'XML kaynağı', payment_method: 'Ödeme yöntemi', invoice: 'Fatura', auth: 'Oturum',
   };
   return labels[resourceType] ?? resourceType.replace(/[._]/g, ' ');

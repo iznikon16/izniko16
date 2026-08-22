@@ -5,6 +5,8 @@ import type { ReactNode } from 'react';
 import { AccountNavigation } from '@/components/customer/account-navigation';
 import { signOutCustomerAction } from '@/lib/commerce/actions';
 import { requireCustomerSession } from '@/lib/commerce/queries';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import { getAvatarPublicUrl } from '@/lib/profile/avatar';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,11 +31,9 @@ export default async function CustomerAccountLayout({ children }: { children: Re
               </span>
             </Link>
 
-            <div className="min-w-0 lg:border-l lg:border-slate-200 lg:pl-5">
-              <p className="truncate text-sm font-semibold text-slate-900">
-                {session.profile.full_name || 'Değerli Müşterimiz'}
-              </p>
-              <p className="mt-0.5 truncate text-xs text-slate-500">{session.profile.email}</p>
+            <div className="flex min-w-0 items-center gap-3 lg:border-l lg:border-slate-200 lg:pl-5">
+              <UserAvatar avatarUrl={getAvatarPublicUrl(session.profile.avatar_path)} email={session.profile.email} name={session.profile.full_name || 'Değerli Müşterimiz'} className="h-10 w-10 text-xs" />
+              <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{session.profile.full_name || 'Değerli Müşterimiz'}</p><p className="mt-0.5 truncate text-xs text-slate-500">{session.profile.email}</p></div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:justify-end">

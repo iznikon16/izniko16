@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme inline {
+  --font-sans: var(--font-inter);
+}
+
 :root {
       --radius: 1rem;
       --bg-base: #eef2f7;
@@ -23,6 +27,12 @@
       --border: #cbd5e1;
       --brand: #0ea5e9;
       --brand-foreground: #ffffff;
+    }
+
+    body {
+      background: var(--bg-base);
+      color: var(--text-foreground);
+      font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
     }
 
     .container {

@@ -3,6 +3,7 @@ import { getXmlSources } from '@/lib/xml/queries';
 import { deleteXmlSourceAction, runXmlSyncAction, saveXmlSourceAction } from '@/app/admin/(panel)/integrations/xml/actions';
 import type { XmlTargetField } from '@/lib/catalog/types';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
+import { DatabaseZap, Inbox } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,15 +25,12 @@ export default async function XmlSourcesPage() {
   const sources = await getXmlSources();
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">XML Kaynakları</h1>
-        <p className="mt-1 text-gray-500">Tedarikçi XML kaynakları, fiyat/stok senkronizasyonu ve field mapping.</p>
-      </div>
+    <div className="mx-auto grid max-w-[1600px] gap-6">
+      <header className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"><p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-500">Entegrasyon</p><h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">XML Kaynakları</h1><p className="mt-2 text-sm text-slate-500">Tedarikçi XML kaynaklarını, fiyat/stok senkronizasyonunu ve alan eşlemelerini yönetin.</p></header>
 
       {/* Yeni Kaynak Formu */}
-      <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
-        <h2 className="mb-4 font-semibold text-gray-900">Yeni XML Kaynağı Ekle</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold text-slate-900"><DatabaseZap className="size-5 text-sky-500" /> Yeni XML Kaynağı Ekle</h2>
         <ToastActionForm action={saveXmlSourceAction} successMessage="XML kaynağı kaydedildi." errorMessage="XML kaynağı kaydedilemedi." className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <input type="hidden" name="id" value="" />
           <input
@@ -63,7 +61,7 @@ export default async function XmlSourcesPage() {
               <input type="checkbox" name="is_active" defaultChecked />
               Aktif
             </label>
-            <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">
+            <button className="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600">
               Kaydet
             </button>
           </div>
@@ -84,10 +82,10 @@ export default async function XmlSourcesPage() {
         <p className="mt-2 text-xs text-gray-500">
           Hedef alanlar: {Object.entries(TARGET_LABELS).map(([k, v]) => `${k} (${v})`).join(' · ')}
         </p>
-      </div>
+      </section>
 
       {/* Kaynaklar */}
-      <div className="overflow-hidden rounded-[2rem] border border-[#cbd5e1]/60 bg-white shadow-sm shadow-[#cbd5e1]/10">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
             <tr>
@@ -115,9 +113,9 @@ export default async function XmlSourcesPage() {
                       source.last_status === 'success'
                         ? 'rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600'
                         : source.last_status === 'error'
-                          ? 'rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-600'
+                          ? 'rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600'
                           : source.last_status === 'running'
-                            ? 'rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-600'
+                            ? 'rounded-full bg-sky-50 px-2 py-1 text-xs font-medium text-sky-500'
                             : 'rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500'
                     }
                   >
@@ -129,7 +127,7 @@ export default async function XmlSourcesPage() {
                   {source.last_run_at ? new Date(source.last_run_at).toLocaleString('tr-TR') : '—'}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                  <span className="rounded-full bg-sky-50 px-2 py-1 text-xs font-medium text-sky-600">
                     {source.mappings.length} alan
                   </span>
                 </td>
@@ -137,13 +135,13 @@ export default async function XmlSourcesPage() {
                   <div className="flex items-center justify-end gap-2">
                     <ToastActionForm action={runXmlSyncAction} successMessage="XML senkronizasyonu tamamlandı." errorMessage="XML senkronizasyonu tamamlanamadı.">
                       <input type="hidden" name="id" value={source.id} />
-                      <button className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">
+                      <button className="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-sky-600">
                         Senkronize Et
                       </button>
                     </ToastActionForm>
                     <ToastActionForm action={deleteXmlSourceAction} successMessage="XML kaynağı silindi." errorMessage="XML kaynağı silinemedi.">
                       <input type="hidden" name="id" value={source.id} />
-                      <button className="rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">
+                      <button className="rounded-lg border border-rose-200 px-3 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50">
                         Sil
                       </button>
                     </ToastActionForm>
@@ -153,7 +151,7 @@ export default async function XmlSourcesPage() {
             ))}
             {sources.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-500">Henüz XML kaynağı eklenmemiş.</td>
+                <td colSpan={7} className="px-4 py-20 text-center text-gray-500"><Inbox className="mx-auto mb-4 size-14 rounded-full bg-sky-50 p-3 text-sky-500" /><p className="font-medium text-slate-700">Henüz XML kaynağı eklenmemiş.</p></td>
               </tr>
             )}
           </tbody>

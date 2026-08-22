@@ -4,13 +4,14 @@ import { LogoutButton } from '@/components/admin/logout-button';
 import { MobileSidebar } from '@/components/admin/mobile-sidebar';
 import { HeaderActions } from '@/components/admin/header-actions';
 import { GlobalSearch } from '@/components/admin/global-search';
+import { UserAvatar } from '@/components/ui/user-avatar';
 
-export function AdminHeader({ permissions, userName, userRole }: { permissions: string[]; userName: string; userRole: string }) {
+export function AdminHeader({ avatarUrl, permissions, userName, userRole }: { avatarUrl: string | null; permissions: string[]; userName: string; userRole: string }) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 backdrop-blur-md px-4 md:px-6">
       {/* Search & Mobile Menu */}
       <div className="flex items-center">
-        <MobileSidebar permissions={permissions} userName={userName} userRole={userRole} />
+        <MobileSidebar avatarUrl={avatarUrl} permissions={permissions} userName={userName} userRole={userRole} />
         <GlobalSearch />
       </div>
 
@@ -38,6 +39,7 @@ export function AdminHeader({ permissions, userName, userRole }: { permissions: 
         {/* Icons */}
         <HeaderActions />
         <div className="h-8 w-px bg-gray-200"></div>
+        <Link href="/admin/profil" aria-label="Profilimi aç" title={`${userName} · ${userRole}`}><UserAvatar avatarUrl={avatarUrl} name={userName} className="h-9 w-9 text-[11px]" /></Link>
         <LogoutButton />
       </div>
     </header>

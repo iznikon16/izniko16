@@ -137,21 +137,44 @@ export async function getStockMovements(limit = 300): Promise<StockMovementWithP
   return (data ?? []) as StockMovementWithProduct[];
 }
 
-export async function getStockMovementsPage(page = 1, pageSize = 25): Promise<StockPage<StockMovementWithProduct>> {
+type StockMovementPageFilters = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  type?: string;
+  from?: string;
+  to?: string;
+};
+
+export async function getStockMovementsPage(filters: StockMovementPageFilters = {}): Promise<StockPage<StockMovementWithProduct>> {
   const supabase = createAdminClient();
-  const safePage = normalizePage(page);
-  const safePageSize = normalizePageSize(pageSize);
+  const safePage = normalizePage(filters.page);
+  const safePageSize = normalizePageSize(filters.pageSize);
+  const term = sanitizeSearch(filters.search);
   const start = (safePage - 1) * safePageSize;
-  const { data, error, count } = await supabase
+  let productIds: string[] | null = null;
+  if (term) {
+    const { data: products, error: productsError } = await supabase.from('products').select('id').or(`title.ilike.%${term}%,sku.ilike.%${term}%`).limit(500);
+    if (productsError) throw new Error(productsError.message);
+    productIds = (products ?? []).map((product) => product.id);
+    if (productIds.length === 0) return { rows: [], count: 0, page: 1, pageCount: 1, pageSize: safePageSize };
+  }
+
+  let query = supabase
     .from('stock_movements')
-    .select('*, product:products(id, title, sku)', { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range(start, start + safePageSize - 1);
+    .select('*, product:products(id, title, sku)', { count: 'exact' });
+
+  if (productIds) query = query.in('product_id', productIds);
+  if (filters.type) query = query.eq('type', filters.type);
+  if (filters.from && /^\d{4}-\d{2}-\d{2}$/.test(filters.from)) query = query.gte('created_at', `${filters.from}T00:00:00.000Z`);
+  if (filters.to && /^\d{4}-\d{2}-\d{2}$/.test(filters.to)) query = query.lte('created_at', `${filters.to}T23:59:59.999Z`);
+
+  const { data, error, count } = await query.order('created_at', { ascending: false }).range(start, start + safePageSize - 1);
 
   if (error) throw new Error(error.message);
   const total = count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / safePageSize));
-  if (safePage > pageCount) return getStockMovementsPage(pageCount, safePageSize);
+  if (safePage > pageCount) return getStockMovementsPage({ ...filters, page: pageCount, pageSize: safePageSize });
 
   return { rows: (data ?? []) as StockMovementWithProduct[], count: total, page: safePage, pageCount, pageSize: safePageSize };
 }

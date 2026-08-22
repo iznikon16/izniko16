@@ -40,7 +40,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
   return (
     <button
       type="submit"
-      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_5px_12px_rgba(14,165,233,0.22)] transition-all hover:-translate-y-px hover:bg-sky-600 hover:shadow-[0_7px_16px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#0ea5e9] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0ea5e9] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       disabled={pending}
     >
       {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
@@ -51,8 +51,8 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
 
 function SectionTitle({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
-    <div className="border-b border-gray-100 pb-4">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">{eyebrow}</p>
+    <div className="border-b border-[#cbd5e1] pb-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">{eyebrow}</p>
       <h3 className="mt-2 text-2xl font-semibold tracking-tight text-gray-900">{title}</h3>
       <p className="mt-2 text-sm leading-relaxed text-gray-500">{description}</p>
     </div>
@@ -63,7 +63,7 @@ function CollapsibleSection({ children, description, eyebrow, title }: { childre
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <section className="rounded-2xl border border-gray-100 bg-gray-50 p-4 md:p-5">
+    <section className="rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] p-4 shadow-sm md:p-5">
       <button
         type="button"
         aria-expanded={isOpen}
@@ -71,16 +71,16 @@ function CollapsibleSection({ children, description, eyebrow, title }: { childre
         className="flex w-full items-center justify-between gap-4 text-left"
       >
         <span className="min-w-0">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">{eyebrow}</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">{eyebrow}</span>
           <span className="mt-1 block text-xl font-semibold tracking-tight text-gray-900">{title}</span>
           <span className="mt-1 block text-sm leading-relaxed text-gray-500">{description}</span>
         </span>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 text-gray-500">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#cbd5e1] bg-white text-[#475569]">
           <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </span>
       </button>
 
-      {isOpen ? <div className="mt-5 border-t border-gray-100 pt-5">{children}</div> : null}
+      {isOpen ? <div className="mt-5 border-t border-[#cbd5e1] pt-5">{children}</div> : null}
     </section>
   );
 }
@@ -336,7 +336,7 @@ export function ProductEditor({
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <div className="flex flex-col gap-5 border-b border-gray-100 pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <Link href="/admin/products" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-white">
+            <Link href="/admin/products" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-sky-700">
               <ArrowLeft className="h-4 w-4" />
               Ürün listesine dön
             </Link>
@@ -350,10 +350,10 @@ export function ProductEditor({
 
         <div className="mt-6 grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="grid auto-rows-max gap-4 self-start">
-            <section className="rounded-2xl border border-gray-100 bg-gray-50 p-5 md:p-6">
+            <section className="rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] p-5 shadow-sm md:p-6">
               <SectionTitle
                 eyebrow="Temel"
-                title="Temel bilgiler"
+                title="Temel Bilgiler"
                 description="Başlık, URL anahtarı ve açıklama metinleri burada tutulur."
               />
 
@@ -365,7 +365,7 @@ export function ProductEditor({
                     value={title}
                     onChange={(event) => handleTitleChange(event.target.value)}
                     required
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                 </div>
 
@@ -378,7 +378,7 @@ export function ProductEditor({
                         setSlugTouched(true);
                         setSlug(slugify(event.target.value));
                       }}
-                      className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                      className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                     />
                   </div>
                   <div className="grid gap-2">
@@ -387,7 +387,7 @@ export function ProductEditor({
                       name="sku"
                       defaultValue={initialProduct?.sku ?? ''}
                       required
-                      className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                      className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                     />
                   </div>
                 </div>
@@ -398,7 +398,7 @@ export function ProductEditor({
                     name="summary"
                     rows={6}
                     defaultValue={initialProduct?.summary ?? ''}
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm leading-relaxed text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                 </div>
 
@@ -411,13 +411,13 @@ export function ProductEditor({
 
             <CollapsibleSection
               eyebrow="Vurgular"
-              title="Öne çıkan maddeler"
+              title="Öne Çıkan Maddeler"
               description="Kart görünümünde veya detay sayfasında kullanılacak kısa vurgu maddelerini yönetin."
             >
 
               <div className="mt-5 grid gap-3">
                 {highlights.map((highlight, index) => (
-                  <div key={`${highlight.sort_order}-${index}`} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <div key={`${highlight.sort_order}-${index}`} className="rounded-2xl border border-[#cbd5e1] bg-white p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="grid flex-1 gap-3">
                         <textarea
@@ -441,7 +441,7 @@ export function ProductEditor({
                       <button
                         type="button"
                         onClick={() => removeHighlight(index)}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-100"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#cbd5e1] bg-white text-[#475569] transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -453,7 +453,7 @@ export function ProductEditor({
               <button
                 type="button"
                 onClick={addHighlight}
-                className="mt-4 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-white"
+                className="mt-4 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
               >
                 <Plus className="h-4 w-4" />
                 Madde Ekle
@@ -462,13 +462,13 @@ export function ProductEditor({
 
             <CollapsibleSection
               eyebrow="Teknik"
-              title="Teknik özellikler"
+              title="Teknik Özellikler"
               description="Grup bazlı teknik özellikler detay sayfasında tablo olarak gösterilir."
             >
 
               <div className="mt-5 grid gap-3">
                 {attributes.map((attribute, index) => (
-                  <div key={`${attribute.attribute_group}-${attribute.name}-${index}`} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <div key={`${attribute.attribute_group}-${attribute.name}-${index}`} className="rounded-2xl border border-[#cbd5e1] bg-white p-4">
                     <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)_minmax(0,1fr)_100px_52px]">
                       <input
                         value={attribute.attribute_group}
@@ -497,7 +497,7 @@ export function ProductEditor({
                       <button
                         type="button"
                         onClick={() => removeAttribute(index)}
-                        className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 text-gray-500 transition-colors hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-100"
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-xl border border-[#cbd5e1] bg-white text-[#475569] transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -509,7 +509,7 @@ export function ProductEditor({
               <button
                 type="button"
                 onClick={addAttribute}
-                className="mt-4 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-white"
+                className="mt-4 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
               >
                 <Plus className="h-4 w-4" />
                 Özellik Ekle
@@ -518,7 +518,7 @@ export function ProductEditor({
 
             <CollapsibleSection
               eyebrow="Galeri"
-              title="Galeri ve medya"
+              title="Galeri ve Medya"
               description="Mevcut görselleri güncelleyin, öne çıkan görseli seçin ve yeni dosyalar yükleyin."
             >
 
@@ -540,7 +540,7 @@ export function ProductEditor({
                               className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition-colors ${
                                 image.is_featured
                                   ? 'border-sky-600 bg-sky-600 text-white'
-                                  : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-200 hover:text-white'
+                                  : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700'
                               }`}
                             >
                               <Check className="h-3.5 w-3.5" />
@@ -586,7 +586,7 @@ export function ProductEditor({
 
                 <label className="grid cursor-pointer gap-3 rounded-2xl border border-dashed border-white/14 bg-white/[0.02] p-5 text-sm text-gray-500">
                   <span className="inline-flex items-center gap-2 font-medium text-gray-900">
-                    <ImagePlus className="h-4 w-4 text-blue-600" />
+                    <ImagePlus className="h-4 w-4 text-sky-500" />
                     Yeni görseller yükle
                   </span>
                   <span className="inline-flex w-fit items-center rounded-xl bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-sm">
@@ -607,10 +607,10 @@ export function ProductEditor({
           </div>
 
           <aside className="grid auto-rows-max gap-4 self-start">
-            <section className="rounded-2xl border border-gray-100 bg-gray-50 p-5 md:p-6">
+            <section className="rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] p-5 shadow-sm md:p-6">
               <SectionTitle
                 eyebrow="Yayın"
-                title="Yayın ve fiyat"
+                title="Yayın Fiyat"
                 description="Listeleme, stok ve fiyat davranışı bu blokta kontrol edilir."
               />
 
@@ -621,7 +621,7 @@ export function ProductEditor({
                     <select
                       name="status"
                       defaultValue={initialProduct?.status ?? 'draft'}
-                      className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                      className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                     >
                       <option value="draft">Taslak</option>
                       <option value="published">Yayında</option>
@@ -634,7 +634,7 @@ export function ProductEditor({
                     <select
                       name="stock_status"
                       defaultValue={initialProduct?.stock_status ?? 'in_stock'}
-                      className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                      className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                     >
                       <option value="in_stock">Stokta</option>
                       <option value="out_of_stock">Tükendi</option>
@@ -649,7 +649,7 @@ export function ProductEditor({
                     <select
                       name="price_mode"
                       defaultValue={initialProduct?.price_mode ?? 'fixed'}
-                      className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                      className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                     >
                       <option value="fixed">Sabit fiyat</option>
                       <option value="contact">İletişim ile fiyat</option>
@@ -664,7 +664,7 @@ export function ProductEditor({
                     step="0.01"
                     defaultValue={initialProduct?.price ?? ''}
                     placeholder="Satış fiyatı"
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                   <input
                     name="compare_at_price"
@@ -672,7 +672,7 @@ export function ProductEditor({
                     step="0.01"
                     defaultValue={initialProduct?.compare_at_price ?? ''}
                     placeholder="Eski fiyat"
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                 </div>
 
@@ -680,7 +680,7 @@ export function ProductEditor({
                   name="price_note"
                   defaultValue={initialProduct?.price_note ?? ''}
                   placeholder="Fiyat notu"
-                  className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                  className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                 />
 
                 <div className="grid gap-2">
@@ -695,7 +695,7 @@ export function ProductEditor({
                     required
                     defaultValue={initialProduct?.tax_rate ?? ''}
                     placeholder="Gerçek ürün KDV oranını girin"
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                   <p className="text-xs text-gray-500">Bu oran ödeme, sipariş ve satış belgesinde ürün bazında snapshot olarak saklanır. Otomatik veya tahmini oran kullanılmaz.</p>
                 </div>
@@ -710,7 +710,7 @@ export function ProductEditor({
                     step={1}
                     required
                     defaultValue={initialProduct?.minimum_order_quantity ?? 1}
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                   <p className="text-xs text-gray-500">Müşterinin bu üründen verebileceği minimum sipariş miktarı.</p>
                 </div>
@@ -721,7 +721,7 @@ export function ProductEditor({
                     type="number"
                     defaultValue={initialProduct?.warranty_years ?? ''}
                     placeholder="Garanti"
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                   <input
                     name="capacity_kw"
@@ -729,13 +729,13 @@ export function ProductEditor({
                     step="0.01"
                     defaultValue={initialProduct?.capacity_kw ?? ''}
                     placeholder="kW"
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                   <input
                     name="energy_class"
                     defaultValue={initialProduct?.energy_class ?? ''}
                     placeholder="Enerji sınıfı"
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                 </div>
 
@@ -743,7 +743,7 @@ export function ProductEditor({
                   name="badge"
                   defaultValue={initialProduct?.badge ?? ''}
                   placeholder="Rozet / vurgu"
-                  className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                  className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                 />
 
                 <div className="grid gap-3">
@@ -759,10 +759,10 @@ export function ProductEditor({
               </div>
             </section>
 
-            <section className="rounded-2xl border border-gray-100 bg-gray-50 p-5 md:p-6">
+            <section className="rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] p-5 shadow-sm md:p-6">
               <SectionTitle
                 eyebrow="Sınıflandırma"
-                title="Marka ve kategoriler"
+                title="Marka ve Kategoriler"
                 description="Marka seçimi ve kategori ağacı bu bölümden yönetilir. Ana kategori vitrin ailesini belirler."
               />
 
@@ -772,7 +772,7 @@ export function ProductEditor({
                   <select
                     name="brand_id"
                     defaultValue={initialProduct?.brand_id ?? ''}
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   >
                     <option value="">Marka seçin</option>
                     {brands.map((brand) => (
@@ -789,7 +789,7 @@ export function ProductEditor({
                     name="tags"
                     defaultValue={serializeTagInput(initialProduct?.tags)}
                     placeholder="Yoğuşmalı, Premix, Sessiz"
-                    className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                    className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                   />
                 </div>
 
@@ -798,7 +798,7 @@ export function ProductEditor({
                   <div className="mt-3 flex flex-wrap gap-2">
                     {selectedRootCategories.length > 0 ? (
                       selectedRootCategories.map((category) => (
-                        <span key={category.id} className="rounded-full border border-blue-300/28 bg-blue-600/14 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-900">
+                        <span key={category.id} className="rounded-full border border-sky-300/28 bg-sky-500/14 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-900">
                           {category.name}
                         </span>
                       ))
@@ -839,7 +839,7 @@ export function ProductEditor({
                             onClick={() => toggleCategory(category.id)}
                             className={`flex items-center justify-between rounded-[18px] border px-4 py-3 text-left text-sm transition-all ${
                               isSelected
-                                ? 'border-blue-300/35 bg-blue-600/15 text-gray-900'
+                                ? 'border-sky-300/35 bg-sky-500/15 text-gray-900'
                                 : 'border-gray-200 bg-white text-gray-600 hover:border-sky-300 hover:bg-sky-50 hover:text-gray-900'
                             }`}
                           >
@@ -870,7 +870,7 @@ export function ProductEditor({
 
             <CollapsibleSection
               eyebrow="Arama"
-              title="Arama görünümü"
+              title="Arama Görünümü"
               description="Başlık ve açıklama arama alanları buradan yönetilir."
             >
 
@@ -879,14 +879,14 @@ export function ProductEditor({
                   name="seo_title"
                   defaultValue={initialProduct?.seo_title ?? ''}
                   placeholder="Arama başlığı"
-                  className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                  className="rounded-xl border border-[#cbd5e1] bg-white px-4 py-3 text-sm text-[#020617] outline-none transition-all focus:border-[#0ea5e9] focus:ring-2 focus:ring-sky-100"
                 />
                 <textarea
                   name="seo_description"
                   rows={4}
                   defaultValue={initialProduct?.seo_description ?? ''}
                   placeholder="Arama açıklaması"
-                  className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                  className="rounded-[18px] border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-relaxed text-gray-900 outline-none transition-colors focus:border-sky-300/40"
                 />
               </div>
             </CollapsibleSection>

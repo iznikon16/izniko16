@@ -37,7 +37,7 @@ export default async function AdminPolicyEditPage({ params, searchParams }: Admi
               <ArrowLeft className="h-4 w-4" />
               Politikalara dön
             </Link>
-            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">{policy.slug}</p>
+            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">{policy.slug}</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">{policy.title}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">Bu sayfada yapılan değişiklikler public politika sayfasına yansır.</p>
           </div>
@@ -66,11 +66,11 @@ export default async function AdminPolicyEditPage({ params, searchParams }: Admi
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
             <section className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
               <div className="flex items-start gap-3 border-b border-gray-100 pb-4">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600/15 text-blue-600">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-500">
                   <ShieldCheck className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">İçerik</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">İçerik</p>
                   <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-gray-900">Sayfa metni</h3>
                   <p className="mt-1 text-sm leading-6 text-gray-500">Başlık ve içerik public sayfada doğrudan gösterilir.</p>
                 </div>
@@ -96,7 +96,7 @@ export default async function AdminPolicyEditPage({ params, searchParams }: Admi
 
             <aside className="grid content-start gap-4">
               <section className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">Yayın</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">Yayın</p>
                 <label className="mt-4 flex items-center gap-3 rounded-[18px] border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
                   <input name="is_published" type="checkbox" defaultChecked={policy.is_published} className="h-4 w-4 accent-brand-orange" />
                   Sayfayı yayında tut
@@ -108,7 +108,7 @@ export default async function AdminPolicyEditPage({ params, searchParams }: Admi
               </section>
 
               <section className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">SEO</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">SEO</p>
                 <label className="mt-4 grid gap-2">
                   <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">SEO başlık</span>
                   <input name="seo_title" defaultValue={policy.seo_title ?? ''} className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none" />
@@ -119,7 +119,7 @@ export default async function AdminPolicyEditPage({ params, searchParams }: Admi
                 </label>
               </section>
 
-              <button type="submit" className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_5px_12px_rgba(14,165,233,0.22)] transition-all hover:-translate-y-px hover:bg-sky-600 hover:shadow-[0_7px_16px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2">
+              <button type="submit" className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#0ea5e9] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0ea5e9] focus-visible:ring-offset-2">
                 <Save className="h-4 w-4" />
                 Kaydet
               </button>

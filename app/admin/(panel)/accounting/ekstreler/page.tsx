@@ -5,6 +5,7 @@ import type { CustomerProfileRow } from '@/lib/catalog/types';
 import { getAccountStatement } from '@/lib/accounting/queries';
 import { formatCommercePrice } from '@/lib/commerce/format';
 import { ACCOUNT_TRANSACTION_LABELS } from '@/lib/accounting/types';
+import { FileSpreadsheet, FileText, ReceiptText } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,14 +45,11 @@ export default async function StatementsPage({
   }
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Cari Ekstre</h1>
-        <p className="mt-1 text-gray-500">Müşteri bazında tarih aralıklı borç/alacak ekstresi.</p>
-      </div>
+    <div className="mx-auto grid max-w-[1600px] gap-6">
+      <header className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8"><p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-500">Ön muhasebe</p><h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Cari Ekstre</h1><p className="mt-2 text-sm text-slate-500">Müşteri bazında tarih aralıklı borç ve alacak ekstresi oluşturun.</p></header>
 
       {/* Filtre formu */}
-      <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <form method="get" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <select
             name="customer"
@@ -68,15 +66,15 @@ export default async function StatementsPage({
           </select>
           <input type="date" name="from" defaultValue={fromDate} className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           <input type="date" name="to" defaultValue={toDate} className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
-          <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">
-            Ekstre Oluştur
+          <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600">
+            <ReceiptText className="size-4" /> Ekstre Oluştur
           </button>
         </form>
-      </div>
+      </section>
 
       {!statement && (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center text-gray-500">
-          Bir müşteri seçip ekstre oluşturun.
+        <div className="rounded-2xl border border-slate-200 bg-white p-16 text-center text-gray-500 shadow-sm">
+          <ReceiptText className="mx-auto mb-4 size-16 rounded-full bg-sky-50 p-4 text-sky-500" /><p className="font-medium text-slate-700">Bir müşteri seçip ekstre oluşturun.</p>
         </div>
       )}
 
@@ -86,19 +84,19 @@ export default async function StatementsPage({
           <div className="grid gap-4 sm:grid-cols-5">
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs text-gray-500">Açılış Bakiyesi</p>
-              <p className="mt-1 text-lg font-bold text-gray-900">{formatCommercePrice(statement.openingBalance)}</p>
+              <p className="mt-1 text-lg font-semibold text-gray-900">{formatCommercePrice(statement.openingBalance)}</p>
             </div>
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs text-gray-500">Toplam Borç</p>
-              <p className="mt-1 text-lg font-bold text-red-600">{formatCommercePrice(statement.totalDebit)}</p>
+              <p className="mt-1 text-lg font-semibold text-rose-600">{formatCommercePrice(statement.totalDebit)}</p>
             </div>
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs text-gray-500">Toplam Alacak</p>
-              <p className="mt-1 text-lg font-bold text-emerald-600">{formatCommercePrice(statement.totalCredit)}</p>
+              <p className="mt-1 text-lg font-semibold text-emerald-600">{formatCommercePrice(statement.totalCredit)}</p>
             </div>
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs text-gray-500">Kapanış Bakiyesi</p>
-              <p className="mt-1 text-lg font-bold text-gray-900">{formatCommercePrice(statement.closingBalance)}</p>
+              <p className="mt-1 text-lg font-semibold text-gray-900">{formatCommercePrice(statement.closingBalance)}</p>
             </div>
             <div className="flex flex-col justify-center rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs text-gray-500">Müşteri</p>
@@ -108,7 +106,7 @@ export default async function StatementsPage({
           </div>
 
           {/* Ekstre tablo */}
-          <div className="overflow-hidden rounded-[2rem] border border-[#cbd5e1]/60 bg-white shadow-sm shadow-[#cbd5e1]/10">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50">
@@ -134,7 +132,7 @@ export default async function StatementsPage({
                     <td className="px-4 py-3" />
                   </tr>
                   {statement.lines.map((line) => (
-                    <tr key={line.id} className={line.isReversal ? 'bg-red-50/40' : 'hover:bg-gray-50'}>
+                    <tr key={line.id} className={line.isReversal ? 'bg-rose-50/40' : 'hover:bg-gray-50'}>
                       <td className="px-4 py-3 text-gray-600">{new Date(line.date).toLocaleDateString('tr-TR')}</td>
                       <td className="px-4 py-3 font-mono text-xs text-gray-500">{line.documentNo}</td>
                       <td className="px-4 py-3">
@@ -142,9 +140,9 @@ export default async function StatementsPage({
                         <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">
                           {ACCOUNT_TRANSACTION_LABELS[line.type as keyof typeof ACCOUNT_TRANSACTION_LABELS] ?? line.type}
                         </span>
-                        {line.isReversal && <span className="ml-1 rounded bg-red-100 px-1.5 py-0.5 text-[10px] text-red-600">İptal</span>}
+                        {line.isReversal && <span className="ml-1 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] text-rose-600">İptal</span>}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-red-600">{line.debit > 0 ? formatCommercePrice(line.debit) : '—'}</td>
+                      <td className="px-4 py-3 text-right font-medium text-rose-600">{line.debit > 0 ? formatCommercePrice(line.debit) : '—'}</td>
                       <td className="px-4 py-3 text-right font-medium text-emerald-600">{line.credit > 0 ? formatCommercePrice(line.credit) : '—'}</td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">{formatCommercePrice(line.balanceAfter)}</td>
                       <td className="px-4 py-3 text-right text-gray-500">
@@ -165,15 +163,15 @@ export default async function StatementsPage({
           <div className="flex justify-end gap-2">
             <Link
               href={`/admin/accounting/ekstre/pdf?customer=${selectedCustomerId}&from=${fromDate}&to=${toDate}`}
-              className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-600"
+              className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600"
             >
-              PDF İndir
+              <FileText className="size-4" /> PDF İndir
             </Link>
             <Link
               href={`/admin/accounting/ekstre/excel?customer=${selectedCustomerId}&from=${fromDate}&to=${toDate}`}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
             >
-              Excel İndir
+              <FileSpreadsheet className="size-4" /> Excel İndir
             </Link>
             <Link
               href={`/admin/accounting/ekstre/csv?customer=${selectedCustomerId}&from=${fromDate}&to=${toDate}`}

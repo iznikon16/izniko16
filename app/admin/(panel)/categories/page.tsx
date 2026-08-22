@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, X } from 'lucide-react';
 import { saveCategoryAction, deleteCategoryAction } from '@/app/admin/(panel)/actions';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -7,7 +7,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getAdminTaxonomies } from '@/lib/catalog/queries';
@@ -138,10 +137,9 @@ function CategoryForm({
   };
 }) {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5 mb-4">
-      <form action={saveCategoryAction}>
+    <div className="border-t border-slate-200 first:border-t-0">
+      <form action={saveCategoryAction} className="grid gap-3 px-4 py-3 xl:grid-cols-[minmax(170px,1fr)_minmax(170px,1fr)_minmax(190px,1fr)_90px_105px_minmax(220px,1.3fr)_auto] xl:items-center">
         {category?.id ? <input type="hidden" name="id" value={category.id} /> : null}
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_160px_auto]">
           <Input
             name="name"
             defaultValue={category?.name ?? ''}
@@ -176,15 +174,14 @@ function CategoryForm({
             <Checkbox name="is_active" defaultChecked={category?.is_active ?? true} />
             <span className="font-medium">Aktif</span>
           </label>
-        </div>
         <Textarea
           name="description"
-          rows={3}
+          rows={2}
           defaultValue={category?.description ?? ''}
           placeholder="Açıklama"
-          className="mt-3 w-full"
+          className="min-h-10 w-full"
         />
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 xl:justify-end">
           <FormSubmitButton idleLabel={category?.id ? 'Güncelle' : 'Kategori Ekle'} pendingLabel="Kaydediliyor..." />
           {category?.id ? <FormSubmitButton formAction={deleteCategoryAction} idleLabel="Sil" pendingLabel="Siliniyor..." variant="destructive" /> : null}
         </div>
@@ -209,20 +206,19 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
   ].filter(Boolean) as string[];
 
   return (
-    <div className="grid gap-4">
-      <Card>
-        <CardHeader>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Kategoriler</p>
-          <CardTitle className="mt-3">Kategori yönetimi</CardTitle>
-          <CardDescription className="mt-2 max-w-2xl">
+    <div className="mx-auto grid w-full max-w-[1440px] gap-5">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <header className="border-b border-slate-200 pb-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Kategoriler</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Kategori Yönetimi</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
             Ana kategori ve alt kategori ilişkilerini, sıralamayı ve görünürlüğü bu bölümden yönetin.
-          </CardDescription>
-        </CardHeader>
+          </p>
+        </header>
 
-        <CardContent>
-        <div className="grid gap-4">
-          <form className="grid gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 md:p-5">
-            <div className="grid gap-3 xl:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
+        <div className="mt-5 grid gap-4">
+          <form className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4 xl:grid-cols-[minmax(260px,1.3fr)_repeat(3,minmax(170px,1fr))_auto]">
+            <div className="contents">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <Input
@@ -254,14 +250,14 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
                   </option>
                 ))}
               </Select>
+              <Button type="submit" variant="secondary" className="rounded-lg font-medium"><SlidersHorizontal className="h-4 w-4" />Filtrele</Button>
             </div>
 
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-500">Sonuç</p>
-                <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-gray-900">{filteredCategories.length} kategori</p>
+            <div className="flex flex-col gap-3 border-t border-slate-200 pt-3 xl:col-span-5 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="mr-3 text-sm font-semibold text-slate-900">{filteredCategories.length} kategori</p>
                 {activeFilterLabels.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {activeFilterLabels.map((label) => (
                       <Badge key={label} variant="muted">
                         {label}
@@ -272,10 +268,6 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button type="submit" variant="secondary" className="gap-2">
-                  <SlidersHorizontal className="h-4 w-4" />
-                  Filtrele
-                </Button>
                 {activeFilterCount > 0 ? (
                   <Link
                     href="/admin/categories"
@@ -289,25 +281,26 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
             </div>
           </form>
 
-          <CategoryForm categoryOptions={categoryOptions} />
+          <details className="rounded-xl border border-slate-200 bg-white">
+            <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium text-sky-700 marker:hidden"><Plus className="h-4 w-4" />Yeni kategori ekle</summary>
+            <CategoryForm categoryOptions={categoryOptions} />
+          </details>
           {filteredCategories.length === 0 ? (
             <EmptyState
               className="mt-2"
               title="Kategori bulunamadı"
               description="Bu filtrelerle eşleşen kategori kaydı bulunmamaktadır."
             />
-          ) : (
+          ) : <div className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="hidden grid-cols-[minmax(170px,1fr)_minmax(170px,1fr)_minmax(190px,1fr)_90px_105px_minmax(220px,1.3fr)_auto] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 xl:grid"><span>Kategori adı</span><span>URL anahtarı</span><span>Üst kategori</span><span>Sıra</span><span>Durum</span><span>Açıklama</span><span>İşlemler</span></div>{
             filteredCategories.map((category) => (
               <CategoryForm
                 key={category.id}
                 category={category}
                 categoryOptions={categoryOptions}
               />
-            ))
-          )}
+            ))}</div>}
         </div>
-        </CardContent>
-      </Card>
+      </section>
     </div>
   );
 }

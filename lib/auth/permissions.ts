@@ -8,9 +8,13 @@
  * rol bazlı hızlı kontrol sağlar. İleri düzey izinler DB'den de sorgulanabilir.
  */
 
-export type RoleName = 'admin' | 'staff' | 'customer';
+import type { RoleName } from '@/lib/auth/roles';
 
-/** Rollerin sahip olduğu izin setleri (basit, okunabilir yapı) */
+/**
+ * Yalnızca bootstrap/test dokümantasyonu için varsayılan izin setleri.
+ * Runtime admin authorization bu sabiti kullanmaz; `role_permissions`
+ * tablosu `getAdminPermissionKeys` üzerinden tek doğruluk kaynağıdır.
+ */
 const ROLE_PERMISSIONS: Record<RoleName, string[]> = {
   admin: [
     '*', // tümü

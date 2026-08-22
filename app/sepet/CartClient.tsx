@@ -72,8 +72,12 @@ export default function CartClient({
             <img src="/logo.png" alt="İZNİKON" className="h-12 w-auto object-contain" />
           </Link>
           <div className="flex items-center gap-2">
-            <StorefrontAccountAction isAuthenticated={isAuthenticated} nextPath="/sepet" />
-            <Link href="/" className="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold hover:bg-white/10">
+            <StorefrontAccountAction
+              isAuthenticated={isAuthenticated}
+              nextPath="/sepet"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold leading-none text-white transition-colors hover:bg-white/10"
+            />
+            <Link href="/" className="inline-flex min-h-10 items-center justify-center rounded-xl border border-white/15 px-4 py-2 text-sm font-semibold leading-none text-white transition-colors hover:bg-white/10">
               Alışverişe devam et
             </Link>
           </div>

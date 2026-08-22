@@ -20,6 +20,11 @@ test.describe('admin session boundary', () => {
     expect(await response.json()).toEqual({ error: 'Oturum açmanız gerekiyor.' });
   });
 
+  test('oturumsuz MFA challenge ekranına erişemez', async ({ page }) => {
+    await page.goto('/admin/mfa');
+    await expect(page).toHaveURL(/\/admin\/login$/);
+  });
+
   test('stale ve uydurma auth cookie erişim sağlamaz', async ({ context, page }) => {
     await context.addCookies([{
       name: 'sb-invalid-auth-token',
@@ -114,6 +119,11 @@ test.describe('müşteri session sınırı', () => {
     await page.goto('/hesabim/cari?donem=2026');
     await expect(page).toHaveURL(/\/giris\?next=%2Fhesabim%2Fcari%3Fdonem%3D2026$/);
     await expect(page.getByRole('heading', { name: /^giriş yap$/i })).toBeVisible();
+  });
+
+  test('oturumsuz müşteri MFA challenge ekranına erişemez', async ({ page }) => {
+    await page.goto('/giris/mfa?next=%2Fhesabim%2Fprofil');
+    await expect(page).toHaveURL(/\/giris\?next=%2Fhesabim%2Fprofil$/);
   });
 
   test('oturumsuz sipariş sevkiyat detayını güvenli next ile girişe yönlendirir', async ({ page }) => {
@@ -232,6 +242,8 @@ test.describe('gerçek müşteri login ve logout akışı', () => {
     await page.getByRole('button', { name: /hesabıma giriş yap/i }).click();
     await expect(page).toHaveURL(/\/hesabim\/profil$/, { timeout: 20_000 });
     await expect(page.getByRole('heading', { name: /^profilim$/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /profil fotoğrafı/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /iki aşamalı doğrulama/i })).toBeVisible();
 
     await page.goto('/hesabim/adreslerim');
     await expect(page.getByRole('heading', { name: /^adreslerim$/i })).toBeVisible();

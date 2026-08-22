@@ -10,6 +10,7 @@ function clientResult(data: AdminUserRow | null, error: { message: string } | nu
 }
 
 const activeAdmin = {
+  avatar_path: null,
   created_at: '2026-08-22T00:00:00.000Z',
   email: 'admin@example.com',
   full_name: 'Admin',

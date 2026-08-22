@@ -12,6 +12,7 @@ import { isPaymentProviderKey, PAYMENT_PROVIDER_DEFINITIONS } from '@/lib/commer
 import { encryptToken, isEncryptedToken } from '@/lib/security/encryption';
 import { SECRET_MASK, assertNoUnknownSecrets, getPaymentSecretKeys } from '@/lib/integrations/security';
 import { writeAuditLog } from '@/lib/audit/queries';
+import { hasSuperAdminAccess } from '@/lib/auth/roles';
 import { sendOrderUpdateEmails } from '@/lib/mail/notifications';
 import { sendShipmentStatusNotifications } from '@/lib/shipping/notifications';
 import { isShipmentStatus } from '@/lib/shipping/status';
@@ -1453,7 +1454,7 @@ export async function updateManagedUserAction(formData: FormData) {
   ]);
 
   if (targetAdminError || authLookupError || !authUserData.user) throw new Error('Kullanıcı bulunamadı.');
-  if (targetAdmin?.is_super_admin && !session.adminUser.is_super_admin) {
+  if (targetAdmin && hasSuperAdminAccess(targetAdmin) && !hasSuperAdminAccess(session.adminUser)) {
     throw new Error('Süper yönetici hesabını yalnızca başka bir süper yönetici değiştirebilir.');
   }
   if (userId === session.user.id && (role !== session.adminUser.role || !isActive)) {
@@ -1474,6 +1475,15 @@ export async function updateManagedUserAction(formData: FormData) {
     user_metadata: { ...authUserData.user.user_metadata, full_name: fullName },
   });
   if (authUpdateError) throw new Error('Supabase Auth bilgileri güncellenemedi.');
+  const rollbackAuth = async () => {
+    const { error } = await supabase.auth.admin.updateUserById(userId, {
+      ban_duration: oldValue.isActive ? 'none' : '876000h',
+      email: oldValue.email,
+      email_confirm: true,
+      user_metadata: authUserData.user.user_metadata,
+    });
+    if (error) console.error('Managed user Auth rollback failed:', error.message);
+  };
 
   if (role === 'customer') {
     const { error: profileError } = await supabase.from('customer_profiles').upsert({
@@ -1483,10 +1493,17 @@ export async function updateManagedUserAction(formData: FormData) {
       is_blocked: !isActive,
       user_id: userId,
     });
-    if (profileError) throw new Error('Müşteri profili güncellenemedi.');
+    if (profileError) {
+      await rollbackAuth();
+      throw new Error('Müşteri profili güncellenemedi.');
+    }
 
     const { error: deleteAdminError } = await supabase.from('admin_users').delete().eq('user_id', userId);
-    if (deleteAdminError) throw new Error('Eski yönetici rolü kaldırılamadı.');
+    if (deleteAdminError) {
+      await supabase.from('customer_profiles').update({ is_blocked: true }).eq('user_id', userId);
+      await rollbackAuth();
+      throw new Error('Eski yönetici rolü kaldırılamadı.');
+    }
   } else {
     const { error: adminError } = await supabase.from('admin_users').upsert({
       email,
@@ -1496,9 +1513,18 @@ export async function updateManagedUserAction(formData: FormData) {
       role,
       user_id: userId,
     });
-    if (adminError) throw new Error('Yönetici rolü güncellenemedi.');
+    if (adminError) {
+      await rollbackAuth();
+      throw new Error('Yönetici rolü güncellenemedi.');
+    }
 
-    await supabase.from('customer_profiles').update({ is_blocked: true }).eq('user_id', userId);
+    const { error: customerBlockError } = await supabase.from('customer_profiles').update({ is_blocked: true }).eq('user_id', userId);
+    if (customerBlockError) {
+      if (targetAdmin) await supabase.from('admin_users').upsert(targetAdmin);
+      else await supabase.from('admin_users').delete().eq('user_id', userId);
+      await rollbackAuth();
+      throw new Error('Müşteri erişimi kapatılamadı; rol değişikliği geri alındı.');
+    }
   }
 
   await writeAuditLog({
@@ -1526,11 +1552,11 @@ export async function changeManagedUserPasswordAction(formData: FormData) {
 
   const { data: targetAdmin, error: targetError } = await supabase
     .from('admin_users')
-    .select('is_super_admin')
+    .select('is_super_admin, role')
     .eq('user_id', userId)
     .maybeSingle();
   if (targetError) throw new Error('Kullanıcı yetkisi doğrulanamadı.');
-  if (targetAdmin?.is_super_admin && !session.adminUser.is_super_admin) {
+  if (targetAdmin && hasSuperAdminAccess(targetAdmin) && !hasSuperAdminAccess(session.adminUser)) {
     throw new Error('Süper yönetici şifresini yalnızca başka bir süper yönetici değiştirebilir.');
   }
 
@@ -1626,7 +1652,7 @@ export async function updateShipmentAction(formData: FormData) {
 
 export async function deleteManagedUserAction(formData: FormData) {
   const session = await requireAdminPermission('user.manage');
-  if (!session.adminUser.is_super_admin) {
+  if (!hasSuperAdminAccess(session.adminUser)) {
     throw new Error('Kullanıcı silme işlemini yalnızca süper yönetici yapabilir.');
   }
 
@@ -1638,12 +1664,12 @@ export async function deleteManagedUserAction(formData: FormData) {
   const [adminResult, customerResult, authResult] = await Promise.all([
     supabase
       .from('admin_users')
-      .select('user_id, email, full_name, role, is_super_admin')
+      .select('user_id, email, full_name, role, is_super_admin, avatar_path')
       .eq('user_id', userId)
       .maybeSingle(),
     supabase
       .from('customer_profiles')
-      .select('user_id, email, full_name')
+      .select('user_id, email, full_name, avatar_path')
       .eq('user_id', userId)
       .maybeSingle(),
     supabase.auth.admin.getUserById(userId),
@@ -1655,8 +1681,7 @@ export async function deleteManagedUserAction(formData: FormData) {
 
   const targetAdmin = adminResult.data;
   const targetCustomer = customerResult.data;
-  if (targetAdmin?.is_super_admin) throw new Error('Süper yönetici hesabı silinemez.');
-  if (targetAdmin?.role === 'admin') throw new Error('Admin hesabı silinemez; önce Yetkili rolüne düşürün.');
+  if (targetAdmin && hasSuperAdminAccess(targetAdmin)) throw new Error('Süper Admin hesabı silinemez; önce Yetkili rolüne düşürün.');
   if (!targetAdmin && !targetCustomer) throw new Error('Kullanıcının yönetilebilir bir profili bulunamadı.');
 
   const [ordersResult, attemptsResult, transactionsResult, paymentsResult] = await Promise.all([
@@ -1693,6 +1718,13 @@ export async function deleteManagedUserAction(formData: FormData) {
   const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId);
   if (authDeleteError) throw new Error('Kullanıcı Supabase Auth üzerinden silinemedi.');
 
+  const avatarPath = targetAdmin?.avatar_path ?? targetCustomer?.avatar_path;
+  let avatarCleanupFailed = false;
+  if (avatarPath?.startsWith(`${userId}/`)) {
+    const { error } = await supabase.storage.from('profile-avatars').remove([avatarPath]);
+    avatarCleanupFailed = Boolean(error);
+  }
+
   await writeAuditLog({
     actorUserId: session.user.id,
     action: 'managed_user_delete',
@@ -1703,10 +1735,29 @@ export async function deleteManagedUserAction(formData: FormData) {
       fullName: targetAdmin?.full_name ?? targetCustomer?.full_name ?? '',
       role: targetAdmin?.role ?? 'customer',
     },
-    metadata: { authUserDeleted: true },
+    metadata: { authUserDeleted: true, avatarCleanupFailed },
   });
 
   revalidateAdminCommerce();
+  return { ok: true };
+}
+
+export async function resetManagedUserMfaAction(formData: FormData) {
+  const session = await requireAdminPermission('user.manage');
+  if (session.adminUser.role !== 'admin') throw new Error('2FA sıfırlama işlemini yalnızca Süper Admin yapabilir.');
+  const userId = getText(formData, 'user_id');
+  if (!userId) throw new Error('Kullanıcı kimliği eksik.');
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.auth.admin.mfa.listFactors({ userId });
+  if (error) throw new Error('Kullanıcının 2FA bilgisi alınamadı.');
+  for (const factor of data.factors) {
+    const { error: deleteError } = await supabase.auth.admin.mfa.deleteFactor({ id: factor.id, userId });
+    if (deleteError) throw new Error('Kullanıcının 2FA kaydı tamamen sıfırlanamadı.');
+  }
+
+  await writeAuditLog({ actorUserId: session.user.id, action: 'managed_user_mfa_reset', resourceId: userId, resourceType: 'auth', metadata: { removed_factor_count: data.factors.length } });
+  revalidatePath('/admin/yonetim/kullanicilar');
   return { ok: true };
 }
 

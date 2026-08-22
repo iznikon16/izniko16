@@ -4,6 +4,7 @@ import type { NetgsmSettingsRow, SmsTemplateRow, SmsLogRow } from '@/lib/catalog
 import { saveNetgsmSettingsAction, saveSmsTemplateAction, deleteSmsTemplateAction, sendTestSmsActionResult } from '@/app/admin/(panel)/integrations/netgsm/actions';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
+import { MessageSquareText, Send } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,11 +48,8 @@ export default async function NetgsmPage({
   const logs = (logsRes.data ?? []) as SmsLogRow[];
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Netgsm SMS</h1>
-        <p className="mt-1 text-gray-500">SMS API ayarları, bildirim şablonları ve gönderim logları.</p>
-      </div>
+    <div className="mx-auto grid max-w-[1600px] gap-6">
+      <header className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between md:p-8"><div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-500">İletişim</p><h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Netgsm SMS</h1><p className="mt-2 text-sm text-slate-500">SMS API ayarlarını, bildirim şablonlarını ve gönderim kayıtlarını yönetin.</p></div><span className={`inline-flex items-center gap-2 self-start rounded-xl border px-4 py-2 text-sm font-medium ${settings?.is_enabled ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}><span className={`size-2 rounded-full ${settings?.is_enabled ? 'bg-emerald-500' : 'bg-slate-300'}`} />Bağlantı: {settings?.is_enabled ? 'Etkin' : 'Pasif'}</span></header>
 
       {testState === 'sent' && (
         <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
@@ -59,19 +57,19 @@ export default async function NetgsmPage({
         </div>
       )}
       {testState === 'failed' && (
-        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           Test SMS&apos;i gönderilemedi. Ayarları ve Netgsm durumunu kontrol edin.
         </div>
       )}
       {testState === 'hata' && (
-        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           Telefon ve mesaj zorunludur.
         </div>
       )}
 
       {/* API Ayarları */}
-      <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
-        <h2 className="mb-4 font-semibold text-gray-900">API Ayarları</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold text-slate-900"><MessageSquareText className="size-5 text-sky-500" /> API Ayarları</h2>
         <ToastActionForm action={saveNetgsmSettingsAction} successMessage="Netgsm ayarları kaydedildi." errorMessage="Netgsm ayarları kaydedilemedi." className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <input type="text" name="username" defaultValue={settings?.username ?? ''} placeholder="Kullanıcı adı" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           <input type="password" name="password" defaultValue={settings?.password ?? ''} placeholder="Şifre" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
@@ -81,7 +79,7 @@ export default async function NetgsmPage({
               <input type="checkbox" name="is_enabled" defaultChecked={settings?.is_enabled ?? false} />
               Aktif
             </label>
-            <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">Kaydet</button>
+            <button className="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600">Kaydet</button>
           </div>
         </ToastActionForm>
 
@@ -91,19 +89,19 @@ export default async function NetgsmPage({
           <ToastActionForm action={sendTestSmsActionResult} successMessage="Test SMS gönderildi." errorMessage="Test SMS gönderilemedi." className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
             <input type="text" name="phone" placeholder="05xx xxx xx xx" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
             <input type="text" name="message" placeholder="Test mesajı" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
-            <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">Gönder</button>
+            <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600"><Send className="size-4" /> Gönder</button>
           </ToastActionForm>
         </div>
 
         <p className="mt-3 text-xs text-gray-500">
           Netgsm API ayarları resmi dokümantasyona göre yapılandırılır. Gönderimler sms_logs tablosuna kaydedilir.
         </p>
-      </div>
+      </section>
 
       {/* Şablonlar */}
-      <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
-        <h2 className="mb-4 font-semibold text-gray-900">SMS Şablonları</h2>
-        <div className="space-y-3">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 text-lg font-semibold text-slate-900">SMS Şablonları</h2>
+        <div className="grid gap-4 lg:grid-cols-2">
           {templates.length === 0 && DEFAULT_TEMPLATES.map((t) => (
             <ToastActionForm key={t.key} action={saveSmsTemplateAction} successMessage="SMS şablonu oluşturuldu." errorMessage="SMS şablonu oluşturulamadı." className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <input type="hidden" name="key" value={t.key} />
@@ -115,7 +113,7 @@ export default async function NetgsmPage({
               </div>
               <input type="text" name="body" defaultValue={t.body} className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
               <div className="mt-2 flex justify-end">
-                <button className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">Şablonu Oluştur</button>
+                <button className="rounded-lg bg-sky-500 px-4 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-sky-600">Şablonu Oluştur</button>
               </div>
             </ToastActionForm>
           ))}
@@ -138,10 +136,10 @@ export default async function NetgsmPage({
             </form>
           ))}
         </div>
-      </div>
+      </section>
 
       {/* Loglar */}
-      <div className="overflow-hidden rounded-[2rem] border border-[#cbd5e1]/60 bg-white shadow-sm shadow-[#cbd5e1]/10">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <h2 className="border-b border-gray-100 px-5 py-3 font-semibold text-gray-900">Son Gönderimler</h2>
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
@@ -160,7 +158,7 @@ export default async function NetgsmPage({
                 <td className="px-4 py-3 text-gray-500">{log.template_key || '—'}</td>
                 <td className="max-w-[280px] truncate px-4 py-3 text-gray-500">{log.body}</td>
                 <td className="px-4 py-3 text-center">
-                  <span className={log.status === 'sent' ? 'rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600' : 'rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-600'}>
+                  <span className={log.status === 'sent' ? 'rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600' : 'rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600'}>
                     {log.status}
                   </span>
                 </td>

@@ -1,83 +1,51 @@
-﻿import Link from 'next/link';
-import { ArrowRight, Eye, EyeOff, FileText, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { Eye, EyeOff, FilePlus2, FileText, RefreshCw, ShieldCheck } from 'lucide-react';
 import { getAdminPolicyPages } from '@/lib/policies/queries';
 
 export const dynamic = 'force-dynamic';
 
-const dateFormatter = new Intl.DateTimeFormat('tr-TR', {
-  dateStyle: 'medium',
-});
+const dateFormatter = new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium' });
 
 export default async function AdminPoliciesPage() {
   const policies = await getAdminPolicyPages();
   const publishedCount = policies.filter((policy) => policy.is_published).length;
 
   return (
-    <div className="grid gap-4">
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
-        <div className="flex flex-col gap-5 border-b border-gray-100 pb-6 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Yasal Sayfalar</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Politika ve sözleşmeler</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
-              KVKK, gizlilik, çerez, mesafeli satış, ön bilgilendirme, iade ve teslimat metinlerini buradan düzenleyebilirsiniz.
-            </p>
-          </div>
-
-          <div className="grid gap-2 sm:grid-cols-2 xl:min-w-[360px]">
-            <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Toplam</p>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-gray-900">{policies.length}</p>
-            </div>
-            <div className="rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Yayında</p>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-gray-900">{publishedCount}</p>
-            </div>
-          </div>
+    <section className="rounded-[2rem] border border-[#cbd5e1] bg-white/95 p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-sm md:p-8">
+      <header className="grid gap-6 border-b border-[#cbd5e1] pb-6 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0284c7]">Yasal Sayfalar</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Politika ve sözleşmeler</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">KVKK, gizlilik, çerez, mesafeli satış, ön bilgilendirme, iade ve teslimat metinlerini buradan düzenleyebilirsiniz.</p>
         </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Metric label="Toplam" value={policies.length} />
+          <Metric label="Yayında" value={publishedCount} />
+          <Link href="/admin/policies/new" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#0ea5e9] px-5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md sm:col-span-2"><FilePlus2 className="size-5" /> Yeni Politika</Link>
+        </div>
+      </header>
 
-        {policies.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-gray-200 bg-white/[0.025] px-5 py-14 text-center">
-            <ShieldCheck className="mx-auto h-9 w-9 text-gray-500" />
-            <h3 className="mt-4 text-2xl font-semibold tracking-[-0.04em] text-gray-900">Politika kaydı bulunamadı.</h3>
-            <p className="mx-auto mt-2 max-w-xl text-sm leading-7 text-gray-500">Migration çalıştırıldığında varsayılan politika kayıtları otomatik oluşur.</p>
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-3">
+      <div className="mt-6 overflow-hidden rounded-2xl border border-[#cbd5e1]">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.08em] text-slate-500"><tr><th className="px-5 py-4">Politika</th><th className="px-5 py-4">Tür</th><th className="px-5 py-4">Son güncelleme</th><th className="px-5 py-4">Durum</th><th className="px-5 py-4 text-right">İşlemler</th></tr></thead>
+          <tbody className="divide-y divide-slate-200">
             {policies.map((policy) => (
-              <Link
-                key={policy.id}
-                href={`/admin/policies/${policy.slug}`}
-                className="group grid gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5 transition-colors hover:border-gray-300 hover:bg-gray-50 lg:grid-cols-[minmax(0,1fr)_170px_120px]"
-              >
-                <div className="flex min-w-0 gap-4">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600/15 text-blue-600">
-                    <FileText className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-600">{policy.slug}</span>
-                    <span className="mt-1 block text-xl font-semibold tracking-[-0.04em] text-gray-900">{policy.title}</span>
-                    <span className="mt-1 line-clamp-2 block text-sm leading-6 text-gray-500">{policy.summary}</span>
-                  </span>
-                </div>
-
-                <span className="flex items-center gap-2 text-sm text-gray-500 lg:justify-end">
-                  Son güncelleme {dateFormatter.format(new Date(policy.updated_at))}
-                </span>
-
-                <span className="flex items-center justify-between gap-3 lg:justify-end">
-                  <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${policy.is_published ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
-                    {policy.is_published ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                    {policy.is_published ? 'Yayında' : 'Kapalı'}
-                  </span>
-                  <ArrowRight className="h-4 w-4 text-gray-500 transition-transform group-hover:translate-x-1 group-hover:text-gray-900" />
-                </span>
-              </Link>
+              <tr key={policy.id} className="bg-white">
+                <td className="px-5 py-4"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-lg bg-sky-50 text-sky-500"><FileText className="size-5" /></span><div><p className="font-medium text-slate-900">{policy.title}</p><p className="mt-1 text-xs text-slate-500">{policy.summary}</p></div></div></td>
+                <td className="px-5 py-4 text-slate-600">{policy.slug}</td>
+                <td className="px-5 py-4 text-slate-600">{dateFormatter.format(new Date(policy.updated_at))}</td>
+                <td className="px-5 py-4"><span className={`inline-flex items-center gap-2 rounded-lg border px-2.5 py-1 text-xs font-medium ${policy.is_published ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>{policy.is_published ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}{policy.is_published ? 'Yayında' : 'Kapalı'}</span></td>
+                <td className="px-5 py-4 text-right"><Link href={`/admin/policies/${policy.slug}`} className="inline-flex rounded-lg border border-sky-400 bg-white px-4 py-2 text-sm font-medium text-sky-600 hover:bg-sky-50">Düzenle</Link></td>
+              </tr>
             ))}
-          </div>
-        )}
-      </section>
-    </div>
+            {policies.length === 0 ? <tr><td colSpan={5} className="px-5 py-24 text-center"><ShieldCheck className="mx-auto size-24 text-slate-300" /><h2 className="mt-5 text-2xl font-semibold text-slate-950">Politika kaydı bulunamadı.</h2><p className="mt-2 text-sm text-slate-500">Yeni bir politika oluşturabilir veya veritabanı durumunu yenileyebilirsiniz.</p><Link href="/admin/policies" className="mt-6 inline-flex items-center gap-2 rounded-lg border border-sky-500 bg-white px-5 py-3 text-sm font-medium text-sky-600 hover:bg-sky-50"><RefreshCw className="size-4" /> Durumu Yenile</Link></td></tr> : null}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
+function Metric({ label, value }: { label: string; value: number }) {
+  return <div className="rounded-2xl border border-[#cbd5e1] bg-[#e8edf4] px-5 py-4"><p className="text-xs font-medium uppercase tracking-[0.1em] text-[#475569]">{label}</p><p className="mt-2 text-2xl font-semibold text-[#020617]">{value}</p></div>;
+}

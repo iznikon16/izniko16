@@ -13,10 +13,12 @@ import { createClient as createServerClient } from '@/lib/supabase/server';
 import { sendCustomerVerificationEmail } from '@/lib/mail/verification';
 import { verifyAltchaFormData } from '@/lib/security/altcha';
 import { checkRateLimit } from '@/lib/security/rate-limit';
+import { getMfaStatus } from '@/lib/auth/mfa';
 
 export type AuthActionResult = {
   error?: string;
   message?: string;
+  mfaRequired?: boolean;
   ok: boolean;
 };
 
@@ -274,15 +276,20 @@ export async function loginCustomerAction(formData: FormData): Promise<AuthActio
     };
   }
 
+  const mfaStatus = await getMfaStatus(supabase);
+  if (!mfaStatus.available) {
+    await clearCustomerLoginSession(supabase);
+    return { error: 'İki aşamalı doğrulama durumu kontrol edilemedi. Lütfen tekrar deneyin.', ok: false };
+  }
   await writeAuditLog({
     actorUserId: data.user.id,
     action: 'customer_login_success',
     ip,
-    metadata: { email },
+    metadata: { email, mfa_required: mfaStatus.requiresChallenge },
     resourceType: 'auth',
   });
 
-  return { ok: true };
+  return { mfaRequired: mfaStatus.requiresChallenge, ok: true };
 }
 
 export async function submitCustomerLoginAction(
@@ -297,6 +304,9 @@ export async function submitCustomerLoginAction(
 
   const redirectTo = getSafeCustomerRedirectPath(getText(formData, 'next'));
   revalidatePath('/', 'layout');
+  if (result.mfaRequired) {
+    redirect(`/giris/mfa?next=${encodeURIComponent(redirectTo)}`, RedirectType.replace);
+  }
   redirect(redirectTo, RedirectType.replace);
 }
 

@@ -4,7 +4,9 @@ import { redirect } from 'next/navigation';
 import { BadgeCheck, Boxes, ShieldCheck, TurkishLira } from 'lucide-react';
 import { CustomerLoginForm } from '@/components/storefront/customer-login-form';
 import { getSafeCustomerRedirectPath } from '@/lib/auth/safe-redirect';
-import { getCustomerSession } from '@/lib/commerce/queries';
+import { getCustomerPrimarySession } from '@/lib/commerce/queries';
+import { createClient } from '@/lib/supabase/server';
+import { getMfaStatus } from '@/lib/auth/mfa';
 import { SafeImage } from '@/components/ui/safe-image';
 
 export const dynamic = 'force-dynamic';
@@ -28,9 +30,12 @@ export default async function CustomerLoginPage({
   const params = await searchParams;
   const requestedNext = Array.isArray(params.next) ? params.next[0] : params.next;
   const nextPath = getSafeCustomerRedirectPath(requestedNext);
-  const session = await getCustomerSession();
+  const session = await getCustomerPrimarySession();
 
   if (session) {
+    const mfaStatus = await getMfaStatus(await createClient());
+    if (!mfaStatus.available) redirect(`/giris/mfa?next=${encodeURIComponent(nextPath)}&durum=kontrol-hatasi`);
+    if (mfaStatus.requiresChallenge) redirect(`/giris/mfa?next=${encodeURIComponent(nextPath)}`);
     redirect(nextPath);
   }
 

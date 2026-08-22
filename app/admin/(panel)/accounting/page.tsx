@@ -72,7 +72,7 @@ export default async function CurrentAccountsPage({ searchParams }: CurrentAccou
           <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-medium text-gray-500">Toplam Cari Alacak</p>
-              <TurkishLira className="h-5 w-5 text-red-500" />
+              <TurkishLira className="h-5 w-5 text-rose-500" />
             </div>
             <p className="mt-3 text-2xl font-bold text-gray-900">{formatCommercePrice(result.metrics.totalReceivable)}</p>
           </div>
@@ -83,12 +83,12 @@ export default async function CurrentAccountsPage({ searchParams }: CurrentAccou
             </div>
             <p className="mt-3 text-2xl font-bold text-gray-900">{formatCommercePrice(result.metrics.totalCustomerCredit)}</p>
           </div>
-          <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
+          <div className="rounded-2xl border border-rose-100 bg-rose-50 p-5">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-medium text-red-700">Vadesi Geçmiş</p>
-              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <p className="text-xs font-medium text-rose-700">Vadesi Geçmiş</p>
+              <AlertTriangle className="h-5 w-5 text-rose-500" />
             </div>
-            <p className="mt-3 text-2xl font-bold text-red-700">{formatCommercePrice(result.metrics.totalOverdue)}</p>
+            <p className="mt-3 text-2xl font-bold text-rose-700">{formatCommercePrice(result.metrics.totalOverdue)}</p>
           </div>
           <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
             <div className="flex items-center justify-between gap-3">
@@ -148,7 +148,7 @@ export default async function CurrentAccountsPage({ searchParams }: CurrentAccou
                   Temizle
                 </Link>
               ) : null}
-              <button type="submit" className="inline-flex h-10 items-center gap-2 rounded-full bg-sky-500 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-600">
+              <button type="submit" className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#0ea5e9] px-5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md">
                 <SlidersHorizontal className="h-4 w-4" />
                 Filtrele
               </button>
@@ -175,7 +175,7 @@ export default async function CurrentAccountsPage({ searchParams }: CurrentAccou
           <TableBody>
             {result.items.map((item) => {
               const balanceLabel = item.balance > 0 ? 'Borçlu' : item.balance < 0 ? 'Alacaklı' : 'Dengede';
-              const balanceClass = item.balance > 0 ? 'text-red-600' : item.balance < 0 ? 'text-emerald-600' : 'text-gray-600';
+              const balanceClass = item.balance > 0 ? 'text-rose-600' : item.balance < 0 ? 'text-emerald-600' : 'text-gray-600';
 
               return (
                 <TableRow key={item.customerId}>
@@ -193,11 +193,11 @@ export default async function CurrentAccountsPage({ searchParams }: CurrentAccou
                     {formatCommercePrice(Math.abs(item.balance))}
                     <p className="mt-1 text-[10px] font-medium uppercase tracking-wide">{balanceLabel}</p>
                   </TableCell>
-                  <TableCell className={`text-right font-semibold ${item.overdueBalance > 0 ? 'text-red-600' : 'text-gray-500'}`}>
+                  <TableCell className={`text-right font-semibold ${item.overdueBalance > 0 ? 'text-rose-600' : 'text-gray-500'}`}>
                     {formatCommercePrice(item.overdueBalance)}
                   </TableCell>
                   <TableCell className="text-right text-gray-600">{formatCommercePrice(item.riskLimit)}</TableCell>
-                  <TableCell className={`text-right font-semibold ${item.availableLimit < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                  <TableCell className={`text-right font-semibold ${item.availableLimit < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                     {formatCommercePrice(item.availableLimit)}
                   </TableCell>
                   <TableCell>
@@ -208,7 +208,7 @@ export default async function CurrentAccountsPage({ searchParams }: CurrentAccou
                       {!item.accountId ? (
                         <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700">Hesap bekliyor</span>
                       ) : item.riskExceeded ? (
-                        <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-red-700">Risk limiti aşıldı</span>
+                        <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-rose-700">Risk limiti aşıldı</span>
                       ) : null}
                     </div>
                   </TableCell>

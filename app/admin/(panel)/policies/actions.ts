@@ -33,7 +33,8 @@ export async function savePolicyPageAction(formData: FormData) {
 
   const { error } = await supabase
     .from('policy_pages')
-    .update({
+    .upsert({
+      slug,
       content_html: contentHtml,
       is_published: isPublished,
       published_at: isPublished ? new Date().toISOString() : null,
@@ -42,8 +43,7 @@ export async function savePolicyPageAction(formData: FormData) {
       sort_order: getInteger(formData, 'sort_order', 0),
       summary: getText(formData, 'summary'),
       title,
-    })
-    .eq('slug', slug);
+    }, { onConflict: 'slug' });
 
   if (error) {
     throw new Error(error.message);

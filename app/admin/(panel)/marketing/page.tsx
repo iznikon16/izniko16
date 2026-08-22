@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { CheckCircle2, MailCheck, Megaphone, Send, UsersRound, XCircle } from 'lucide-react';
 import { sendMarketingEmailAction } from '@/app/admin/(panel)/marketing/actions';
 import { getMarketingDashboardData } from '@/lib/admin/marketing-queries';
@@ -32,7 +32,7 @@ function getLogTone(status: string) {
 
   return {
     Icon: XCircle,
-    className: 'border-red-500/20 bg-red-500/10 text-red-100',
+    className: 'border-rose-200 bg-rose-50 text-rose-700',
     label: status === 'skipped' ? 'Atlandı' : 'Hata',
   };
 }
@@ -47,12 +47,12 @@ export default async function AdminMarketingPage({ searchParams }: AdminMarketin
 
   return (
     <div className="grid gap-4">
-      <section className="overflow-hidden rounded-[2rem] border border-[#cbd5e1]/60 bg-white shadow-sm shadow-[#cbd5e1]/10">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_420px]">
           <div className="p-6 md:p-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Pazarlama</p>
-            <h2 className="mt-3 max-w-3xl text-4xl font-semibold leading-[0.95] tracking-[-0.06em] text-gray-900 md:text-5xl">
-              İzinli müşterilere SMTP ile toplu mail gönderin.
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Pazarlama</p>
+            <h2 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight tracking-[-0.04em] text-slate-950 md:text-4xl">
+              İzinli Müşterilere SMTP ile Toplu E-Posta Gönderin
             </h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-500">
               Hedef kitle sadece pazarlama izni açık, bloklanmamış ve e-postası doğrulanmış müşterilerden oluşur. Hazır şablonlar Mail Merkezi üzerinden de düzenlenebilir.
@@ -69,7 +69,7 @@ export default async function AdminMarketingPage({ searchParams }: AdminMarketin
             <div className="grid gap-3">
               <div className="rounded-2xl border border-gray-100 bg-white p-5">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600/15 text-blue-600">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-500">
                     <UsersRound className="h-5 w-5" />
                   </span>
                   <div>
@@ -90,7 +90,7 @@ export default async function AdminMarketingPage({ searchParams }: AdminMarketin
                 </div>
               </div>
 
-              <Link href="/admin/mail" className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 shadow-sm">
+              <Link href="/admin/mail" className="inline-flex items-center justify-center rounded-lg border border-sky-500 bg-white px-5 py-3 text-sm font-semibold text-sky-600 hover:bg-sky-50">
                 Mail Şablonlarını Düzenle
               </Link>
             </div>
@@ -100,14 +100,11 @@ export default async function AdminMarketingPage({ searchParams }: AdminMarketin
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(340px,0.92fr)]">
         <form action={sendMarketingEmailAction} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
-          <div className="flex items-start gap-3 border-b border-gray-100 pb-5">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600/15 text-blue-600">
+          <div className="flex items-center gap-3 border-b border-gray-100 pb-5">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-500">
               <Send className="h-5 w-5" />
             </span>
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Toplu Gönderim</p>
-              <h3 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-gray-900">Kampanya maili hazırla</h3>
-            </div>
+            <h3 className="text-lg font-semibold text-slate-900">Kampanya E-Posta Hazırla</h3>
           </div>
 
           <div className="mt-5 grid gap-4">
@@ -162,18 +159,15 @@ export default async function AdminMarketingPage({ searchParams }: AdminMarketin
         <div className="grid content-start gap-4">
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
             <div className="flex items-start gap-3 border-b border-gray-100 pb-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-gray-900">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-500">
                 <MailCheck className="h-5 w-5" />
               </span>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">Kitle Önizleme</p>
-                <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-gray-900">Son izinli müşteriler</h3>
-              </div>
+              <h3 className="text-lg font-semibold text-slate-900">Son İzinli Müşteriler</h3>
             </div>
 
             <div className="mt-4 grid gap-2">
               {audience.length === 0 ? (
-                <p className="rounded-[18px] border border-gray-100 bg-gray-50 px-4 py-4 text-sm text-gray-500">Gönderilebilir müşteri yok.</p>
+                <p className="rounded-xl bg-slate-50 px-4 py-7 text-sm text-slate-500">Gönderilebilir müşteri yok.</p>
               ) : (
                 audience.map((member) => (
                   <div key={member.user_id} className="rounded-[18px] border border-gray-100 bg-gray-50 px-4 py-3">
@@ -186,10 +180,10 @@ export default async function AdminMarketingPage({ searchParams }: AdminMarketin
           </section>
 
           <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">Son Gönderimler</p>
+            <h3 className="flex items-center gap-3 text-lg font-semibold text-slate-900"><span className="grid size-10 place-items-center rounded-lg bg-sky-50 text-sky-500"><MailCheck className="size-5" /></span>Son Gönderimler</h3>
             <div className="mt-4 grid gap-2">
               {logs.length === 0 ? (
-                <p className="rounded-[18px] border border-gray-100 bg-gray-50 px-4 py-4 text-sm text-gray-500">Pazarlama mail logu yok.</p>
+                <p className="rounded-xl bg-slate-50 px-4 py-7 text-sm text-slate-500">Pazarlama mail logu yok.</p>
               ) : (
                 logs.map((log) => {
                   const tone = getLogTone(log.status);

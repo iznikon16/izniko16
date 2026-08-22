@@ -1,4 +1,4 @@
-﻿import { deleteCampaignAction, saveCampaignAction } from '@/app/admin/(panel)/actions';
+import { deleteCampaignAction, saveCampaignAction } from '@/app/admin/(panel)/actions';
 import { getAdminCampaigns } from '@/lib/admin/commerce-queries';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { formatCommercePrice } from '@/lib/commerce/format';
@@ -37,7 +37,7 @@ function CampaignForm({ campaign }: { campaign?: CampaignRow }) {
               </span>
             </>
           ) : (
-            <span className="rounded-full border border-blue-300/20 bg-blue-600/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-600">
+            <span className="rounded-full border border-sky-300/20 bg-sky-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-500">
               Yeni kayıt
             </span>
           )}
@@ -171,8 +171,8 @@ export default async function AdminCampaignsPage() {
     <div className="grid gap-4">
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <div className="border-b border-gray-100 pb-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Kampanyalar</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Kampanya yönetimi</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Kampanyalar</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Kampanya Yönetimi</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
             Vitrin kampanyaları, dönemsel indirim kurguları ve operasyonel metadata kayıtları bu ekrandan yönetilir.
           </p>

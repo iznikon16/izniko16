@@ -9,7 +9,6 @@ import { Select } from '@/components/ui/select';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { getRootCategory } from '@/lib/catalog/utils';
 
@@ -136,7 +135,7 @@ function AdminProductsPagination({
   return (
     <nav
       aria-label="Admin ürün sayfaları"
-      className="mt-4 flex flex-col gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-4 py-3 md:flex-row md:items-center md:justify-between"
+      className="flex flex-col gap-3 border-t border-slate-200 bg-white px-4 py-3 md:flex-row md:items-center md:justify-between"
     >
       <p className="text-sm text-gray-500">
         <span className="font-semibold text-gray-900">
@@ -147,14 +146,14 @@ function AdminProductsPagination({
 
       <div className="flex flex-wrap items-center gap-2">
         {currentPage === 1 ? (
-          <span className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
+          <span className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[11px] font-medium uppercase tracking-[0.1em] text-slate-400">
             <ChevronLeft className="h-4 w-4" />
             Önceki
           </span>
         ) : (
           <Link
             href={buildProductsPageHref(filters, currentPage - 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-900"
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-medium uppercase tracking-[0.1em] text-slate-600 transition hover:border-sky-300 hover:text-sky-700"
           >
             <ChevronLeft className="h-4 w-4" />
             Önceki
@@ -172,10 +171,10 @@ function AdminProductsPagination({
                 <Link
                   href={buildProductsPageHref(filters, page)}
                   aria-current={page === currentPage ? 'page' : undefined}
-                  className={`inline-flex h-10 min-w-10 items-center justify-center rounded-full border px-3 text-sm font-semibold transition-colors ${
+                  className={`inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 text-sm font-medium transition-colors ${
                     page === currentPage
-                      ? 'border-white bg-white text-[#111111]'
-                      : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-200 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'border-sky-500 bg-sky-50 text-sky-700'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-sky-300 hover:text-sky-700'
                   }`}
                 >
                   {page}
@@ -186,14 +185,14 @@ function AdminProductsPagination({
         </div>
 
         {currentPage === totalPages ? (
-          <span className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
+          <span className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[11px] font-medium uppercase tracking-[0.1em] text-slate-400">
             Sonraki
             <ChevronRight className="h-4 w-4" />
           </span>
         ) : (
           <Link
             href={buildProductsPageHref(filters, currentPage + 1)}
-            className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-900"
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-medium uppercase tracking-[0.1em] text-slate-600 transition hover:border-sky-300 hover:text-sky-700"
           >
             Sonraki
             <ChevronRight className="h-4 w-4" />
@@ -226,25 +225,23 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
   ].filter(Boolean) as string[];
 
   return (
-    <div className="grid gap-4">
-      <Card>
-        <CardHeader className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+    <div className="mx-auto w-full max-w-[1440px] space-y-5">
+        <header className="flex flex-col gap-5 px-1 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Ürünler</p>
-            <CardTitle className="mt-3">Ürün kataloğu</CardTitle>
-            <CardDescription className="mt-2 max-w-2xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-sky-600">Ürünler</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Ürün kataloğu</h1>
+            <p className="mt-2 max-w-3xl text-sm font-normal leading-6 text-slate-500">
               Ürünleri arayın, ana kategori, marka ve duruma göre daraltın. Sonuçlar doğrudan veritabanından filtrelenir.
-            </CardDescription>
+            </p>
           </div>
-          <Link href="/admin/products/new" className={cn(buttonVariants({ variant: "default" }), "gap-2 rounded-full shadow-sm hover:-translate-y-0.5 transition-transform")}>
+          <Link href="/admin/products/new" className={cn(buttonVariants({ variant: "default" }), "h-11 gap-2 rounded-lg px-5 font-medium shadow-sm")}>
             <Plus className="h-4 w-4" />
             Yeni Ürün
           </Link>
-        </CardHeader>
+        </header>
 
-        <CardContent>
-        <form className="grid gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 md:p-5">
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1.3fr)_repeat(4,minmax(0,1fr))]">
+        <form className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="grid gap-3 xl:grid-cols-[minmax(280px,1.4fr)_repeat(4,minmax(150px,0.9fr))_auto]">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
               <Input
@@ -287,19 +284,23 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               <option value="on_request">Sorunuz</option>
               <option value="out_of_stock">Tükendi</option>
             </Select>
+
+            <Button type="submit" variant="secondary" className="h-10 gap-2 rounded-lg px-5 font-medium">
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtrele
+            </Button>
           </div>
 
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-500">Sonuç</p>
-              <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-gray-900">{totalProducts} ürün</p>
+          <div className="flex flex-col gap-3 border-t border-slate-100 pt-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <p className="text-sm text-slate-500"><span className="font-semibold text-slate-900">{totalProducts} ürün</span></p>
               {totalProducts > 0 ? (
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="text-sm text-slate-500">
                   Sayfa {currentPage}/{totalPages} · {(currentPage - 1) * ADMIN_PRODUCTS_PER_PAGE + 1}-{Math.min(currentPage * ADMIN_PRODUCTS_PER_PAGE, totalProducts)} arası gösteriliyor.
                 </p>
               ) : null}
               {activeFilterLabels.length > 0 ? (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   {activeFilterLabels.map((label) => (
                     <Badge key={label} variant="muted">
                       {label}
@@ -310,12 +311,8 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" variant="secondary" className="gap-2">
-                <SlidersHorizontal className="h-4 w-4" />
-                Filtrele
-              </Button>
               {activeFilterCount > 0 ? (
-                <Link href="/admin/products" className={cn(buttonVariants({ variant: "ghost" }), "gap-2 text-gray-600")}>
+                <Link href="/admin/products" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2 text-slate-600")}>
                   <X className="h-4 w-4" />
                   Temizle
                 </Link>
@@ -324,8 +321,8 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
           </div>
         </form>
 
-        <div id="admin-products-results" className="mt-6 scroll-mt-8 overflow-hidden rounded-2xl border border-gray-100">
-          <div className="grid grid-cols-[minmax(0,1.45fr)_150px_170px_180px_180px_220px] gap-3 bg-gray-50 px-5 py-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500 max-lg:hidden">
+        <div id="admin-products-results" className="scroll-mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid grid-cols-[minmax(0,1.6fr)_170px_150px_190px_130px_190px] gap-3 border-b border-slate-200 bg-slate-50/80 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 max-lg:hidden">
             <span>Ürün</span>
             <span>Ana Kategori</span>
             <span>Marka</span>
@@ -334,7 +331,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
             <span>İşlemler</span>
           </div>
 
-          <div className="divide-y divide-white/8">
+          <div className="divide-y divide-slate-200">
             {totalProducts === 0 ? (
               <div className="p-5">
                 <EmptyState
@@ -344,26 +341,26 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               </div>
             ) : (
               paginatedProducts.map((product) => (
-                <div key={product.id} className="grid gap-4 px-5 py-5 lg:grid-cols-[minmax(0,1.45fr)_150px_170px_180px_180px_220px] lg:items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[18px] border border-gray-200 bg-gray-50">
+                <div key={product.id} className="grid gap-4 px-4 py-2.5 transition hover:bg-sky-50/30 lg:grid-cols-[minmax(0,1.6fr)_170px_150px_190px_130px_190px] lg:items-center">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
                       {product.featuredImageUrl ? (
-                        <Image src={product.featuredImageUrl} alt={product.title} fill sizes="80px" className="object-cover" />
+                        <Image src={product.featuredImageUrl} alt={product.title} fill sizes="64px" className="object-contain p-0.5" />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-gray-500">
-                          <ImageIcon className="h-6 w-6" />
+                          <ImageIcon className="h-5 w-5" />
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500">{product.categories[0]?.name ?? 'Kategori yok'}</p>
-                      <p className="mt-2 line-clamp-2 text-lg font-semibold tracking-tight text-gray-900">{product.title}</p>
-                      <p className="mt-2 text-sm text-gray-500">Güncelleme: {dateFormatter.format(new Date(product.updated_at))}</p>
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-500">{product.categories[0]?.name ?? 'Kategori yok'}</p>
+                      <p className="mt-1 line-clamp-1 text-sm font-semibold text-slate-900">{product.title}</p>
+                      <p className="mt-1 text-[11px] font-normal text-slate-500">Güncelleme: {dateFormatter.format(new Date(product.updated_at))}</p>
                     </div>
                   </div>
 
-                  <div className="text-sm text-gray-600">{getRootCategory(product.categories)?.name ?? 'Ana kategori yok'}</div>
-                  <div className="text-sm text-gray-600">{product.brand?.name ?? 'Marka seçilmedi'}</div>
+                  <div className="text-xs font-normal text-slate-600">{getRootCategory(product.categories)?.name ?? 'Ana kategori yok'}</div>
+                  <div className="text-xs font-normal text-slate-600">{product.brand?.name ?? 'Marka seçilmedi'}</div>
 
                   <div className="flex flex-wrap gap-2">
                     <Badge variant={product.status === 'published' ? 'success' : product.status === 'archived' ? 'destructive' : 'secondary'}>
@@ -374,10 +371,10 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                     </Badge>
                   </div>
 
-                  <div className="text-sm text-gray-600">{product.priceLabel}</div>
+                  <div className="text-sm font-medium text-slate-700">{product.priceLabel}</div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <Link href={`/admin/products/${product.id}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-2 rounded-full")}>
+                    <Link href={`/admin/products/${product.id}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-2 rounded-md px-3 font-medium")}>
                       <Edit3 className="h-4 w-4" />
                       Düzenle
                     </Link>
@@ -388,7 +385,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                         type="submit"
                         variant="destructive"
                         size="sm"
-                        className="gap-2 rounded-full"
+                        className="gap-2 rounded-md px-3 font-medium"
                       >
                         <Trash2 className="h-4 w-4" />
                         Sil
@@ -399,10 +396,8 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               ))
             )}
           </div>
+          <AdminProductsPagination currentPage={currentPage} filters={filters} totalItems={totalProducts} totalPages={totalPages} />
         </div>
-        <AdminProductsPagination currentPage={currentPage} filters={filters} totalItems={totalProducts} totalPages={totalPages} />
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
+import { ArrowLeftRight, ListPlus, ListTree } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,15 +38,15 @@ export default async function PriceListsPage() {
   const products = (productsRes.data ?? []) as Pick<ProductRow, 'id' | 'title' | 'sku' | 'price'>[];
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Fiyat Listeleri</h1>
-        <p className="mt-1 text-gray-500">Bayi/toptancı/perakende fiyat listeleri ve toplu fiyat güncelleme.</p>
-      </div>
+    <div className="mx-auto grid max-w-[1600px] gap-6">
+      <header className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between md:p-8">
+        <div><p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-500">Fiyatlandırma</p><h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Fiyat Listeleri</h1><p className="mt-2 text-sm text-slate-500">Bayi, toptancı ve perakende fiyat listelerini güvenli biçimde yönetin.</p></div>
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3"><ListTree className="size-6 text-sky-500" /><div><p className="text-2xl font-semibold text-slate-950">{lists.length}</p><p className="text-xs text-slate-500">fiyat listesi</p></div></div>
+      </header>
 
       {/* Yeni liste */}
-      <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
-        <h2 className="mb-4 font-semibold text-gray-900">Yeni Fiyat Listesi</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold text-slate-900"><ListPlus className="size-5 text-sky-500" /> Yeni Fiyat Listesi</h2>
         <ToastActionForm action={savePriceListAction} successMessage="Fiyat listesi oluşturuldu." errorMessage="Fiyat listesi oluşturulamadı." className="grid gap-4 sm:grid-cols-4">
           <input type="hidden" name="id" value="" />
           <Input type="text" name="name" required placeholder="Liste adı (örn. Bayi A)" />
@@ -62,11 +63,11 @@ export default async function PriceListsPage() {
             <Button>Oluştur</Button>
           </div>
         </ToastActionForm>
-      </div>
+      </section>
 
       {/* Toplu fiyat değişikliği */}
-      <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
-        <h2 className="mb-4 font-semibold text-gray-900">Toplu Fiyat Değişikliği</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 flex items-center gap-2 text-lg font-semibold text-slate-900"><ArrowLeftRight className="size-5 text-amber-500" /> Toplu Fiyat Değişikliği</h2>
         <ToastActionForm action={bulkUpdatePricesAction} successMessage="Toplu fiyat değişikliği uygulandı." errorMessage="Toplu fiyat değişikliği uygulanamadı." className="grid gap-4 sm:grid-cols-5">
           <Input
             type="text"
@@ -88,14 +89,15 @@ export default async function PriceListsPage() {
             <Button>Uygula</Button>
           </div>
         </ToastActionForm>
-      </div>
+        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">Toplu değişiklik yalnızca girdiğiniz ürün kimliklerine uygulanır.</p>
+      </section>
 
       {/* Listeler */}
       <div className="space-y-4">
         {lists.map((list) => {
           const listItems = items.filter((i) => i.price_list_id === list.id);
           return (
-            <div key={list.id} className="rounded-[2rem] border border-[#cbd5e1]/60 bg-white shadow-sm shadow-[#cbd5e1]/10">
+            <div key={list.id} className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
                 <div>
                   <h3 className="font-semibold text-gray-900">{list.name}</h3>
@@ -107,7 +109,7 @@ export default async function PriceListsPage() {
                 </div>
                 <ToastActionForm action={deletePriceListAction} successMessage="Fiyat listesi silindi." errorMessage="Fiyat listesi silinemedi.">
                   <input type="hidden" name="id" value={list.id} />
-                  <button className="rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Sil</button>
+                  <button className="rounded-lg border border-rose-200 px-3 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50">Sil</button>
                 </ToastActionForm>
               </div>
               <div className="p-5">
@@ -140,7 +142,7 @@ export default async function PriceListsPage() {
                             <td className="py-2 text-right">
                               <ToastActionForm action={removePriceListItemAction} successMessage="Ürün fiyat listesinden kaldırıldı." errorMessage="Ürün fiyat listesinden kaldırılamadı." className="inline">
                                 <input type="hidden" name="id" value={item.id} />
-                                <button className="text-xs font-medium text-red-500 hover:underline">Kaldır</button>
+                                <button className="text-xs font-medium text-rose-500 hover:underline">Kaldır</button>
                               </ToastActionForm>
                             </td>
                           </tr>

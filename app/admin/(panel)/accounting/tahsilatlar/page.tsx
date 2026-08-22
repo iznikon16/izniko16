@@ -8,6 +8,7 @@ import { getAllCustomerAccounts } from '@/lib/accounting/queries';
 import { getAdminPaymentMethods } from '@/lib/admin/commerce-queries';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
 import { ConfirmActionForm } from '@/components/ui/confirm-action-form';
+import { Inbox, WalletCards } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,21 +52,22 @@ export default async function CollectionsPage() {
   const customersForForm = accounts.map(({ customer }) => customer);
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="mx-auto grid max-w-[1600px] gap-6">
+      <header className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center md:p-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tahsilatlar</h1>
-          <p className="mt-1 text-gray-500">Girilen ve iptal edilen tahsilatlar takip edilir.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-500">Ön muhasebe</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">Tahsilatlar</h1>
+          <p className="mt-1 text-sm text-slate-500">Girilen ve ters kayıtla iptal edilen tahsilatları takip edin.</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"><WalletCards className="size-5 text-emerald-600" />
           <span className="text-gray-500">Toplam Tahsilat: </span>
           <span className="font-semibold text-emerald-600">{formatCommercePrice(totalCollected)}</span>
         </div>
-      </div>
+      </header>
 
       {/* Yeni Tahsilat Girişi */}
-      <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
-        <h2 className="mb-4 font-semibold text-gray-900">Yeni Tahsilat Gir</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-5 text-lg font-semibold text-slate-900">Yeni Tahsilat Gir</h2>
         <ToastActionForm action={collectPaymentAction} successMessage="Tahsilat başarıyla kaydedildi." errorMessage="Tahsilat kaydedilemedi." className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <input type="hidden" name="idempotency_key" value={`manual-payment:${randomUUID()}`} />
           <select
@@ -136,15 +138,15 @@ export default async function CollectionsPage() {
             className="rounded-lg border border-gray-200 px-3 py-2 text-sm lg:col-span-3"
           />
           <div className="lg:col-span-6 flex items-end justify-end">
-            <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">
+            <button className="rounded-xl bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600">
               Tahsilatı Kaydet
             </button>
           </div>
         </ToastActionForm>
-      </div>
+      </section>
 
       {/* Tahsilat Listesi */}
-      <div className="overflow-hidden rounded-[2rem] border border-[#cbd5e1]/60 bg-white shadow-sm shadow-[#cbd5e1]/10">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-50">
             <tr>
@@ -172,7 +174,7 @@ export default async function CollectionsPage() {
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-gray-900">
                     {formatCommercePrice(Number(payment.amount))}
-                    {allocation ? <p className="text-[11px] font-normal text-blue-600">Siparişe dağıtıldı</p> : null}
+                    {allocation ? <p className="text-[11px] font-normal text-sky-500">Siparişe dağıtıldı</p> : null}
                   </td>
                   <td className="px-4 py-3 text-gray-600">{payment.payment_method || '—'}</td>
                   <td className="px-4 py-3 text-gray-500">{payment.reference_number || '—'}</td>
@@ -182,7 +184,7 @@ export default async function CollectionsPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-gray-500">{new Date(payment.paid_at).toLocaleDateString('tr-TR')}</td>
                   <td className="px-4 py-3 text-center">
-                    <span className={isReversed ? 'rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-600' : 'rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600'}>
+                    <span className={isReversed ? 'rounded-full bg-rose-50 px-2 py-1 text-xs font-medium text-rose-600' : 'rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-600'}>
                       {isReversed ? 'İptal' : 'Onaylı'}
                     </span>
                   </td>
@@ -206,7 +208,7 @@ export default async function CollectionsPage() {
             })}
             {payments.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-gray-500">Henüz tahsilat bulunmuyor.</td>
+                <td colSpan={8} className="px-4 py-20 text-center text-gray-500"><Inbox className="mx-auto mb-4 size-14 rounded-full bg-slate-50 p-3 text-slate-400" /><p className="font-medium text-slate-700">Henüz tahsilat bulunmuyor.</p></td>
               </tr>
             )}
           </tbody>

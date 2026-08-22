@@ -5,13 +5,14 @@ import type { User } from '@supabase/supabase-js';
 import type { AdminUserRow } from '@/lib/catalog/types';
 import { createClient } from '@/lib/supabase/server';
 import { resolveAdminAuthorization } from '@/lib/auth/admin-authorization';
+import { getMfaStatus } from '@/lib/auth/mfa';
 
 export type AdminSession = {
   user: User;
   adminUser: AdminUserRow;
 };
 
-export async function getAdminSession() {
+export async function getAdminPrimarySession() {
   const supabase = await createClient();
   let user = null;
   try {
@@ -28,9 +29,19 @@ export async function getAdminSession() {
   return { user, adminUser: authorization.adminUser } satisfies AdminSession;
 }
 
+export async function getAdminSession() {
+  const session = await getAdminPrimarySession();
+  if (!session) return null;
+  const mfaStatus = await getMfaStatus(await createClient());
+  return !mfaStatus.available || mfaStatus.requiresChallenge ? null : session;
+}
+
 export async function requireAdminSession() {
-  const session = await getAdminSession();
+  const session = await getAdminPrimarySession();
   if (!session) redirect('/admin/login');
+  const mfaStatus = await getMfaStatus(await createClient());
+  if (!mfaStatus.available) redirect('/admin/mfa?durum=kontrol-hatasi');
+  if (mfaStatus.requiresChallenge) redirect('/admin/mfa');
   return session;
 }
 

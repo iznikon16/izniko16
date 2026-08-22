@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { ChevronDown, MapPin, MessageSquare, Search, SlidersHorizontal, X } from 'lucide-react';
 import { deleteOrderAction, saveOrderAction } from '@/app/admin/(panel)/actions';
 import { approveOrderRiskAction } from '@/app/admin/(panel)/accounting/actions';
@@ -162,11 +162,11 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
         <div className="grid gap-3">
           <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
             <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600/15 text-blue-600">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-500">
                 <MapPin className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-600">{delivery.label}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-500">{delivery.label}</p>
                 <h4 className="mt-1 text-lg font-semibold tracking-[-0.03em] text-gray-900">Teslimat bilgileri</h4>
 
                 <div className="mt-4 grid gap-2 md:grid-cols-2">
@@ -226,10 +226,10 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
             </div>
 
             {order.note ? (
-              <div className="mt-4 flex items-start gap-3 rounded-[18px] border border-blue-300/20 bg-blue-600/10 px-4 py-3 text-sm leading-6 text-gray-500">
-                <MessageSquare className="mt-1 h-4 w-4 shrink-0 text-blue-600" />
+              <div className="mt-4 flex items-start gap-3 rounded-[18px] border border-sky-300/20 bg-sky-500/10 px-4 py-3 text-sm leading-6 text-gray-500">
+                <MessageSquare className="mt-1 h-4 w-4 shrink-0 text-sky-500" />
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-600">Müşteri notu</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-500">Müşteri notu</p>
                   <p className="mt-1 text-gray-900">{order.note}</p>
                 </div>
               </div>
@@ -329,9 +329,9 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
             </Button>
           </form>
 
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-red-600">Sipariş İptali</p>
-            <p className="mt-1 text-xs leading-5 text-red-500">Sipariş geçmişi korunur; varsa cari borç ters kayıtla kapatılır.</p>
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-rose-600">Sipariş İptali</p>
+            <p className="mt-1 text-xs leading-5 text-rose-500">Sipariş geçmişi korunur; varsa cari borç ters kayıtla kapatılır.</p>
             <form action={deleteOrderAction} className="mt-3">
               <input type="hidden" name="id" value={order.id} />
               <DeleteSubmitButton confirmMessage={`${order.order_number} numaralı sipariş iptal edilsin mi?`} label="Siparişi İptal Et" />
@@ -378,7 +378,7 @@ export default async function AdminOrdersPage({ searchParams }: OrdersPageProps)
     <div className="grid gap-4">
       <Card>
         <CardHeader>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Siparişler</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Siparişler</p>
           <CardTitle className="mt-3">Sipariş operasyonu</CardTitle>
           <CardDescription className="mt-2 max-w-3xl">
             Sipariş, ödeme durumu ve yöntem atamasını tek ekrandan yönetin. Son seçilen ödeme yöntemi ödeme denemesi kaydına da işlenir.

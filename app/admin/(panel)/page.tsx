@@ -59,11 +59,11 @@ function KpiCard({ icon: Icon, label, value, note, tone = 'blue' }: {
   tone?: 'blue' | 'emerald' | 'amber' | 'rose' | 'violet';
 }) {
   const tones = {
-    blue: 'bg-blue-50 text-blue-600',
+    blue: 'bg-sky-50 text-sky-500',
     emerald: 'bg-emerald-50 text-emerald-600',
     amber: 'bg-amber-50 text-amber-600',
     rose: 'bg-rose-50 text-rose-600',
-    violet: 'bg-violet-50 text-violet-600',
+    violet: 'bg-sky-50 text-sky-600',
   };
   return (
     <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -88,7 +88,7 @@ function Panel({ title, href, children }: { title: string; href?: string; childr
     <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-bold text-slate-900">{title}</h2>
-        {href && <Link href={href} className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700">Tümünü gör <ArrowRight className="h-3.5 w-3.5" /></Link>}
+        {href && <Link href={href} className="flex items-center gap-1 text-xs font-semibold text-sky-500 hover:text-sky-600">Tümünü gör <ArrowRight className="h-3.5 w-3.5" /></Link>}
       </div>
       {children}
     </section>
@@ -134,7 +134,9 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
     <main className="mx-auto w-full max-w-[1600px] space-y-5 pb-10">
       <header className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Hoş geldiniz, {session.adminUser.full_name || session.user.email}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+            Hoş geldiniz, <span className="text-sky-500">{session.adminUser.full_name || session.user.email}</span>
+          </h1>
           <p className="mt-1 text-sm text-slate-500">İşletmenizin güncel operasyon ve finans özetini görüntüleyin.</p>
         </div>
         <DashboardToolbar period={period} canExport={hasPermission(permissions, 'report.export')} />
@@ -161,7 +163,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
         <Panel title="Son siparişler" href="/admin/orders">
           <div className="space-y-2">
             {recentOrders.map((order) => (
-              <Link key={order.id} href={`/admin/orders/${order.id}`} className="grid gap-1 rounded-xl border border-slate-100 p-3 transition hover:border-blue-200 hover:bg-blue-50/40 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <Link key={order.id} href={`/admin/orders/${order.id}`} className="grid gap-1 rounded-xl border border-slate-100 p-3 transition hover:border-sky-200 hover:bg-sky-50/40 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{order.order_number || order.id}</p><p className="truncate text-xs text-slate-500">{order.customerName}</p></div>
                 <div className="sm:text-right"><p className="text-sm font-bold text-slate-900">{formatCommercePrice(Number(order.total))}</p><p className="text-[11px] text-slate-500">{orderStatusLabels[order.status] || order.status} · {paymentStatusLabels[order.payment_status] || order.payment_status}</p></div>
               </Link>
@@ -230,7 +232,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
 
       {!!quickActions.length && <Panel title="Hızlı işlemler">
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-          {quickActions.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"><Icon className="h-4 w-4" />{label}</Link>)}
+          {quickActions.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600"><Icon className="h-4 w-4" />{label}</Link>)}
         </div>
       </Panel>}
     </main>

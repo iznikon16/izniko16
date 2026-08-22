@@ -33,8 +33,8 @@ export function AccountNavigation() {
               className={cn(
                 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-semibold transition-colors',
                 isActive
-                  ? 'border-amber-200 bg-amber-50 text-amber-800 shadow-sm'
-                  : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-950',
+                  ? 'border-sky-200 bg-sky-50 text-sky-700 shadow-sm'
+                  : 'border-transparent text-[#475569] hover:border-[#cbd5e1] hover:bg-sky-50 hover:text-[#0284c7]',
               )}
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />

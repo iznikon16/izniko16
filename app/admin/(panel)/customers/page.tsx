@@ -198,7 +198,7 @@ export default async function AdminCustomersPage({ searchParams }: CustomersPage
       <Card>
         <CardHeader className="flex flex-row items-start justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Kullanıcılar</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Kullanıcılar</p>
             <CardTitle className="mt-3">Müşteri yönetimi</CardTitle>
             <CardDescription className="mt-2 max-w-3xl">
               Profil bilgilerini ve alışveriş kilidini buradan yönetin. Pazarlama izni kullanıcı tarafından hesap ayarlarından değiştirilir.

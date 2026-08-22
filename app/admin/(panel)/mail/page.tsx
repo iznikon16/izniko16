@@ -1,4 +1,4 @@
-﻿import { Activity, CheckCircle2, FileText, Mail, Send, Server, XCircle } from 'lucide-react';
+import { Activity, CheckCircle2, FileText, Mail, Send, Server, XCircle } from 'lucide-react';
 import { saveEmailTemplateAction, saveSmtpSettingsAction, sendSmtpTestAction, verifySmtpConnectionAction } from '@/app/admin/(panel)/mail/actions';
 import { Button } from '@/components/ui/button';
 import { getAdminEmailTemplates, getAdminMailSettings, getRecentEmailLogs } from '@/lib/admin/mail-queries';
@@ -75,7 +75,7 @@ function getLogTone(status: string) {
 
   return {
     Icon: XCircle,
-    className: 'border-red-500/20 bg-red-500/10 text-red-100',
+    className: 'border-rose-200 bg-rose-50 text-rose-700',
     label: 'Hata',
   };
 }
@@ -93,7 +93,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <div className="flex flex-col gap-5 border-b border-gray-100 pb-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">E-posta Merkezi</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">E-posta Merkezi</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">SMTP ve E-posta Şablonları</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
               Üyelik doğrulama, sipariş bilgilendirme ve yönetici bildirimleri burada tanımlanan SMTP üzerinden gönderilir.
@@ -127,22 +127,22 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
         ) : null}
 
         {test === 'failed' ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
             Test E-postası gönderilemedi. Lütfen ayarları kontrol edin.
           </div>
         ) : null}
 
         {connection === 'success' ? <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">SMTP bağlantısı doğrulandı; e-posta gönderilmedi.</div> : null}
-        {connection === 'failed' ? <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">SMTP bağlantısı doğrulanamadı.</div> : null}
+        {connection === 'failed' ? <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">SMTP bağlantısı doğrulanamadı.</div> : null}
 
         <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
           <form action={saveSmtpSettingsAction} className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
             <div className="flex items-start gap-3 border-b border-gray-100 pb-4">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600/15 text-blue-600">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-500">
                 <Server className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">SMTP Ayarı</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">SMTP Ayarı</p>
                 <h3 className="mt-1 text-2xl font-semibold tracking-[-0.04em] text-gray-900">Gönderici bağlantısı</h3>
                 <p className="mt-1 text-sm leading-6 text-gray-500">Şifre alanını boş bırakırsanız mevcut kayıtlı şifre korunur.</p>
               </div>
@@ -214,11 +214,11 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
           <div className="grid content-start gap-4">
             <form action={sendSmtpTestAction} className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
               <div className="flex items-start gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-gray-900">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-gray-900">
                   <Send className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">Test</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">Test</p>
                   <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-gray-900">SMTP bağlantısını dene</h3>
                 </div>
               </div>
@@ -234,11 +234,11 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
 
             <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
               <div className="flex items-start gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-gray-900">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-gray-900">
                   <Mail className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-600">Değişkenler</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-500">Değişkenler</p>
                   <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-gray-900">Şablon anahtarları</h3>
                 </div>
               </div>
@@ -256,7 +256,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
 
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <div className="border-b border-gray-100 pb-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Şablonlar</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Şablonlar</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Düzenlenebilir E-Postalar</h2>
         </div>
 
@@ -265,11 +265,11 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
             <details key={template.key} className="group overflow-hidden rounded-2xl border border-gray-100 bg-gray-50">
               <summary className="flex cursor-pointer list-none flex-col gap-3 px-5 py-4 transition-colors hover:bg-gray-50 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-start gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-500">
                     <FileText className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-600">{template.key}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-500">{template.key}</p>
                     <h3 className="mt-1 text-xl font-semibold tracking-[-0.04em] text-gray-900">{template.name}</h3>
                     <p className="mt-1 text-sm leading-6 text-gray-500">{template.description}</p>
                   </div>
@@ -307,7 +307,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                   <Textarea name="text_body" rows={4} defaultValue={template.text_body} />
                 </div>
 
-                <button type="submit" className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-600">
+                <button type="submit" className="inline-flex items-center justify-center rounded-xl bg-[#0ea5e9] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md">
                   Şablonu Kaydet
                 </button>
               </ToastActionForm>
@@ -318,7 +318,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
 
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <div className="border-b border-gray-100 pb-5">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Log</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Log</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Son E-posta Hareketleri</h2>
         </div>
 
@@ -339,7 +339,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                     </span>
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-gray-900">{log.subject || log.template_key || 'Konu yok'}</p>
-                      {log.error_message ? <p className="mt-1 truncate text-xs text-red-200/70">{log.error_message}</p> : null}
+                      {log.error_message ? <p className="mt-1 truncate text-xs text-rose-600">{log.error_message}</p> : null}
                     </div>
                     <p className="truncate text-sm text-gray-500">{log.recipient_email}</p>
                     <p className="text-sm text-gray-500 lg:text-right">{dateFormatter.format(new Date(log.created_at))}</p>

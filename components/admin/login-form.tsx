@@ -23,7 +23,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push('/admin');
+      router.push(result.mfaRequired ? '/admin/mfa' : '/admin');
     });
   }
 
@@ -33,7 +33,7 @@ export function LoginForm() {
         <label htmlFor="email" className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
           Yönetici E-Posta Adresi
         </label>
-        <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-[#090e1a] px-4 py-3.5 transition-all focus-within:border-indigo-500/70 focus-within:ring-2 focus-within:ring-indigo-500/20">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-[#090e1a] px-4 py-3.5 transition-all focus-within:border-sky-500/70 focus-within:ring-2 focus-within:ring-sky-500/20">
           <Mail className="h-5 w-5 text-amber-500" />
           <input
             id="email"
@@ -50,7 +50,7 @@ export function LoginForm() {
         <label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
           Şifre
         </label>
-        <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-[#090e1a] px-4 py-3.5 transition-all focus-within:border-indigo-500/70 focus-within:ring-2 focus-within:ring-indigo-500/20">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-800 bg-[#090e1a] px-4 py-3.5 transition-all focus-within:border-sky-500/70 focus-within:ring-2 focus-within:ring-sky-500/20">
           <Lock className="h-5 w-5 text-amber-500" />
           <input
             id="password"
@@ -84,8 +84,8 @@ export function LoginForm() {
       </div>
 
       {error ? (
-        <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-semibold text-red-300">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+        <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-xs font-semibold text-rose-300">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
           <span>{error}</span>
         </div>
       ) : null}

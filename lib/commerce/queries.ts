@@ -14,6 +14,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { getCustomerPricedProducts } from '@/lib/pricing/queries';
 import { getOrderQuantityError } from '@/lib/commerce/quantity';
+import { getMfaStatus } from '@/lib/auth/mfa';
 export { formatCommercePrice } from '@/lib/commerce/format';
 export { getProductCheckoutPrice, getProductHref } from '@/lib/commerce/product';
 
@@ -60,7 +61,7 @@ export type CustomerOrder = OrderRow & {
 
 export type CustomerOrderDetail = CustomerOrder & { shipments: ShipmentRecord[] };
 
-export async function getCustomerSession() {
+export async function getCustomerPrimarySession() {
   const supabase = await createClient();
   let user = null;
   try {
@@ -101,12 +102,29 @@ export async function getCustomerSession() {
   } satisfies CustomerSession;
 }
 
+export async function getCustomerSession() {
+  const session = await getCustomerPrimarySession();
+  if (!session) return null;
+  const mfaStatus = await getMfaStatus(await createClient());
+  return !mfaStatus.available || mfaStatus.requiresChallenge ? null : session;
+}
+
 export async function requireCustomerSession(next = '/hesabim') {
-  const session = await getCustomerSession();
+  const session = await getCustomerPrimarySession();
 
   if (!session) {
     const safeNext = getSafeCustomerRedirectPath(next);
     redirect(`/giris?next=${encodeURIComponent(safeNext)}`);
+  }
+
+  const mfaStatus = await getMfaStatus(await createClient());
+  if (!mfaStatus.available) {
+    const safeNext = getSafeCustomerRedirectPath(next);
+    redirect(`/giris/mfa?next=${encodeURIComponent(safeNext)}&durum=kontrol-hatasi`);
+  }
+  if (mfaStatus.requiresChallenge) {
+    const safeNext = getSafeCustomerRedirectPath(next);
+    redirect(`/giris/mfa?next=${encodeURIComponent(safeNext)}`);
   }
 
   return session;

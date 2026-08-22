@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       admin_users: {
         Row: {
+          avatar_path: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -26,6 +27,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_path?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -36,6 +38,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_path?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -419,6 +422,7 @@ export type Database = {
         Row: {
           account_type: string
           admin_note: string
+          avatar_path: string | null
           company_title: string
           created_at: string
           email: string
@@ -436,6 +440,7 @@ export type Database = {
         Insert: {
           account_type?: string
           admin_note?: string
+          avatar_path?: string | null
           company_title?: string
           created_at?: string
           email: string
@@ -453,6 +458,7 @@ export type Database = {
         Update: {
           account_type?: string
           admin_note?: string
+          avatar_path?: string | null
           company_title?: string
           created_at?: string
           email?: string
@@ -2562,6 +2568,14 @@ export type Database = {
       }
     }
     Functions: {
+      set_staff_role_permissions: {
+        Args: { p_permission_keys: string[] }
+        Returns: number
+      }
+      set_editable_role_permissions: {
+        Args: { p_permission_keys: string[]; p_role_name: string }
+        Returns: number
+      }
       delete_customer_address: {
         Args: { p_id: string }
         Returns: boolean

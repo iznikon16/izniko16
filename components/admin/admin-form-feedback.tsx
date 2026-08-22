@@ -24,22 +24,22 @@ export function AdminFilePicker({ accept, className, helperText, label, multiple
     <label
       htmlFor={inputId}
       className={cn(
-        'grid cursor-pointer gap-3 rounded-[18px] border border-dashed border-white/14 bg-gray-50 px-4 py-3 text-sm text-gray-500 transition-colors hover:border-blue-300/35',
+        'grid cursor-pointer gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500 hover:border-sky-400',
         pending && 'cursor-progress opacity-75',
         className
       )}
     >
       <span className="flex min-w-0 items-center justify-between gap-3">
         <span className="inline-flex min-w-0 items-center gap-2 font-medium text-gray-900">
-          <UploadCloud className="h-4 w-4 shrink-0 text-blue-600" />
+          <UploadCloud className="h-4 w-4 shrink-0 text-sky-500" />
           <span className="truncate">{label}</span>
         </span>
-        <span className="shrink-0 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white shadow-sm transition-colors group-hover:bg-blue-700">
+        <span className="shrink-0 rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white">
           Seç
         </span>
       </span>
-      <span className="flex min-w-0 items-center gap-2 rounded-[14px] border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-500">
-        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-300/80" />
+      <span className="flex min-w-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
+        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
         <span className="truncate">{selectionLabel}</span>
       </span>
       {helperText ? <span className="text-xs leading-5 text-gray-400">{helperText}</span> : null}
@@ -86,9 +86,9 @@ export function AdminFormPendingNotice({
     <div
       role="status"
       aria-live="polite"
-      className="flex items-start gap-3 rounded-[18px] border border-blue-300/24 bg-blue-600/12 px-4 py-3 text-sm text-gray-900 shadow-[0_14px_34px_rgba(235,68,37,0.12)]"
+      className="flex items-start gap-3 rounded-[18px] border border-sky-300/24 bg-sky-500/12 px-4 py-3 text-sm text-gray-900 shadow-[0_14px_34px_rgba(235,68,37,0.12)]"
     >
-      <LoaderCircle className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-blue-600" />
+      <LoaderCircle className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-sky-500" />
       <span>
         <span className="block font-semibold">{label}</span>
         <span className="mt-0.5 block text-xs leading-5 text-gray-500">{description}</span>

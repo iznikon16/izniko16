@@ -1,8 +1,10 @@
-﻿import { redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { LockKeyhole, ShieldCheck, Zap, Boxes } from 'lucide-react';
 import { LoginForm } from '@/components/admin/login-form';
-import { getAdminSession } from '@/lib/auth/admin';
+import { getAdminPrimarySession } from '@/lib/auth/admin';
+import { createClient } from '@/lib/supabase/server';
+import { getMfaStatus } from '@/lib/auth/mfa';
 import { SafeImage } from '@/components/ui/safe-image';
 
 export const metadata = {
@@ -28,14 +30,17 @@ const loginHighlights = [
 ];
 
 export default async function AdminLoginPage() {
-  const session = await getAdminSession();
+  const session = await getAdminPrimarySession();
 
   if (session) {
+    const mfaStatus = await getMfaStatus(await createClient());
+    if (!mfaStatus.available) redirect('/admin/mfa?durum=kontrol-hatasi');
+    if (mfaStatus.requiresChallenge) redirect('/admin/mfa');
     redirect('/admin');
   }
 
   return (
-    <div className="min-h-screen bg-[#090e1a] text-white font-sans selection:bg-amber-500/30 selection:text-indigo-200">
+    <div className="min-h-screen bg-[#090e1a] text-white font-sans selection:bg-amber-500/30 selection:text-sky-200">
       {/* Background Decorator */}
       <div className="relative overflow-hidden min-h-screen flex flex-col justify-between">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(245,158,11,0.15),transparent_45%),radial-gradient(ellipse_at_bottom_right,rgba(15,23,42,0.9),#090e1a)]" />
@@ -101,7 +106,7 @@ export default async function AdminLoginPage() {
           <section className="lg:col-span-5 flex justify-center">
             <div className="w-full max-w-md rounded-3xl border border-slate-800/60 bg-[#0f172a]/80 p-8 sm:p-10 shadow-2xl shadow-black/80 backdrop-blur-xl relative overflow-hidden">
               {/* Top Accent Line */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-blue-400 to-amber-500" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-sky-400 to-amber-500" />
 
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-500 border border-amber-500/30">

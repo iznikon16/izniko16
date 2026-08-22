@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { AdminSidebar } from './admin-sidebar';
 
-export function MobileSidebar({ permissions, userName, userRole }: { permissions: string[]; userName: string; userRole: string }) {
+export function MobileSidebar({ avatarUrl, permissions, userName, userRole }: { avatarUrl: string | null; permissions: string[]; userName: string; userRole: string }) {
   const [isOpen, setIsOpen] = useState(false);
 
   // Handle scroll lock and Escape key
@@ -69,7 +69,7 @@ export function MobileSidebar({ permissions, userName, userRole }: { permissions
         </div>
         
         <div className="h-full w-full overflow-y-auto">
-          <AdminSidebar permissions={permissions} userName={userName} userRole={userRole} onNavigate={() => setIsOpen(false)} />
+          <AdminSidebar avatarUrl={avatarUrl} permissions={permissions} userName={userName} userRole={userRole} onNavigate={() => setIsOpen(false)} />
         </div>
       </div>
     </>

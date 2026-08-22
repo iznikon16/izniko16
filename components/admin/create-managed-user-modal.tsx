@@ -23,7 +23,7 @@ export function CreateManagedUserModal() {
 
   return (
     <>
-      <Button type="button" className="gap-2" onClick={() => { setOpen(true); dialogRef.current?.showModal(); }}>
+      <Button type="button" className="h-12 gap-2 rounded-xl bg-sky-600 px-6 font-semibold shadow-md shadow-sky-600/20 hover:bg-sky-700" onClick={() => { setOpen(true); dialogRef.current?.showModal(); }}>
         <UserPlus className="h-4 w-4" />
         Yönetici / Kullanıcı Ekle
       </Button>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BarChart3, Download, FileSpreadsheet, Search } from 'lucide-react';
+import { BarChart3, Download, FileSpreadsheet, FileText, Search, UsersRound, WalletCards } from 'lucide-react';
 import { requireAdminPermission } from '@/lib/auth/admin';
 import { formatCommercePrice } from '@/lib/commerce/format';
 import {
@@ -51,8 +51,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   if (filters.query) exportParams.set('q', filters.query);
 
   return (
-    <div className="mx-auto max-w-[1500px] space-y-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="mx-auto w-full max-w-[1440px] space-y-6">
+      <header className="flex flex-col gap-4 border-b border-slate-200 pb-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-600">Ön Muhasebe</p>
           <h1 className="mt-3 flex items-center gap-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950">
@@ -62,16 +62,16 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           <p className="mt-2 text-sm text-slate-500">Cari, tahsilat, vade ve risk verilerini tek merkezden filtreleyip dışa aktarın.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/admin/reports/csv?${exportParams}`} className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white px-4 py-2.5 text-sm font-semibold text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50">
+          <Link href={`/admin/reports/csv?${exportParams}`} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50">
             <Download className="size-4" /> CSV İndir
           </Link>
-          <Link href={`/admin/reports/excel?${exportParams}`} className="inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600">
+          <Link href={`/admin/reports/excel?${exportParams}`} className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700">
             <FileSpreadsheet className="size-4" /> Excel İndir
           </Link>
         </div>
       </header>
 
-      <form method="get" className="grid gap-4 rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-sm lg:grid-cols-[minmax(220px,1fr)_minmax(260px,1.4fr)_170px_170px_auto] lg:items-end">
+      <form method="get" className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-[minmax(220px,1fr)_minmax(260px,1.4fr)_170px_170px_auto] lg:items-end">
         <label className="grid gap-1.5 text-xs font-semibold text-slate-600">
           Rapor türü
           <select name="type" defaultValue={filters.type} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100">
@@ -84,18 +84,18 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         </label>
         <label className="grid gap-1.5 text-xs font-semibold text-slate-600">Başlangıç<input type="date" name="from" defaultValue={filters.fromDate} className="h-11 rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100" /></label>
         <label className="grid gap-1.5 text-xs font-semibold text-slate-600">Bitiş<input type="date" name="to" defaultValue={filters.toDate} className="h-11 rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100" /></label>
-        <button className="h-11 rounded-full bg-sky-500 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600">Raporu Getir</button>
+        <button className="h-11 rounded-xl bg-sky-600 px-6 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700">Raporu Getir</button>
       </form>
 
-      {filterError ? <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-medium text-red-700">{filterError} Varsayılan dönem gösteriliyor.</p> : null}
+      {filterError ? <p role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-medium text-rose-700">{filterError} Varsayılan dönem gösteriliyor.</p> : null}
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-medium text-slate-500">Rapor</p><p className="mt-2 font-semibold text-slate-900">{report.title}</p></div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-medium text-slate-500">Kayıt Sayısı</p><p className="mt-2 text-2xl font-bold text-slate-950">{report.rows.length.toLocaleString('tr-TR')}</p></div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-xs font-medium text-slate-500">Rapor Toplamı</p><p className="mt-2 text-2xl font-bold text-sky-700">{formatCommercePrice(report.totalAmount)}</p></div>
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div><p className="text-xs font-medium text-slate-500">Rapor</p><p className="mt-2 font-semibold text-slate-900">{report.title}</p></div><span className="grid h-12 w-12 place-items-center rounded-full bg-sky-50 text-sky-600"><FileText className="h-5 w-5" /></span></div>
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div><p className="text-xs font-medium text-slate-500">Kayıt Sayısı</p><p className="mt-2 text-2xl font-semibold text-slate-950">{report.rows.length.toLocaleString('tr-TR')}</p></div><span className="grid h-12 w-12 place-items-center rounded-full bg-sky-50 text-sky-600"><UsersRound className="h-5 w-5" /></span></div>
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div><p className="text-xs font-medium text-slate-500">Rapor Toplamı</p><p className="mt-2 text-2xl font-semibold text-sky-700">{formatCommercePrice(report.totalAmount)}</p></div><span className="grid h-12 w-12 place-items-center rounded-full bg-sky-50 text-sky-600"><WalletCards className="h-5 w-5" /></span></div>
       </section>
 
-      <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 px-5 py-4"><h2 className="font-semibold text-slate-900">{report.title}</h2><p className="mt-1 text-xs text-slate-500">{report.description}</p></div>
         {report.truncated ? <p className="border-b border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">Rapor ilk 5.000 kayıtla sınırlandırıldı. Daha dar bir filtre seçin.</p> : null}
         <div className="overflow-x-auto">

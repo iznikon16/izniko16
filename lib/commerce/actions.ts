@@ -32,6 +32,7 @@ import { checkRateLimit } from '@/lib/security/rate-limit';
 import { getCustomerPricedProducts } from '@/lib/pricing/queries';
 import { assertOrderQuantity } from '@/lib/commerce/quantity';
 import { isTurkeyProvince } from '@/lib/commerce/turkey-provinces';
+import { customerProfileSchema } from '@/lib/profile/validation';
 
 export type CustomerSettingsActionResult = {
   error?: string;
@@ -411,13 +412,8 @@ export async function saveProfileAction(formData: FormData): Promise<CustomerSet
   const taxNumber = accountType === 'corporate' ? getText(formData, 'tax_number').replace(/\D/g, '') : '';
   const marketingConsent = formData.get('marketing_consent') === 'on';
 
-  if (!fullName || !validatePhone(phone)) {
-    return { error: 'Ad soyad ve geçerli bir telefon numarası zorunludur.', ok: false };
-  }
-
-  if (accountType === 'corporate' && (!companyTitle || !taxOffice || !/^\d{10}$/.test(taxNumber))) {
-    return { error: 'Kurumsal hesap için şirket unvanı, vergi dairesi ve 10 haneli vergi numarası zorunludur.', ok: false };
-  }
+  const validation = customerProfileSchema.safeParse({ accountType, companyTitle, fullName, marketingConsent, phone, taxNumber, taxOffice });
+  if (!validation.success) return { error: validation.error.issues[0]?.message || 'Profil bilgileri geçersiz.', ok: false };
 
   const { error } = await supabase
     .from('customer_profiles')
@@ -433,7 +429,7 @@ export async function saveProfileAction(formData: FormData): Promise<CustomerSet
     .eq('user_id', user.id);
 
   if (error) {
-    return { error: error.message, ok: false };
+    return { error: 'Profil bilgileriniz güncellenemedi. Lütfen tekrar deneyin.', ok: false };
   }
 
   const { error: authError } = await adminSupabase.auth.admin.updateUserById(user.id, {

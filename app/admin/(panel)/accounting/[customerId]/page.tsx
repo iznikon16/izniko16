@@ -146,7 +146,7 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
                   {summary.isActive ? 'Aktif hesap' : 'Pasif hesap'}
                 </span>
                 {summary.riskExceeded ? (
-                  <span className="rounded-full bg-red-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-red-700">Risk limiti aşıldı</span>
+                  <span className="rounded-full bg-rose-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-700">Risk limiti aşıldı</span>
                 ) : null}
               </div>
               <h1 className="mt-4 truncate text-3xl font-semibold tracking-[-0.04em] text-gray-900">{summary.customerName}</h1>
@@ -282,7 +282,7 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
           {activeTab === 'debit-credit' ? (
             <div className="grid gap-5">
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-red-100 bg-red-50 p-5"><p className="text-sm text-red-700">Toplam Borç</p><p className="mt-2 text-2xl font-bold text-red-700">{formatCommercePrice(summary.totalDebit)}</p></div>
+                <div className="rounded-2xl border border-rose-100 bg-rose-50 p-5"><p className="text-sm text-rose-700">Toplam Borç</p><p className="mt-2 text-2xl font-bold text-rose-700">{formatCommercePrice(summary.totalDebit)}</p></div>
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5"><p className="text-sm text-emerald-700">Toplam Alacak</p><p className="mt-2 text-2xl font-bold text-emerald-700">{formatCommercePrice(summary.totalCredit)}</p></div>
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5"><p className="text-sm text-gray-600">Güncel Bakiye</p><p className="mt-2 text-2xl font-bold text-gray-900">{formatCommercePrice(Math.abs(summary.balance))}</p><p className="mt-1 text-xs text-gray-500">{balanceLabel}</p></div>
               </div>
@@ -328,9 +328,9 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
                         </span>
                       </TableCell>
                       <TableCell className="text-right text-gray-600">{item.transactionCount.toLocaleString('tr-TR')}</TableCell>
-                      <TableCell className="text-right font-medium text-red-600">{formatCommercePrice(item.totalDebit)}</TableCell>
+                      <TableCell className="text-right font-medium text-rose-600">{formatCommercePrice(item.totalDebit)}</TableCell>
                       <TableCell className="text-right font-medium text-emerald-600">{formatCommercePrice(item.totalCredit)}</TableCell>
-                      <TableCell className={`text-right font-semibold ${item.netBalance > 0 ? 'text-red-600' : item.netBalance < 0 ? 'text-emerald-600' : 'text-gray-600'}`}>
+                      <TableCell className={`text-right font-semibold ${item.netBalance > 0 ? 'text-rose-600' : item.netBalance < 0 ? 'text-emerald-600' : 'text-gray-600'}`}>
                         {formatCommercePrice(Math.abs(item.netBalance))}
                       </TableCell>
                       <TableCell className="text-gray-500">{formatOptionalDate(item.lastTransactionAt)}</TableCell>
@@ -362,7 +362,7 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
                 </select>
                 <input type="date" name="ledgerFrom" defaultValue={ledgerFilters.fromDate ?? ''} aria-label="Başlangıç tarihi" className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-sky-400" />
                 <input type="date" name="ledgerTo" defaultValue={ledgerFilters.toDate ?? ''} aria-label="Bitiş tarihi" className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-sky-400" />
-                <button type="submit" className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-600">Filtrele</button>
+                <button type="submit" className="rounded-xl bg-[#0ea5e9] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md">Filtrele</button>
               </form>
 
               <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-sm text-gray-500">
@@ -389,11 +389,11 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
                 </TableHeader>
                 <TableBody>
                   {(ledgerPage?.items ?? []).map((transaction) => (
-                    <TableRow key={transaction.id} className={transaction.isReversal ? 'bg-red-50/40' : undefined}>
+                    <TableRow key={transaction.id} className={transaction.isReversal ? 'bg-rose-50/40' : undefined}>
                       <TableCell className="text-gray-500">{formatOptionalDate(transaction.createdAt)}</TableCell>
                       <TableCell className="font-mono text-xs font-semibold text-gray-600">{transaction.transactionNumber}</TableCell>
                       <TableCell>
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${transaction.isReversal ? 'bg-red-100 text-red-700' : 'bg-sky-50 text-sky-700'}`}>
+                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${transaction.isReversal ? 'bg-rose-100 text-rose-700' : 'bg-sky-50 text-sky-700'}`}>
                           {ACCOUNT_TRANSACTION_LABELS[transaction.type] ?? transaction.type}{transaction.isReversal ? ' · Ters Kayıt' : ''}
                         </span>
                       </TableCell>
@@ -403,7 +403,7 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
                       </TableCell>
                       <TableCell className="max-w-[260px] text-gray-700">{transaction.description || '—'}</TableCell>
                       <TableCell className="text-gray-500">{formatOptionalDate(transaction.dueDate, false)}</TableCell>
-                      <TableCell className="text-right font-medium text-red-600">{transaction.debit > 0 ? formatCommercePrice(transaction.debit) : '—'}</TableCell>
+                      <TableCell className="text-right font-medium text-rose-600">{transaction.debit > 0 ? formatCommercePrice(transaction.debit) : '—'}</TableCell>
                       <TableCell className="text-right font-medium text-emerald-600">{transaction.credit > 0 ? formatCommercePrice(transaction.credit) : '—'}</TableCell>
                       <TableCell className="text-right font-semibold text-gray-900">{formatCommercePrice(transaction.balanceAfter)}</TableCell>
                       <TableCell className="text-gray-600">{transaction.actorName}</TableCell>
@@ -460,12 +460,12 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
                   {detail.dueItems.map((item) => (
                     <TableRow key={item.transactionId}>
                       <TableCell><p className="font-medium text-gray-900">{item.orderNumber || item.reference || 'Cari hareket'}</p><p className="mt-1 text-xs text-gray-500">{item.description || '—'}</p></TableCell>
-                      <TableCell className={item.overdueDays > 0 ? 'font-medium text-red-700' : 'font-medium text-amber-700'}>{formatOptionalDate(item.dueDate, false)}</TableCell>
+                      <TableCell className={item.overdueDays > 0 ? 'font-medium text-rose-700' : 'font-medium text-amber-700'}>{formatOptionalDate(item.dueDate, false)}</TableCell>
                       <TableCell className="text-right">{formatCommercePrice(item.total)}</TableCell>
                       <TableCell className="text-right text-emerald-600">{formatCommercePrice(item.collected)}</TableCell>
                       <TableCell className="text-right font-semibold">{formatCommercePrice(item.remaining)}</TableCell>
                       <TableCell className="text-right">{item.overdueDays > 0 ? `${item.overdueDays} gün gecikti` : item.remainingDays > 0 ? `${item.remainingDays} gün kaldı` : 'Bugün'}</TableCell>
-                      <TableCell><span className={`rounded-full px-2 py-1 text-xs font-medium ${item.status === 'PAID' ? 'bg-emerald-50 text-emerald-700' : item.overdueDays > 0 ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'}`}>{dueStatusLabels[item.status]}</span></TableCell>
+                      <TableCell><span className={`rounded-full px-2 py-1 text-xs font-medium ${item.status === 'PAID' ? 'bg-emerald-50 text-emerald-700' : item.overdueDays > 0 ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{dueStatusLabels[item.status]}</span></TableCell>
                       <TableCell>
                         <ToastActionForm action={updateTransactionDueDateAction} successMessage="Vade tarihi güncellendi." errorMessage="Vade tarihi güncellenemedi." className="flex items-center gap-2">
                           <input type="hidden" name="customer_id" value={customerId} />
@@ -487,7 +487,7 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
               <h2 className="font-semibold text-gray-900">Cari Ekstre</h2>
               <p className="mt-2 text-sm text-gray-500">Tarih aralığı seçerek PDF veya CSV formatında güvenli cari ekstre oluşturun.</p>
-              <Link href={`/admin/accounting/ekstreler?customer=${encodeURIComponent(customerId)}`} className="mt-5 inline-flex rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-600">Ekstre oluştur</Link>
+              <Link href={`/admin/accounting/ekstreler?customer=${encodeURIComponent(customerId)}`} className="mt-5 inline-flex rounded-xl bg-[#0ea5e9] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md">Ekstre oluştur</Link>
             </div>
           ) : null}
 
@@ -496,14 +496,14 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5"><p className="text-sm text-gray-500">Risk Limiti</p><p className="mt-2 text-2xl font-bold text-gray-900">{formatCommercePrice(summary.riskLimit)}</p></div>
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5"><p className="text-sm text-gray-500">Kullanılan Limit</p><p className="mt-2 text-2xl font-bold text-gray-900">{formatCommercePrice(detail.usedLimit)}</p><p className="mt-1 text-xs text-gray-500">Cari: {formatCommercePrice(detail.ledgerExposure)} · Açık sipariş: {formatCommercePrice(detail.unpostedOrderExposure)}</p></div>
-                <div className={`rounded-2xl border p-5 ${summary.riskExceeded ? 'border-red-100 bg-red-50' : 'border-emerald-100 bg-emerald-50'}`}><p className="text-sm text-gray-600">Kullanılabilir Limit</p><p className={`mt-2 text-2xl font-bold ${summary.riskExceeded ? 'text-red-700' : 'text-emerald-700'}`}>{formatCommercePrice(summary.availableLimit)}</p></div>
+                <div className={`rounded-2xl border p-5 ${summary.riskExceeded ? 'border-rose-100 bg-rose-50' : 'border-emerald-100 bg-emerald-50'}`}><p className="text-sm text-gray-600">Kullanılabilir Limit</p><p className={`mt-2 text-2xl font-bold ${summary.riskExceeded ? 'text-rose-700' : 'text-emerald-700'}`}>{formatCommercePrice(summary.availableLimit)}</p></div>
                 <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
                   <p className="text-sm text-gray-500">Kullanım Oranı</p><p className="mt-2 text-2xl font-bold text-gray-900">%{detail.riskUsagePercent.toLocaleString('tr-TR')}</p>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-200"><div className={`h-full rounded-full ${summary.riskExceeded ? 'bg-red-500' : detail.riskUsagePercent >= detail.riskWarningThreshold ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, Math.max(0, detail.riskUsagePercent))}%` }} /></div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-200"><div className={`h-full rounded-full ${summary.riskExceeded ? 'bg-rose-500' : detail.riskUsagePercent >= detail.riskWarningThreshold ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(100, Math.max(0, detail.riskUsagePercent))}%` }} /></div>
                 </div>
               </div>
 
-              {summary.riskExceeded ? <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 font-semibold text-red-700">Risk Limiti Aşıldı</div> : null}
+              {summary.riskExceeded ? <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 font-semibold text-rose-700">Risk Limiti Aşıldı</div> : null}
 
               <ToastActionForm action={updateCustomerRiskLimitAction} successMessage="Risk limiti güncellendi." errorMessage="Risk limiti güncellenemedi." confirmation={{ title: 'Risk ayarları değiştirilsin mi?', description: 'Yeni limit ve politika sonraki sipariş risk kararlarını doğrudan etkiler.', confirmLabel: 'Risk Ayarlarını Kaydet' }} className="grid gap-4 rounded-2xl border border-gray-200 bg-white p-5 lg:grid-cols-[minmax(180px,1fr)_minmax(220px,1fr)_minmax(180px,1fr)_auto] lg:items-end">
                 <input type="hidden" name="customer_id" value={customerId} />
@@ -543,7 +543,7 @@ export default async function CustomerAccountDetailPage({ params, searchParams }
                       <TableCell className="font-medium text-gray-700">{log.event_type ?? 'Genel SMS'}</TableCell>
                       <TableCell className="font-mono text-xs text-gray-500">{log.template_key ?? '—'}</TableCell>
                       <TableCell className="max-w-[360px] text-gray-600">{log.body}</TableCell>
-                      <TableCell><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${log.status === 'sent' ? 'bg-emerald-50 text-emerald-700' : log.status === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'}`}>{log.status === 'sent' ? 'Gönderildi' : log.status === 'pending' ? 'İşleniyor' : 'Başarısız'}</span></TableCell>
+                      <TableCell><span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${log.status === 'sent' ? 'bg-emerald-50 text-emerald-700' : log.status === 'pending' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'}`}>{log.status === 'sent' ? 'Gönderildi' : log.status === 'pending' ? 'İşleniyor' : 'Başarısız'}</span></TableCell>
                     </TableRow>
                   ))}
                   {smsLogs.length === 0 ? <TableEmpty colSpan={5}>Henüz ödeme bildirimi gönderilmedi.</TableEmpty> : null}

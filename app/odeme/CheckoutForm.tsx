@@ -33,7 +33,9 @@ export default function CheckoutForm({
   paymentMethods: CheckoutPaymentMethod[];
 }) {
   const [state, formAction, pending] = useActionState(submitOrderAction, initialState);
-  const [selectedAddressId, setSelectedAddressId] = useState(addresses[0]?.id ?? "new");
+  const [selectedAddressId, setSelectedAddressId] = useState(
+    addresses.find((address) => address.is_default)?.id ?? addresses[0]?.id ?? "new",
+  );
   const [customerType, setCustomerType] = useState<'individual' | 'corporate'>(customer.accountType === 'corporate' ? 'corporate' : 'individual');
   const usesNewAddress = selectedAddressId === "new";
   const accountPaymentUnavailable = accountStatus ? !accountStatus.allowed || accountStatus.requiresApproval : true;
@@ -60,7 +62,7 @@ export default function CheckoutForm({
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-sky-50 text-sky-700"><MapPin className="h-5 w-5" /></span>
-            <div><h2 className="font-black text-slate-950">Teslimat adresi</h2><p className="text-xs text-slate-500">Siparişinizin gönderileceği adresi seçin.</p></div>
+            <div><h2 className="text-base font-semibold text-slate-950">Teslimat Adresi</h2><p className="text-xs text-slate-500">Siparişinizin gönderileceği adresi seçin.</p></div>
           </div>
 
           <fieldset className="mt-5">
@@ -133,7 +135,7 @@ export default function CheckoutForm({
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-violet-50 text-violet-700"><CreditCard className="h-5 w-5" /></span>
-            <div><h2 className="font-black text-slate-950">Ödeme yöntemi</h2><p className="text-xs text-slate-500">Cari Bakiyeden Öde veya diğer aktif yöntemlerden birini seçin.</p></div>
+            <div><h2 className="text-base font-semibold text-slate-950">Ödeme Yöntemi</h2><p className="text-xs text-slate-500">Cari Bakiyeden Öde veya diğer aktif yöntemlerden birini seçin.</p></div>
           </div>
           <div className="mt-5 space-y-3">
             {paymentMethods.length === 0 ? (
@@ -198,7 +200,7 @@ export default function CheckoutForm({
         </section>
 
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <label className="text-sm font-bold text-slate-700">Sipariş notu
+          <label className="text-sm font-semibold text-slate-700">Sipariş Notu
             <textarea name="note" maxLength={2000} rows={3} placeholder="Teslimat veya sipariş notunuz…" className="mt-2 w-full resize-none rounded-xl border border-slate-300 px-4 py-3 font-normal outline-none focus:border-sky-500" />
           </label>
           <div className="mt-5 space-y-3 text-sm text-slate-600">
@@ -209,7 +211,7 @@ export default function CheckoutForm({
       </div>
 
       <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-6">
-        <h2 className="text-lg font-black text-slate-950">Ödeme özeti</h2>
+        <h2 className="text-lg font-semibold text-slate-950">Ödeme Özeti</h2>
         <div className="mt-5 max-h-72 space-y-3 overflow-y-auto pr-1">
           {cart.lines.map((line) => (
             <div key={line.id} className="flex gap-3 border-b border-slate-100 pb-3">

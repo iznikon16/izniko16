@@ -6,6 +6,7 @@ import { requireAdminPermission } from '@/lib/auth/admin';
 import { getAuditActionLabel, getAuditFilterOptions, getAuditResourceLabel, queryAuditLogs } from '@/lib/audit/queries';
 import { Button } from '@/components/ui/button';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
+import { getRoleLabel } from '@/lib/auth/roles';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,7 +100,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="hidden grid-cols-[minmax(220px,1.2fr)_180px_minmax(190px,1fr)_170px_180px] gap-4 border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs font-semibold text-slate-500 lg:grid">
-          <span>İşlem</span><span>Kaynak</span><span>Aktör</span><span>Tarih</span><span className="text-right">İşlem</span>
+          <span>İşlem</span><span>Kaynak</span><span>Kullanıcı</span><span>Tarih</span><span className="text-right">İşlem</span>
         </div>
         <div className="divide-y divide-slate-100">
           {result.rows.map((log) => {
@@ -111,7 +112,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
                 <div className="grid gap-3 lg:grid-cols-[minmax(220px,1.2fr)_180px_minmax(190px,1fr)_170px_180px] lg:items-center lg:gap-4">
                   <div className="min-w-0"><div className="flex items-center gap-2"><input aria-label={`${getAuditActionLabel(log.action)} kaydını seç`} type="checkbox" name="ids" value={log.id} form="bulk-audit-delete" className="h-4 w-4 shrink-0 rounded border-slate-300 accent-sky-500" /><span className="inline-flex rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">{getAuditActionLabel(log.action)}</span></div><p className="mt-1 truncate pl-6 font-mono text-[11px] text-slate-400" title={log.id}>{log.id}</p></div>
                   <div className="min-w-0"><p className="text-sm font-semibold text-slate-800">{getAuditResourceLabel(log.resource_type)}</p><p className="truncate font-mono text-[11px] text-slate-500" title={log.resource_id}>{log.resource_id || '—'}</p></div>
-                  <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-800">{log.actorName}</p><p className="truncate text-xs text-slate-500">{log.actorEmail || log.actorRole}</p></div>
+                  <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-800">{log.actorName}</p><p className="truncate text-xs text-slate-500">{log.actorEmail || (log.actorRole === 'system' ? 'Sistem' : getRoleLabel(log.actorRole))}</p></div>
                   <div><p className="text-sm text-slate-700">{new Intl.DateTimeFormat('tr-TR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Istanbul' }).format(new Date(log.created_at))}</p><p className="mt-1 text-[11px] text-slate-400">{log.ip_address || 'IP kaydı yok'}</p></div>
                   <div className="flex justify-end">
                     {isSuperAdmin && result.retentionAvailable && !log.deleted_at ? <ToastActionForm action={hideAuditLogAction} successMessage="Audit kaydı görünümden kaldırıldı." confirmation={{ title: 'Audit kaydını gizle', description: 'Kayıt fiziksel olarak silinmeyecek ve Super Admin tarafından geri yüklenebilecek.', confirmLabel: 'Gizle', destructive: true }}><input type="hidden" name="id" value={log.id} /><Button type="submit" variant="destructive" size="sm" className="gap-1.5"><Trash2 className="h-3.5 w-3.5" />Sil</Button></ToastActionForm> : null}

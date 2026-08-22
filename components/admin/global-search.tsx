@@ -127,7 +127,7 @@ export function GlobalSearch() {
       {open && query.trim().length >= 2 ? (
         <div id="admin-global-search-results" role="listbox" className="absolute left-0 top-[calc(100%+10px)] z-50 max-h-[70vh] w-[min(560px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-900/15">
           {status === 'loading' && results.length === 0 ? <p className="px-4 py-8 text-center text-sm text-slate-500">Aranıyor...</p> : null}
-          {status === 'error' ? <p role="alert" className="rounded-xl bg-red-50 px-4 py-4 text-sm text-red-700">Arama şu anda tamamlanamadı. Lütfen tekrar deneyin.</p> : null}
+          {status === 'error' ? <p role="alert" className="rounded-xl bg-rose-50 px-4 py-4 text-sm text-rose-700">Arama şu anda tamamlanamadı. Lütfen tekrar deneyin.</p> : null}
           {status === 'ready' && results.length === 0 ? <p className="px-4 py-8 text-center text-sm text-slate-500">Eşleşen kayıt bulunamadı.</p> : null}
           {grouped.map(({ group, items }) => (
             <section key={group} aria-label={GROUP_LABELS[group]} className="py-1">

@@ -1,4 +1,4 @@
-﻿import { ExternalLink, Play, Video } from 'lucide-react';
+import { ExternalLink, Play, Video } from 'lucide-react';
 import { saveHomeVideoAction } from '@/app/admin/(panel)/actions';
 import { AdminFormPendingNotice } from '@/components/admin/admin-form-feedback';
 import { FormSubmitButton } from '@/components/ui/form-submit-button';
@@ -26,8 +26,8 @@ export default async function AdminHomeVideoPage() {
       <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <div className="flex flex-col gap-6 border-b border-gray-100 pb-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Ana Sayfa Video</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Ana sayfa video ayarı</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Ana Sayfa Video</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Ana Sayfa Video Ayarı</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
               Anasayfadaki video bölümünün YouTube veya MP4 bağlantısını, başlığını ve yayın durumunu buradan yönetin.
             </p>
@@ -51,27 +51,27 @@ export default async function AdminHomeVideoPage() {
                 defaultValue={video.video_url}
                 placeholder="https://youtu.be/... veya https://.../video.mp4"
                 required
-                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-300/40"
               />
               <input
                 name="eyebrow"
                 defaultValue={video.eyebrow}
                 placeholder="Üst etiket"
-                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-300/40"
               />
               <input
                 name="title"
                 defaultValue={video.title}
                 placeholder="Video başlığı"
                 required
-                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-300/40"
               />
               <textarea
                 name="description"
                 rows={4}
                 defaultValue={video.description}
                 placeholder="Video açıklaması"
-                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 outline-none transition-colors focus:border-sky-300/40"
               />
             </div>
 
@@ -96,7 +96,7 @@ export default async function AdminHomeVideoPage() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Önizleme</p>
                 <h3 className="mt-1 text-xl font-semibold tracking-tight text-gray-900">{video.title}</h3>
               </div>
-              {isDirectVideo ? <Play className="h-5 w-5 text-blue-600" /> : <Video className="h-5 w-5 text-blue-600" />}
+              {isDirectVideo ? <Play className="h-5 w-5 text-sky-500" /> : <Video className="h-5 w-5 text-sky-500" />}
             </div>
             <div className="overflow-hidden rounded-[18px] border border-gray-200 bg-black">
               <div className="aspect-video">

@@ -118,7 +118,7 @@ function FieldInput({
         placeholder={field.placeholder}
         required={field.required}
         type={field.secret || field.type === 'password' ? 'password' : field.type === 'url' ? 'url' : 'text'}
-        className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
       />
       {field.help ? <span className="text-xs leading-5 text-gray-400">{field.help}</span> : null}
     </label>
@@ -191,7 +191,7 @@ export function PaymentMethodConfigFields({
             name="provider"
             value={selectedProvider}
             onChange={(event) => handleProviderChange(event.target.value)}
-            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500"
+            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-sky-500"
           >
             {selectableDefinitions.map((item) => (
               <option key={item.key} value={item.key}>
@@ -207,7 +207,7 @@ export function PaymentMethodConfigFields({
             name="integration_type"
             value={selectedIntegrationType}
             onChange={(event) => setSelectedIntegrationType(event.target.value)}
-            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500"
+            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-sky-500"
           >
             <option value="manual">Manuel teyit</option>
             <option value="redirect">Güvenli yönlendirme</option>
@@ -221,19 +221,19 @@ export function PaymentMethodConfigFields({
             name="sort_order"
             type="number"
             defaultValue={sortOrder}
-            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-blue-500"
+            className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none focus:border-sky-500"
           />
         </label>
       </div>
 
-      <div className="rounded-[18px] border border-blue-300/20 bg-blue-600/10 p-3">
+      <div className="rounded-[18px] border border-sky-300/20 bg-sky-500/10 p-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-600">{definition.label}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-500">{definition.label}</p>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-500">{definition.defaultDescription}</p>
           </div>
           {definition.docsUrl ? (
-            <a href={definition.docsUrl} target="_blank" rel="noreferrer" className="rounded-full border border-gray-200 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-500 hover:bg-blue-50">
+            <a href={definition.docsUrl} target="_blank" rel="noreferrer" className="rounded-full border border-gray-200 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-500 hover:bg-sky-50">
               Doküman
             </a>
           ) : null}
@@ -256,7 +256,7 @@ export function PaymentMethodConfigFields({
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 outline-none marker:hidden">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-500">Ek JSON ayarları</p>
-            {extraJsonError ? <p className="mt-1 text-xs text-red-200">{extraJsonError}</p> : null}
+            {extraJsonError ? <p className="mt-1 text-xs text-rose-700">{extraJsonError}</p> : null}
           </div>
           <ChevronDown className="h-4 w-4 text-gray-500 transition-transform group-open:rotate-180" />
         </summary>
@@ -266,11 +266,11 @@ export function PaymentMethodConfigFields({
             onChange={(event) => setExtraJson(event.target.value)}
             rows={3}
             className={cn(
-              'rounded-2xl border bg-white px-4 py-3 font-mono text-sm leading-6 text-gray-900 outline-none focus:border-blue-500',
-              extraJsonError ? 'border-red-500/50' : 'border-gray-200'
+              'rounded-2xl border bg-white px-4 py-3 font-mono text-sm leading-6 text-gray-900 outline-none focus:border-sky-500',
+              extraJsonError ? 'border-rose-500/50' : 'border-gray-200'
             )}
           />
-          <span className={cn('text-xs leading-5', extraJsonError ? 'text-red-200' : 'text-gray-400')}>
+          <span className={cn('text-xs leading-5', extraJsonError ? 'text-rose-700' : 'text-[#475569]')}>
             {extraJsonError ?? 'Alan şablonda yoksa burada obje olarak saklanır. Gizli değerler checkout tarafına gönderilmez.'}
           </span>
         </label>

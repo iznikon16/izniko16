@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { ChevronDown, Inbox, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import { deleteInquiryAction, saveInquiryAction } from '@/app/admin/(panel)/inquiries/actions';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
@@ -45,7 +45,7 @@ function parseFilters(searchParams: Record<string, string | string[] | undefined
 
 function getStatusTone(status: CustomerInquiryRow['status']) {
   if (status === 'new') {
-    return 'border-blue-200 bg-blue-50 text-blue-600';
+    return 'border-sky-200 bg-sky-50 text-sky-500';
   }
 
   if (status === 'in_progress') {
@@ -62,7 +62,7 @@ function getStatusTone(status: CustomerInquiryRow['status']) {
 function InquiryRow({ inquiry }: { inquiry: CustomerInquiryRow }) {
   return (
     <details className="group border-t border-gray-100 first:border-t-0">
-      <summary className="grid cursor-pointer list-none gap-3 px-4 py-3 outline-none transition-colors hover:bg-blue-50/50 xl:grid-cols-[120px_minmax(200px,1fr)_170px_160px_150px_34px] xl:items-center">
+      <summary className="grid cursor-pointer list-none gap-3 px-4 py-3 outline-none transition-colors hover:bg-sky-50/50 xl:grid-cols-[120px_minmax(200px,1fr)_170px_160px_150px_34px] xl:items-center">
         <span className={`w-fit rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${getStatusTone(inquiry.status)}`}>
           {statusLabels[inquiry.status]}
         </span>
@@ -90,7 +90,7 @@ function InquiryRow({ inquiry }: { inquiry: CustomerInquiryRow }) {
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="grid gap-3">
             <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-blue-600">Mesaj</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-500">Mesaj</p>
               <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-gray-500">{inquiry.message || 'Mesaj girilmedi.'}</p>
             </div>
 
@@ -127,14 +127,14 @@ function InquiryRow({ inquiry }: { inquiry: CustomerInquiryRow }) {
                 <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Operasyon notu</span>
                 <textarea name="admin_note" rows={4} defaultValue={inquiry.admin_note} className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 outline-none" />
               </label>
-              <button type="submit" className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-600">
+              <button type="submit" className="rounded-xl bg-[#0ea5e9] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:bg-[#0284c7] hover:shadow-md">
                 Talebi Güncelle
               </button>
             </ToastActionForm>
 
             <form action={deleteInquiryAction}>
               <input type="hidden" name="id" value={inquiry.id} />
-              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-red-100 transition-colors hover:bg-red-500/15">
+              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-100">
                 <Trash2 className="h-4 w-4" />
                 Sil
               </button>
@@ -158,12 +158,12 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
   ].filter(Boolean) as string[];
 
   return (
-    <div className="grid gap-4">
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
+    <div className="mx-auto grid w-full max-w-[1440px] gap-4">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
         <div className="flex flex-col gap-5 border-b border-gray-100 pb-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600">Talepler</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Form ve teklif merkezi</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-500">Talepler</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-gray-900">Form ve Teklif Merkezi</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
               İletişim, parça talebi ve ürün teklif formları burada listelenir. SMTP aktifse bildirimler aynı anda gönderilir.
             </p>
@@ -175,8 +175,8 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
           </div>
         </div>
 
-        <form className="mt-6 grid gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 md:p-5">
-          <div className="grid gap-3 xl:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))]">
+        <form className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4 md:p-5 xl:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))_auto]">
+          <div className="contents">
             <label className="flex items-center gap-3 rounded-[18px] border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
               <Search className="h-4 w-4 text-gray-500" />
               <input name="query" defaultValue={filters.query ?? ''} placeholder="Ad, telefon, e-posta, konu veya ürün ara" className="w-full bg-transparent text-gray-900 outline-none placeholder:text-gray-500" />
@@ -199,9 +199,10 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
                 </option>
               ))}
             </select>
+            <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700"><SlidersHorizontal className="h-4 w-4" />Filtrele</button>
           </div>
 
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 border-t border-slate-200 pt-3 xl:col-span-4 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap gap-2">
               {activeFilterLabels.map((label) => (
                 <span key={label} className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">
@@ -210,10 +211,6 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-[#111111] transition-colors hover:bg-white/90">
-                <SlidersHorizontal className="h-4 w-4" />
-                Filtrele
-              </button>
               {activeFilterCount > 0 ? (
                 <Link href="/admin/inquiries" className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-gray-900">
                   <X className="h-4 w-4" />
@@ -235,9 +232,11 @@ export default async function AdminInquiriesPage({ searchParams }: AdminInquirie
           </div>
 
           {inquiries.length === 0 ? (
-            <div className="px-5 py-14 text-center">
-              <Inbox className="mx-auto h-8 w-8 text-gray-500" />
-              <p className="mt-3 text-sm text-gray-500">Bu filtrelerle talep bulunamadı.</p>
+            <div className="flex min-h-[360px] flex-col items-center justify-center px-5 py-14 text-center">
+              <span className="grid h-20 w-20 place-items-center rounded-full bg-slate-50 text-slate-500"><Inbox className="h-9 w-9" /></span>
+              <h3 className="mt-5 text-lg font-semibold text-slate-900">Bu filtrelerle talep bulunamadı.</h3>
+              <p className="mt-2 max-w-xl text-sm text-slate-500">Arama kriterlerinizi veya filtrelerinizi yeniden düzenleyerek farklı sonuçlara ulaşabilirsiniz.</p>
+              {activeFilterCount > 0 ? <Link href="/admin/inquiries" className="mt-5 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:border-sky-300 hover:text-sky-700"><SlidersHorizontal className="h-4 w-4" />Filtreleri temizle</Link> : null}
             </div>
           ) : (
             inquiries.map((inquiry) => <InquiryRow key={inquiry.id} inquiry={inquiry} />)

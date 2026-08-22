@@ -33,7 +33,7 @@ export function LogoutButton() {
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+      className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 transition-all hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
     >
       {isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
       {isPending ? 'Çıkış yapılıyor...' : 'Çıkış Yap'}

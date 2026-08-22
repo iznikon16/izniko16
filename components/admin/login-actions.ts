@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache';
 import { writeAuditLog } from '@/lib/audit/queries';
 import { invalidateSupabaseSession } from '@/lib/auth/session-invalidation';
 import { resolveAdminAuthorization, type AdminAuthorizationStatus } from '@/lib/auth/admin-authorization';
+import { getMfaStatus } from '@/lib/auth/mfa';
 
 const adminAuthorizationMessages: Record<Exclude<AdminAuthorizationStatus, 'AUTHORIZED'>, string> = {
   ADMIN_INACTIVE: 'Kullanıcı hesabınız pasif durumda.',
@@ -74,15 +75,20 @@ export async function adminLoginAction(formData: FormData) {
     return { error: adminAuthorizationMessages[authorization.status] };
   }
 
+  const mfaStatus = await getMfaStatus(supabase);
+  if (!mfaStatus.available) {
+    await supabase.auth.signOut({ scope: 'global' });
+    return { error: 'İki aşamalı doğrulama durumu kontrol edilemedi. Lütfen tekrar deneyin.' };
+  }
   await writeAuditLog({
     actorUserId: verifiedUser.id,
     action: 'login_success',
     resourceType: 'auth',
-    metadata: { email },
+    metadata: { email, mfa_required: mfaStatus.requiresChallenge },
     ip
   });
 
-  return { success: true };
+  return { mfaRequired: mfaStatus.requiresChallenge, success: true };
 }
 
 function getAuthErrorMessage(message: string) {
