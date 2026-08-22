@@ -23,7 +23,7 @@ function ToolbarButton({ children, icon: Icon, label, onClick }: ToolbarButtonPr
       title={label}
       aria-label={label}
       onClick={onClick}
-      className="inline-flex h-9 min-w-9 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 px-2 text-xs font-semibold text-gray-600 transition-colors hover:border-gray-200 hover:bg-gray-100 hover:text-white"
+      className="inline-flex h-9 min-w-9 items-center justify-center rounded-xl border border-gray-200 bg-white px-2 text-xs font-semibold text-gray-600 transition-colors hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
     >
       {Icon ? <Icon className="h-4 w-4" /> : children}
     </button>
@@ -78,7 +78,7 @@ export function RichTextEditor({ initialValue, name }: RichTextEditorProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[18px] border border-gray-200 bg-white/[0.035]">
+    <div className="overflow-hidden rounded-[18px] border border-gray-200 bg-white shadow-sm">
       <input type="hidden" name={name} value={html} />
 
       <div className="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 p-3 xl:flex-row xl:items-center xl:justify-between">
@@ -100,14 +100,14 @@ export function RichTextEditor({ initialValue, name }: RichTextEditorProps) {
           <button
             type="button"
             onClick={() => setMode('visual')}
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${mode === 'visual' ? 'bg-white text-[#111111]' : 'text-gray-500 hover:text-white'}`}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${mode === 'visual' ? 'bg-sky-600 text-white shadow-sm' : 'text-gray-500 hover:bg-white hover:text-gray-900'}`}
           >
             Görsel
           </button>
           <button
             type="button"
             onClick={() => setMode('html')}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${mode === 'html' ? 'bg-white text-[#111111]' : 'text-gray-500 hover:text-white'}`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${mode === 'html' ? 'bg-sky-600 text-white shadow-sm' : 'text-gray-500 hover:bg-white hover:text-gray-900'}`}
           >
             <Code2 className="h-3.5 w-3.5" />
             HTML
@@ -123,7 +123,7 @@ export function RichTextEditor({ initialValue, name }: RichTextEditorProps) {
           onInput={syncFromEditor}
           onBlur={syncFromEditor}
           onPaste={handlePaste}
-          className="admin-rich-text-surface min-h-[240px] bg-[#0d0d0d] px-5 py-5 text-sm leading-7 text-gray-900 outline-none transition-colors focus:bg-[#101010]"
+          className="admin-rich-text-surface min-h-[240px] bg-white px-5 py-5 text-sm leading-7 text-gray-900 outline-none transition-colors focus:bg-sky-50/20"
         />
       ) : (
         <textarea
@@ -131,7 +131,7 @@ export function RichTextEditor({ initialValue, name }: RichTextEditorProps) {
           onChange={(event) => setHtml(event.target.value)}
           rows={14}
           spellCheck={false}
-          className="min-h-[240px] w-full resize-y bg-[#0d0d0d] px-5 py-5 font-mono text-sm leading-7 text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:bg-[#101010]"
+          className="min-h-[240px] w-full resize-y bg-white px-5 py-5 font-mono text-sm leading-7 text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:bg-sky-50/20"
         />
       )}
     </div>

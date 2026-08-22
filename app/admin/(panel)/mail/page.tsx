@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
+import { requireAdminPermission } from '@/lib/auth/admin';
 
 type AdminMailPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
@@ -79,6 +81,7 @@ function getLogTone(status: string) {
 }
 
 export default async function AdminMailPage({ searchParams }: AdminMailPageProps) {
+  await requireAdminPermission('settings.view');
   const resolvedSearchParams = (searchParams ? await searchParams : {}) ?? {};
   const saved = getSingleParam(resolvedSearchParams.saved);
   const test = getSingleParam(resolvedSearchParams.test);
@@ -223,9 +226,10 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                 <Label className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Alıcı e-posta</Label>
                 <Input name="test_email" type="email" defaultValue={settings.admin_notification_email || settings.from_email} required />
               </div>
-              <button type="submit" className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[#111111] transition-colors hover:bg-white/90">
+              <Button type="submit" className="mt-4 w-full gap-2 rounded-xl font-semibold shadow-sm">
+                <Send className="h-4 w-4" />
                 Test E-postası Gönder
-              </button>
+              </Button>
             </form>
 
             <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
@@ -275,7 +279,7 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                 </span>
               </summary>
 
-              <form action={saveEmailTemplateAction} className="grid gap-4 border-t border-gray-100 bg-gray-50 p-5">
+              <ToastActionForm action={saveEmailTemplateAction} successMessage="E-posta şablonu kaydedildi." errorMessage="E-posta şablonu kaydedilemedi." className="grid gap-4 border-t border-gray-100 bg-gray-50 p-5">
                 <input type="hidden" name="key" value={template.key} />
                 <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
                   <Checkbox name="is_enabled" id={`is_enabled_${template.key}`} defaultChecked={template.is_enabled} />
@@ -303,10 +307,10 @@ export default async function AdminMailPage({ searchParams }: AdminMailPageProps
                   <Textarea name="text_body" rows={4} defaultValue={template.text_body} />
                 </div>
 
-                <button type="submit" className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700">
+                <button type="submit" className="inline-flex items-center justify-center rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-600">
                   Şablonu Kaydet
                 </button>
-              </form>
+              </ToastActionForm>
             </details>
           ))}
         </div>

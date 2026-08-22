@@ -460,7 +460,7 @@ begin
     raise exception 'A paid payment attempt cannot be downgraded.' using errcode = '22023';
   end if;
 
-  v_payment_status := case when p_paid then 'paid' else 'failed' end;
+  v_payment_status := case when p_paid then 'paid'::public.payment_status else 'failed'::public.payment_status end;
 
   update public.payment_attempts
   set

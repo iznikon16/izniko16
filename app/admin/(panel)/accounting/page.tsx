@@ -3,7 +3,7 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  CircleDollarSign,
+  TurkishLira,
   Search,
   SlidersHorizontal,
   Users,
@@ -72,7 +72,7 @@ export default async function CurrentAccountsPage({ searchParams }: CurrentAccou
           <div className="rounded-2xl border border-gray-100 bg-gray-50 p-5">
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-medium text-gray-500">Toplam Cari Alacak</p>
-              <CircleDollarSign className="h-5 w-5 text-red-500" />
+              <TurkishLira className="h-5 w-5 text-red-500" />
             </div>
             <p className="mt-3 text-2xl font-bold text-gray-900">{formatCommercePrice(result.metrics.totalReceivable)}</p>
           </div>

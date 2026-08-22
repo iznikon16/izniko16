@@ -37,7 +37,7 @@ export default async function IntegrationsPage() {
                 {callback ? <div className="mt-4 rounded-xl border border-gray-200 bg-white px-3 py-2"><p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Callback / Webhook</p><code className="mt-1 block break-all text-xs text-gray-700">{origin}{callback}</code></div> : null}
                 <p className="mt-4 min-h-5 text-xs text-gray-500">{last?.message ?? 'Henüz yapılandırma kontrolü çalıştırılmadı.'}</p>
                 {last ? <p className="mt-1 text-[10px] text-gray-400">Son kontrol: {new Date(last.checked_at).toLocaleString('tr-TR')} · {last.environment}</p> : null}
-                <div className="mt-4 flex flex-wrap gap-2"><Link href={href} className="rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:border-blue-300">Ayarları aç</Link><form action={checkIntegrationConfigurationAction}><input type="hidden" name="integration_key" value={key} /><button className="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">Yapılandırmayı kontrol et</button></form></div>
+                <div className="mt-4 flex flex-wrap gap-2"><Link href={href} className="rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:border-sky-300 hover:bg-sky-50">Ayarları aç</Link><form action={checkIntegrationConfigurationAction}><input type="hidden" name="integration_key" value={key} /><button className="rounded-full bg-sky-500 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">Yapılandırmayı kontrol et</button></form></div>
               </article>
             );
           })}

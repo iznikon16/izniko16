@@ -1,7 +1,9 @@
 import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { NetgsmSettingsRow, SmsTemplateRow, SmsLogRow } from '@/lib/catalog/types';
-import { saveNetgsmSettingsAction, saveSmsTemplateAction, deleteSmsTemplateAction, sendTestSmsAction } from '@/app/admin/(panel)/integrations/netgsm/actions';
+import { saveNetgsmSettingsAction, saveSmsTemplateAction, deleteSmsTemplateAction, sendTestSmsActionResult } from '@/app/admin/(panel)/integrations/netgsm/actions';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
+import { FormSubmitButton } from '@/components/ui/form-submit-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +72,7 @@ export default async function NetgsmPage({
       {/* API Ayarları */}
       <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
         <h2 className="mb-4 font-semibold text-gray-900">API Ayarları</h2>
-        <form action={saveNetgsmSettingsAction} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <ToastActionForm action={saveNetgsmSettingsAction} successMessage="Netgsm ayarları kaydedildi." errorMessage="Netgsm ayarları kaydedilemedi." className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <input type="text" name="username" defaultValue={settings?.username ?? ''} placeholder="Kullanıcı adı" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           <input type="password" name="password" defaultValue={settings?.password ?? ''} placeholder="Şifre" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           <input type="text" name="header" defaultValue={settings?.header ?? ''} placeholder="Başlık (Header)" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
@@ -79,18 +81,18 @@ export default async function NetgsmPage({
               <input type="checkbox" name="is_enabled" defaultChecked={settings?.is_enabled ?? false} />
               Aktif
             </label>
-            <button className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">Kaydet</button>
+            <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">Kaydet</button>
           </div>
-        </form>
+        </ToastActionForm>
 
         {/* Test SMS */}
         <div className="mt-5 border-t border-gray-100 pt-4">
           <h3 className="mb-2 text-sm font-semibold text-gray-700">Test SMS Gönder</h3>
-          <form action={sendTestSmsAction} className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
+          <ToastActionForm action={sendTestSmsActionResult} successMessage="Test SMS gönderildi." errorMessage="Test SMS gönderilemedi." className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
             <input type="text" name="phone" placeholder="05xx xxx xx xx" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
             <input type="text" name="message" placeholder="Test mesajı" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
-            <button className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700">Gönder</button>
-          </form>
+            <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">Gönder</button>
+          </ToastActionForm>
         </div>
 
         <p className="mt-3 text-xs text-gray-500">
@@ -103,7 +105,7 @@ export default async function NetgsmPage({
         <h2 className="mb-4 font-semibold text-gray-900">SMS Şablonları</h2>
         <div className="space-y-3">
           {templates.length === 0 && DEFAULT_TEMPLATES.map((t) => (
-            <form key={t.key} action={saveSmsTemplateAction} className="rounded-xl border border-gray-100 bg-gray-50 p-3">
+            <ToastActionForm key={t.key} action={saveSmsTemplateAction} successMessage="SMS şablonu oluşturuldu." errorMessage="SMS şablonu oluşturulamadı." className="rounded-xl border border-gray-100 bg-gray-50 p-3">
               <input type="hidden" name="key" value={t.key} />
               <div className="flex items-center gap-2">
                 <input type="text" name="name" defaultValue={t.name} className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium" />
@@ -113,9 +115,9 @@ export default async function NetgsmPage({
               </div>
               <input type="text" name="body" defaultValue={t.body} className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
               <div className="mt-2 flex justify-end">
-                <button className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Şablonu Oluştur</button>
+                <button className="rounded-full bg-sky-500 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">Şablonu Oluştur</button>
               </div>
-            </form>
+            </ToastActionForm>
           ))}
 
           {templates.map((t) => (
@@ -130,10 +132,8 @@ export default async function NetgsmPage({
               </div>
               <input type="text" name="body" defaultValue={t.body} className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm" />
               <div className="mt-2 flex justify-end gap-2">
-                <button className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Kaydet</button>
-                <button formAction={deleteSmsTemplateAction} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
-                  Sil
-                </button>
+                <FormSubmitButton idleLabel="Kaydet" pendingLabel="Kaydediliyor..." size="sm" />
+                <FormSubmitButton formAction={deleteSmsTemplateAction} idleLabel="Sil" pendingLabel="Siliniyor..." variant="destructive" size="sm" />
               </div>
             </form>
           ))}

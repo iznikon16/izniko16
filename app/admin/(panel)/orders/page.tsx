@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { OrderShipments } from '@/components/admin/order-shipments';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
 import { getPaymentProviderDefinition } from '@/lib/commerce/payment-provider-presets';
 import type { AdminOrderFilters, AdminOrderRecord, OrderRow, PaymentMethodRow } from '@/lib/catalog/types';
 
@@ -245,11 +246,11 @@ function OrderRow({ order, paymentMethods }: { order: AdminOrderRecord; paymentM
               {order.risk_approved_at ? (
                 <p className="mt-3 text-sm font-semibold text-emerald-700">Onaylandı: {dateFormatter.format(new Date(order.risk_approved_at))}</p>
               ) : (
-                <form action={approveOrderRiskAction} className="mt-3">
+                <ToastActionForm action={approveOrderRiskAction} successMessage="Sipariş risk onayı verildi." errorMessage="Sipariş risk onayı verilemedi." className="mt-3">
                   <input type="hidden" name="order_id" value={order.id} />
                   <input type="hidden" name="customer_id" value={order.user_id} />
                   <Button type="submit" size="sm">Risk onayı ver</Button>
-                </form>
+                </ToastActionForm>
               )}
             </div>
           ) : null}

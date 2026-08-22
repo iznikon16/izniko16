@@ -892,7 +892,8 @@ export async function deleteCategoryAction(formData: FormData) {
 }
 
 export async function saveProductAction(formData: FormData) {
-  const supabase = await ensureAdmin('product.update');
+  const session = await requireAdminPermission('product.update');
+  const supabase = createAdminClient();
   const productId = getText(formData, 'id');
   const title = getText(formData, 'title');
 
@@ -906,6 +907,10 @@ export async function saveProductAction(formData: FormData) {
   const availableCategories = await getCategoryRecords(supabase);
   const normalizedCategorySelection = resolveProductCategorySelection(availableCategories, rawSelectedCategoryIds);
   const previousProduct = productId ? await getProductRouteInfo(supabase, productId, availableCategories) : null;
+  const { data: previousAuditProduct, error: previousAuditError } = productId
+    ? await supabase.from('products').select('id, sku, title, slug, status, is_active, price_mode, price, compare_at_price, stock_status, brand_id').eq('id', productId).maybeSingle()
+    : { data: null, error: null };
+  if (previousAuditError) throw new Error(previousAuditError.message);
   const productPayload: ProductInsert = {
     sku: getText(formData, 'sku'),
     title,
@@ -1006,17 +1011,32 @@ export async function saveProductAction(formData: FormData) {
     await syncProductImages(product.id, []);
   }
 
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: productId ? 'product_updated' : 'product_created',
+    resourceType: 'product',
+    resourceId: product.id,
+    oldValue: previousAuditProduct ?? {},
+    newValue: {
+      id: product.id, sku: product.sku, title: product.title, slug: product.slug, status: product.status,
+      isActive: product.is_active, priceMode: product.price_mode, price: product.price,
+      compareAtPrice: product.compare_at_price, stockStatus: product.stock_status, brandId: product.brand_id,
+      categoryIds: normalizedCategorySelection.selectedCategoryIds,
+    },
+  });
+
   revalidatePath('/admin');
   revalidatePath('/admin/products');
   revalidatePath(`/admin/products/${product.id}`);
   revalidateCatalogProduct(previousProduct?.rootCategorySlug, previousProduct?.slug);
   revalidateCatalogProduct(normalizedCategorySelection.rootCategorySlug, product.slug);
 
-  redirect(`/admin/products/${product.id}`);
+  redirect(`/admin/products/${product.id}?saved=1`);
 }
 
 export async function deleteProductAction(formData: FormData) {
-  const supabase = await ensureAdmin('product.update');
+  const session = await requireAdminPermission('product.update');
+  const supabase = createAdminClient();
   const productId = getText(formData, 'id');
 
   if (!productId) {
@@ -1025,6 +1045,8 @@ export async function deleteProductAction(formData: FormData) {
 
   const availableCategories = await getCategoryRecords(supabase);
   const productRouteInfo = await getProductRouteInfo(supabase, productId, availableCategories);
+  const { data: auditProduct, error: auditProductError } = await supabase.from('products').select('id, sku, title, slug, status, is_active, price_mode, price, compare_at_price, stock_status, brand_id').eq('id', productId).maybeSingle();
+  if (auditProductError || !auditProduct) throw new Error('Ürün bulunamadı.');
 
   const { data: images, error: imagesError } = await supabase
     .from('product_images')
@@ -1041,11 +1063,12 @@ export async function deleteProductAction(formData: FormData) {
 
   const { error } = await supabase.from('products').delete().eq('id', productId);
   if (error) throw new Error(error.message);
+  await writeAuditLog({ actorUserId: session.user.id, action: 'product_deleted', resourceType: 'product', resourceId: productId, oldValue: auditProduct });
 
   revalidatePath('/admin');
   revalidatePath('/admin/products');
   revalidateCatalogProduct(productRouteInfo.rootCategorySlug, productRouteInfo.slug);
-  redirect('/admin/products');
+  redirect('/admin/products?deleted=1');
 }
 
 export async function uploadMediaImagesAction(formData: FormData) {
@@ -1215,6 +1238,16 @@ export async function saveOrderAction(formData: FormData) {
     throw new Error(error?.message ?? 'Sipariş güncellenemedi.');
   }
 
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: 'order_updated',
+    resourceType: 'order',
+    resourceId: orderId,
+    oldValue: { status: updatedOrder.previous_status, paymentStatus: updatedOrder.previous_payment_status },
+    newValue: { status: updatedOrder.status, paymentStatus: updatedOrder.payment_status, paymentMethodId, paymentProvider },
+    metadata: { accountingAction: updatedOrder.accounting_action },
+  });
+
   const { data: latestAttempt, error: latestAttemptError } = await supabase
     .from('payment_attempts')
     .select('id')
@@ -1253,7 +1286,7 @@ export async function saveOrderAction(formData: FormData) {
 
   revalidateAdminCommerce();
   revalidatePath('/admin/accounting/hareketler');
-  redirect('/admin/orders');
+  redirect('/admin/orders?saved=1');
 }
 
 export async function deleteOrderAction(formData: FormData) {
@@ -1268,7 +1301,7 @@ export async function deleteOrderAction(formData: FormData) {
   if (!result.ok) throw new Error(result.error);
 
   revalidateAdminCommerce();
-  redirect('/admin/orders');
+  redirect('/admin/orders?deleted=1');
 }
 
 export async function createCustomerAction(formData: FormData) {
@@ -1659,7 +1692,8 @@ export async function deleteManagedUserAction(formData: FormData) {
 }
 
 export async function saveCustomerAction(formData: FormData) {
-  const supabase = await ensureAdmin('customer.update');
+  const session = await requireAdminPermission('customer.update');
+  const supabase = createAdminClient();
   const userId = getText(formData, 'user_id');
 
   if (!userId) {
@@ -1667,6 +1701,8 @@ export async function saveCustomerAction(formData: FormData) {
   }
 
   const isBlocked = formData.get('is_blocked') === 'on';
+  const { data: previous, error: previousError } = await supabase.from('customer_profiles').select('user_id, full_name, phone, is_blocked, admin_note').eq('user_id', userId).maybeSingle();
+  if (previousError || !previous) throw new Error('Müşteri bulunamadı.');
   const { error: authError } = await supabase.auth.admin.updateUserById(userId, {
     ban_duration: isBlocked ? '876000h' : 'none',
   });
@@ -1688,6 +1724,15 @@ export async function saveCustomerAction(formData: FormData) {
   if (error) {
     throw new Error(error.message);
   }
+
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: 'customer_update',
+    resourceType: 'customer',
+    resourceId: userId,
+    oldValue: previous,
+    newValue: { fullName: getText(formData, 'full_name'), phone: getText(formData, 'phone'), isBlocked, adminNote: getText(formData, 'admin_note') },
+  });
 
   revalidateAdminCommerce();
 }
@@ -2046,6 +2091,10 @@ export async function savePaymentMethodAction(formData: FormData) {
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
   const code = getText(formData, 'code') || slugify(name);
+  const { data: previousAuditMethod, error: previousAuditError } = id
+    ? await supabase.from('payment_methods').select('id, name, code, provider, integration_type, is_active, sort_order').eq('id', id).maybeSingle()
+    : { data: null, error: null };
+  if (previousAuditError) throw new Error(previousAuditError.message);
 
   if (!name || !code) {
     throw new Error('Ödeme yöntemi adı ve kodu zorunludur.');
@@ -2107,6 +2156,7 @@ export async function savePaymentMethodAction(formData: FormData) {
     action: id ? 'integration_payment_method_update' : 'integration_payment_method_create',
     resourceType: 'payment_method',
     resourceId: id || code,
+    oldValue: previousAuditMethod ?? {},
     newValue: { code, provider: providerKey, isActive: payload.is_active },
   });
 
@@ -2114,18 +2164,23 @@ export async function savePaymentMethodAction(formData: FormData) {
 }
 
 export async function deletePaymentMethodAction(formData: FormData) {
-  const supabase = await ensureAdmin('settings.manageIntegrations');
+  const session = await requireAdminPermission('settings.manageIntegrations');
+  const supabase = createAdminClient();
   const id = getText(formData, 'id');
 
   if (!id) {
     return;
   }
 
+  const { data: previous, error: previousError } = await supabase.from('payment_methods').select('id, name, code, provider, integration_type, is_active, sort_order').eq('id', id).maybeSingle();
+  if (previousError || !previous) throw new Error('Ödeme yöntemi bulunamadı.');
   const { error } = await supabase.from('payment_methods').delete().eq('id', id);
 
   if (error) {
     throw new Error(error.message);
   }
+
+  await writeAuditLog({ actorUserId: session.user.id, action: 'integration_payment_method_delete', resourceType: 'payment_method', resourceId: id, oldValue: previous });
 
   revalidateAdminCommerce();
 }

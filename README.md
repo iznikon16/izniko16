@@ -26,6 +26,9 @@ Platform; müşteri yönetimi, ürün ve fiyatlandırma, sipariş operasyonları
 * Sipariş ve sepet yönetimi
 * Sipariş durum takibi
 * Çoklu ve kısmi sevkiyat, kargo takip numarası ve teslimat geçmişi
+* Sipariş kalemi bazlı iade, ürün kabulü, stok iadesi ve idempotent geri ödeme
+* Siparişten değiştirilemez fatura anlık görüntüsü, iptal/iade belgeleri ve müşteri PDF arşivi
+* Yapılandırılmamış sağlayıcıda sahte başarı üretmeyen e-Fatura entegrasyon arayüzü
 * Stok ve stok hareketleri
 * Kritik stok takibi
 * Cari hesap ve borç/alacak yönetimi
@@ -44,7 +47,10 @@ Platform; müşteri yönetimi, ürün ve fiyatlandırma, sipariş operasyonları
 * Toast ve bildirim sistemi
 * Yedekleme sistemi
 * Yönetim Dashboard'u
-* Raporlama ve operasyon takibi
+* Filtreli cari bakiye, borç/alacak, tahsilat, vade, gecikme ve risk raporları
+* Ekran filtresiyle birebir uyumlu, formül enjeksiyonuna karşı korumalı Excel / CSV çıktıları
+* Yetkiye göre müşteri, ürün/SKU, sipariş ve cari hareket sonuçlarını getiren yönetim paneli global araması
+* Aktif route'u otomatik açan, masaüstü/mobil uyumlu ve RBAC izinlerine göre filtrelenen yönetim menüsü
 
 ---
 

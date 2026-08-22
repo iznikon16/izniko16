@@ -42,7 +42,6 @@ as $$
 declare
   v_attempt public.payment_attempts%rowtype;
   v_order public.orders%rowtype;
-  v_method public.payment_methods%rowtype;
   v_risk record;
   v_accounting record;
   v_item record;
@@ -69,7 +68,7 @@ begin
     raise exception 'Sipariş bulunamadı veya hesaba ait değil.' using errcode = 'P0002';
   end if;
 
-  select * into v_method
+  perform 1
   from public.payment_methods
   where id = v_attempt.payment_method_id and code = 'cari-bakiye' and is_active = true;
 
@@ -90,11 +89,11 @@ begin
     raise exception 'Cari limit işlemi yönetici onayı gerektiriyor; doğrudan cari ödeme kullanılamaz.' using errcode = 'P0001';
   end if;
 
-  update public.orders
+  update public.orders as target_order
   set
     status = 'confirmed',
     payment_status = 'pending',
-    payment_reference = coalesce(nullif(payment_reference, ''), 'CARI-' || order_number)
+    payment_reference = coalesce(nullif(target_order.payment_reference, ''), 'CARI-' || target_order.order_number)
   where id = v_order.id
   returning * into v_order;
 

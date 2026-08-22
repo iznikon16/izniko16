@@ -3,6 +3,7 @@ import { getAllStockProducts } from '@/lib/stock/queries';
 import { manualStockInAction, manualStockOutAction, updateCriticalStockAction } from '@/app/admin/(panel)/stock/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,7 +87,7 @@ export default async function StockStatusPage({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <form action={updateCriticalStockAction} className="inline-flex items-center gap-1">
+                      <ToastActionForm action={updateCriticalStockAction} successMessage="Kritik stok seviyesi güncellendi." errorMessage="Kritik stok seviyesi güncellenemedi." className="inline-flex items-center gap-1">
                         <input type="hidden" name="product_id" value={p.id} />
                         <Input
                           type="number"
@@ -98,7 +99,7 @@ export default async function StockStatusPage({
                         <Button type="submit" size="sm">
                           ✓
                         </Button>
-                      </form>
+                      </ToastActionForm>
                     </td>
                     <td className="px-4 py-3 text-center">
                       {isOut ? (
@@ -110,7 +111,7 @@ export default async function StockStatusPage({
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <form action={manualStockInAction} className="inline-flex items-center gap-1">
+                      <ToastActionForm action={manualStockInAction} successMessage="Stok girişi başarıyla kaydedildi." errorMessage="Stok girişi kaydedilemedi." className="inline-flex items-center gap-1">
                         <input type="hidden" name="product_id" value={p.id} />
                         <Input
                           type="number"
@@ -120,13 +121,13 @@ export default async function StockStatusPage({
                           placeholder="Adet"
                           className="w-20 h-8 px-2 py-1 text-xs text-right border-emerald-200"
                         />
-                        <Button type="submit" size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                        <Button type="submit" size="sm">
                           +
                         </Button>
-                      </form>
+                      </ToastActionForm>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <form action={manualStockOutAction} className="inline-flex items-center gap-1">
+                      <ToastActionForm action={manualStockOutAction} successMessage="Stok çıkışı başarıyla kaydedildi." errorMessage="Stok çıkışı kaydedilemedi." className="inline-flex items-center gap-1">
                         <input type="hidden" name="product_id" value={p.id} />
                         <Input
                           type="number"
@@ -139,7 +140,7 @@ export default async function StockStatusPage({
                         <Button type="submit" variant="destructive" size="sm">
                           −
                         </Button>
-                      </form>
+                      </ToastActionForm>
                     </td>
                   </tr>
                 );

@@ -1,5 +1,6 @@
 ﻿import { deleteCampaignAction, saveCampaignAction } from '@/app/admin/(panel)/actions';
 import { getAdminCampaigns } from '@/lib/admin/commerce-queries';
+import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { formatCommercePrice } from '@/lib/commerce/format';
 import type { CampaignRow } from '@/lib/catalog/types';
 import { ChevronDown } from 'lucide-react';
@@ -153,20 +154,11 @@ function CampaignForm({ campaign }: { campaign?: CampaignRow }) {
           </details>
 
           <div className="flex flex-wrap gap-2">
-            <button type="submit" className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700">
-              {campaign ? 'Kampanyayı Güncelle' : 'Kampanya Ekle'}
-            </button>
+            <FormSubmitButton idleLabel={campaign ? 'Kampanyayı Güncelle' : 'Kampanya Ekle'} pendingLabel="Kaydediliyor..." className="px-5 text-sm font-semibold" />
+            {campaign?.id ? <FormSubmitButton formAction={deleteCampaignAction} idleLabel="Sil" pendingLabel="Siliniyor..." variant="destructive" className="px-5 text-sm font-semibold" /> : null}
           </div>
         </form>
 
-        {campaign?.id ? (
-          <form action={deleteCampaignAction} className="mt-2">
-            <input type="hidden" name="id" value={campaign.id} />
-            <button type="submit" className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-red-100 transition-colors hover:border-red-500/35 hover:bg-red-500/15">
-              Sil
-            </button>
-          </form>
-        ) : null}
       </div>
     </details>
   );

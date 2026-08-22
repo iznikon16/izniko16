@@ -40,7 +40,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
   return (
     <button
       type="submit"
-      className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-gray-900 transition-all hover:-translate-y-0.5 hover:bg-[#f05a3f] disabled:cursor-not-allowed disabled:opacity-70"
+      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_5px_12px_rgba(14,165,233,0.22)] transition-all hover:-translate-y-px hover:bg-sky-600 hover:shadow-[0_7px_16px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
       disabled={pending}
     >
       {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
@@ -91,7 +91,7 @@ function ProductImageThumbnail({ image }: { image: EditableImage }) {
 
   return (
     <div
-      className={`relative aspect-[4/3] overflow-hidden rounded-[18px] border border-gray-100 bg-[#0d0d0d] ${
+      className={`relative aspect-[4/3] overflow-hidden rounded-[18px] border border-gray-200 bg-gray-100 ${
         image.remove ? 'opacity-45 grayscale' : ''
       }`}
     >
@@ -114,7 +114,7 @@ function ProductImageThumbnail({ image }: { image: EditableImage }) {
       )}
 
       {image.is_featured ? (
-        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-900">
+        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-sky-600 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
           <Check className="h-3 w-3" />
           Kapak
         </span>
@@ -424,7 +424,7 @@ export function ProductEditor({
                           rows={3}
                           value={highlight.content}
                           onChange={(event) => updateHighlight(index, { content: event.target.value })}
-                          className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm leading-relaxed text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                          className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-relaxed text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                         />
                         <div className="grid gap-2 md:grid-cols-[160px_minmax(0,1fr)]">
                           <div className="grid gap-2">
@@ -433,7 +433,7 @@ export function ProductEditor({
                               type="number"
                               value={highlight.sort_order}
                               onChange={(event) => updateHighlight(index, { sort_order: Number(event.target.value) || 0 })}
-                              className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                             />
                           </div>
                         </div>
@@ -474,25 +474,25 @@ export function ProductEditor({
                         value={attribute.attribute_group}
                         onChange={(event) => updateAttribute(index, { attribute_group: event.target.value })}
                         placeholder="Grup"
-                        className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                        className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                       />
                       <input
                         value={attribute.name}
                         onChange={(event) => updateAttribute(index, { name: event.target.value })}
                         placeholder="Özellik adı"
-                        className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                        className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                       />
                       <input
                         value={attribute.value}
                         onChange={(event) => updateAttribute(index, { value: event.target.value })}
                         placeholder="Değer"
-                        className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                        className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                       />
                       <input
                         type="number"
                         value={attribute.sort_order}
                         onChange={(event) => updateAttribute(index, { sort_order: Number(event.target.value) || 0 })}
-                        className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                        className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                       />
                       <button
                         type="button"
@@ -539,7 +539,7 @@ export function ProductEditor({
                               onClick={() => setFeaturedImage(index)}
                               className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] transition-colors ${
                                 image.is_featured
-                                  ? 'border-blue-300/40 bg-blue-600 text-gray-900'
+                                  ? 'border-sky-600 bg-sky-600 text-white'
                                   : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-200 hover:text-white'
                               }`}
                             >
@@ -562,20 +562,20 @@ export function ProductEditor({
                               value={image.alt_text}
                               onChange={(event) => updateImage(index, { alt_text: event.target.value })}
                               placeholder="Alternatif metin"
-                              className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                             />
                             <input
                               value={image.caption}
                               onChange={(event) => updateImage(index, { caption: event.target.value })}
                               placeholder="Açıklama"
-                              className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                             />
                             <input
                               type="number"
                               value={image.sort_order}
                               onChange={(event) => updateImage(index, { sort_order: Number(event.target.value) || 0 })}
                               placeholder="Sıra"
-                              className="rounded-2xl border border-gray-200 bg-[#0d0d0d] px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-300/40"
+                              className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
                             />
                           </div>
                         </div>
@@ -589,7 +589,7 @@ export function ProductEditor({
                     <ImagePlus className="h-4 w-4 text-blue-600" />
                     Yeni görseller yükle
                   </span>
-                  <span className="inline-flex w-fit items-center rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-900">
+                  <span className="inline-flex w-fit items-center rounded-xl bg-sky-600 px-4 py-2 text-xs font-semibold text-white shadow-sm">
                     Görsel seç
                   </span>
                   <span className="text-sm text-gray-500">{newImageSelectionLabel}</span>
@@ -783,7 +783,7 @@ export function ProductEditor({
                   <button
                     type="button"
                     onClick={() => setIsCategoryTreeOpen((current) => !current)}
-                    className="flex w-full items-center justify-between gap-3 rounded-2xl bg-[#0d0d0d] px-4 py-3 text-left"
+                    className="flex w-full items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition-colors hover:border-sky-300 hover:bg-sky-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
                     aria-expanded={isCategoryTreeOpen}
                   >
                     <span>
@@ -808,7 +808,7 @@ export function ProductEditor({
                             className={`flex items-center justify-between rounded-[18px] border px-4 py-3 text-left text-sm transition-all ${
                               isSelected
                                 ? 'border-blue-300/35 bg-blue-600/15 text-gray-900'
-                                : 'border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300 hover:bg-gray-100 hover:text-white'
+                                : 'border-gray-200 bg-white text-gray-600 hover:border-sky-300 hover:bg-sky-50 hover:text-gray-900'
                             }`}
                           >
                             <span className="min-w-0">

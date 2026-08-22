@@ -1,500 +1,238 @@
 import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
 import {
-  Users,
   Activity,
-  Box,
-  ShoppingCart,
-  Calendar,
-  TriangleAlert,
-  Clock,
-  Wallet,
-  Download,
-  CalendarOff,
-  ShieldAlert,
+  AlertTriangle,
   ArrowRight,
-  UserPlus,
+  Boxes,
+  CalendarClock,
+  TurkishLira,
+  CreditCard,
   PackagePlus,
+  ReceiptText,
   RefreshCw,
-  Landmark,
-  ShieldCheck
+  ShoppingCart,
+  UserPlus,
+  Users,
+  WalletCards,
 } from 'lucide-react';
-import { DashboardToolbar } from './components/dashboard-toolbar';
 import { DashboardCharts } from './components/dashboard-charts';
-import { getAdminDashboardMetrics } from '@/lib/catalog/queries';
-import { requireAdminSession } from '@/lib/auth/admin';
-import { getDashboardAccountingMetrics, getOrderTrend, getRecentOrders, getAccountingTrend } from '@/lib/dashboard/queries';
+import { DashboardToolbar } from './components/dashboard-toolbar';
 import { getOverduePayments } from '@/lib/accounting/queries';
-import { getCriticalStockProducts } from '@/lib/stock/queries';
+import { getAdminPermissionKeys, requireAdminSession } from '@/lib/auth/admin';
+import { getAdminDashboardMetrics } from '@/lib/catalog/queries';
 import { formatCommercePrice } from '@/lib/commerce/format';
-import { cn } from '@/lib/utils';
+import { getDashboardDateRange, parseDashboardPeriod } from '@/lib/dashboard/filters';
+import {
+  getAccountingTrend,
+  getDashboardAccountingMetrics,
+  getDashboardActivities,
+  getDashboardIntegrationHealth,
+  getOrderTrend,
+  getRecentOrders,
+} from '@/lib/dashboard/queries';
+import { getCriticalStockProducts } from '@/lib/stock/queries';
 
-export default async function AdminDashboardPage({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
+const orderStatusLabels: Record<string, string> = {
+  pending_payment: 'Ödeme bekliyor',
+  pending: 'Bekliyor',
+  confirmed: 'Onaylandı',
+  processing: 'Hazırlanıyor',
+  shipped: 'Kargoda',
+  delivered: 'Teslim edildi',
+  cancelled: 'İptal edildi',
+};
+
+const paymentStatusLabels: Record<string, string> = {
+  pending: 'Ödeme bekliyor',
+  paid: 'Ödendi',
+  failed: 'Başarısız',
+  refunded: 'İade edildi',
+  partially_refunded: 'Kısmi iade',
+};
+
+function KpiCard({ icon: Icon, label, value, note, tone = 'blue' }: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  note: string;
+  tone?: 'blue' | 'emerald' | 'amber' | 'rose' | 'violet';
+}) {
+  const tones = {
+    blue: 'bg-blue-50 text-blue-600',
+    emerald: 'bg-emerald-50 text-emerald-600',
+    amber: 'bg-amber-50 text-amber-600',
+    rose: 'bg-rose-50 text-rose-600',
+    violet: 'bg-violet-50 text-violet-600',
+  };
+  return (
+    <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start gap-3">
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}><Icon className="h-5 w-5" /></span>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-slate-500">{label}</p>
+          <p className="mt-1 truncate text-xl font-bold text-slate-950" title={value}>{value}</p>
+          <p className="mt-1 text-[11px] text-slate-400">{note}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function hasPermission(permissions: Set<string>, key: string) {
+  return permissions.has('*') || permissions.has(key);
+}
+
+function Panel({ title, href, children }: { title: string; href?: string; children: React.ReactNode }) {
+  return (
+    <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="font-bold text-slate-900">{title}</h2>
+        {href && <Link href={href} className="flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700">Tümünü gör <ArrowRight className="h-3.5 w-3.5" /></Link>}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export default async function AdminDashboardPage({ searchParams }: { searchParams: Promise<{ days?: string | string[] }> }) {
   const session = await requireAdminSession();
-  const resolvedSearchParams = await searchParams;
-  
-  const days = resolvedSearchParams.days ? parseInt(resolvedSearchParams.days) : 7;
-  
-  const metrics = await getAdminDashboardMetrics(days);
-  const accounting = await getDashboardAccountingMetrics();
-  const overdue = await getOverduePayments();
-  const critical = await getCriticalStockProducts(5);
-  const orderTrend = await getOrderTrend(days);
-  const accountingTrend = await getAccountingTrend(days);
-  const recentOrders = await getRecentOrders(5);
+  const permissions = await getAdminPermissionKeys(session);
+  const params = await searchParams;
+  const period = parseDashboardPeriod(Array.isArray(params.days) ? params.days[0] : params.days);
+  const range = getDashboardDateRange(period);
+  const canViewSettings = hasPermission(permissions, 'settings.view');
+  const canViewAudit = hasPermission(permissions, 'audit.view');
 
-  const todaysOrderCount = orderTrend.length > 0 ? orderTrend[orderTrend.length - 1].count : 0;
-  
-  // Calculate ops summary percentages safely
-  const orderSuccessRate = metrics.totalOrders > 0 ? Math.round(((metrics.totalOrders - metrics.pendingOrders) / metrics.totalOrders) * 100) : 0;
-  
-  const totalInvolved = accounting.totalReceivable + accounting.todayCollected; 
-  const collectionRate = totalInvolved > 0 ? Math.round((accounting.todayCollected / totalInvolved) * 100) : 0;
+  const [metrics, accounting, overdue, critical, orderTrend, accountingTrend, recentOrders, health, activities] = await Promise.all([
+    getAdminDashboardMetrics(),
+    getDashboardAccountingMetrics(),
+    getOverduePayments(),
+    getCriticalStockProducts(5),
+    getOrderTrend(range),
+    getAccountingTrend(range),
+    getRecentOrders(5),
+    canViewSettings ? getDashboardIntegrationHealth() : Promise.resolve([]),
+    canViewAudit ? getDashboardActivities(5) : Promise.resolve([]),
+  ]);
+
+  const selectedCollected = accountingTrend.reduce((sum, point) => sum + point.tahsilat, 0);
+  const selectedDebt = accountingTrend.reduce((sum, point) => sum + point.yeniBorc, 0);
+  const collectionRate = selectedDebt > 0 ? Math.min(100, Math.round((selectedCollected / selectedDebt) * 100)) : selectedCollected > 0 ? 100 : 0;
+  const orderCompletionRate = metrics.totalOrders > 0
+    ? Math.max(0, Math.round(((metrics.totalOrders - metrics.pendingOrders) / metrics.totalOrders) * 100))
+    : 0;
+  const quickActions = [
+    { permission: 'customer.create', href: '/admin/customers', label: 'Müşteri ekle', icon: UserPlus },
+    { permission: 'product.create', href: '/admin/products/new', label: 'Ürün ekle', icon: PackagePlus },
+    { permission: 'order.view', href: '/admin/orders', label: 'Siparişler', icon: ShoppingCart },
+    { permission: 'account.collectPayment', href: '/admin/accounting/tahsilatlar', label: 'Tahsilat gir', icon: TurkishLira },
+    { permission: 'xml.sync', href: '/admin/integrations/xml', label: 'XML yönetimi', icon: RefreshCw },
+  ].filter((action) => hasPermission(permissions, action.permission));
 
   return (
-    <div className="mx-auto max-w-7xl pb-10">
-      {/* Header Section */}
-      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <main className="mx-auto w-full max-w-[1600px] space-y-5 pb-10">
+      <header className="flex flex-col justify-between gap-4 xl:flex-row xl:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Hoş Geldiniz, <span className="text-blue-600">{session.adminUser.full_name || session.user.email}</span>
-          </h1>
-          <p className="mt-1 text-gray-500">İşte bugün sisteminizde neler olup bitiyor.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">Hoş geldiniz, {session.adminUser.full_name || session.user.email}</h1>
+          <p className="mt-1 text-sm text-slate-500">İşletmenizin güncel operasyon ve finans özetini görüntüleyin.</p>
         </div>
-        <DashboardToolbar />
-      </div>
+        <DashboardToolbar period={period} canExport={hasPermission(permissions, 'report.export')} />
+      </header>
 
-      {/* KPI Cards (3 Rows, 4 Columns) */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* ROW 1 */}
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
-                <Box className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Toplam Ürün</span>
-                <div className="text-2xl font-bold text-gray-900">{metrics.totalProducts.toLocaleString('tr-TR')}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Tüm Katalog</span>
-          </div>
-        </div>
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-6">
+        <KpiCard icon={Boxes} label="Toplam ürün" value={metrics.totalProducts.toLocaleString('tr-TR')} note={`${metrics.publishedProducts.toLocaleString('tr-TR')} yayında`} />
+        <KpiCard icon={Users} label="Toplam müşteri" value={metrics.totalCustomers.toLocaleString('tr-TR')} note={`${metrics.activeCustomers.toLocaleString('tr-TR')} aktif`} tone="violet" />
+        <KpiCard icon={ShoppingCart} label="Toplam sipariş" value={metrics.totalOrders.toLocaleString('tr-TR')} note={`${metrics.todayOrders.toLocaleString('tr-TR')} bugün`} tone="emerald" />
+        <KpiCard icon={CalendarClock} label="Bekleyen sipariş" value={metrics.pendingOrders.toLocaleString('tr-TR')} note="İşlem bekleyen" tone="amber" />
+        <KpiCard icon={AlertTriangle} label="Kritik stok" value={accounting.criticalStockCount.toLocaleString('tr-TR')} note="Kritik limitte veya altında" tone="rose" />
+        <KpiCard icon={WalletCards} label="Stok değeri" value={formatCommercePrice(accounting.totalStockValue)} note="Güncel satış fiyatıyla" />
+        <KpiCard icon={CreditCard} label="Toplam cari alacak" value={formatCommercePrice(accounting.totalReceivable)} note="Açık müşteri bakiyesi" tone="violet" />
+        <KpiCard icon={CalendarClock} label="Bugün vadeli" value={formatCommercePrice(accounting.dueToday)} note="Bugün vadesi gelen" tone="amber" />
+        <KpiCard icon={AlertTriangle} label="Vadesi geçmiş" value={formatCommercePrice(accounting.overdueTotal)} note={`${accounting.overdueCustomers} müşteri`} tone="rose" />
+        <KpiCard icon={TurkishLira} label="Bugünkü tahsilat" value={formatCommercePrice(accounting.todayCollected)} note="İstanbul gün sınırı" tone="emerald" />
+        <KpiCard icon={Activity} label="Sipariş sonuçlanma" value={`%${orderCompletionRate}`} note="Bekleyenler hariç" />
+        <KpiCard icon={ReceiptText} label="Dönem tahsilat oranı" value={`%${collectionRate}`} note={`${range.days} günlük veri`} tone="emerald" />
+      </section>
 
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500">
-                <Activity className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Yayındaki Ürün</span>
-                <div className="text-2xl font-bold text-gray-900">{metrics.publishedProducts.toLocaleString('tr-TR')}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Aktif Ürünler</span>
-          </div>
-        </div>
+      <DashboardCharts orderTrend={orderTrend} accountingTrend={accountingTrend} period={period} />
 
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Toplam Müşteri</span>
-                <div className="text-2xl font-bold text-gray-900">{metrics.totalCustomers.toLocaleString('tr-TR')}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Tüm Zamanlar</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
-                <ShoppingCart className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Bekleyen Sipariş</span>
-                <div className="text-2xl font-bold text-gray-900">{metrics.pendingOrders.toLocaleString('tr-TR')}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Onay Bekliyor</span>
-          </div>
-        </div>
-
-        {/* ROW 2 */}
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
-                <ShoppingCart className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Toplam Sipariş</span>
-                <div className="text-2xl font-bold text-gray-900">{metrics.totalOrders.toLocaleString('tr-TR')}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Tüm Zamanlar</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500">
-                <Calendar className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Bugünkü Sipariş</span>
-                <div className="text-2xl font-bold text-gray-900">{todaysOrderCount.toLocaleString('tr-TR')}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Bugün</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
-                <TriangleAlert className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Kritik Stok</span>
-                <div className="text-2xl font-bold text-gray-900">{accounting.criticalStockCount.toLocaleString('tr-TR')}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Kritik Limit Altı</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
-                <Clock className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Geciken Ödemeler</span>
-                <div className="text-2xl font-bold text-gray-900">{accounting.overdueCustomers.toLocaleString('tr-TR')}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Vadesi Geçmiş</span>
-          </div>
-        </div>
-
-        {/* ROW 3 */}
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
-                <Wallet className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Toplam Cari Alacak</span>
-                <div className="text-xl font-bold text-gray-900">{formatCommercePrice(accounting.totalReceivable)}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Tüm Zamanlar</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500">
-                <Download className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Bugünkü Tahsilat</span>
-                <div className="text-xl font-bold text-gray-900">{formatCommercePrice(accounting.todayCollected)}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Bugün</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-500">
-                <CalendarOff className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Vadesi Geçmiş Tutar</span>
-                <div className="text-xl font-bold text-gray-900">{formatCommercePrice(accounting.overdueTotal)}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">Toplam</span>
-          </div>
-        </div>
-
-        <div className="flex flex-col justify-between rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
-                <ShieldAlert className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-gray-600">Risk Limitine Yaklaşanlar</span>
-                <div className="text-2xl font-bold text-gray-900">{accounting.customersNearRiskLimit.length}</div>
-              </div>
-            </div>
-            <span className="text-[10px] text-gray-400 self-end mb-1">%80+ Kullanım</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts & Ops Summary */}
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <DashboardCharts orderTrend={orderTrend} accountingTrend={accountingTrend} />
-        </div>
-        
-        <div className="flex flex-col rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10 mt-4 lg:mt-4">
-          <h3 className="font-bold text-gray-900">Operasyonel Özet ({days} Gün)</h3>
-          
-          <div className="mt-4 grid grid-cols-2 gap-3 flex-1">
-            <div className="rounded-xl border border-gray-100 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                <span className="text-[10px] font-semibold text-gray-500">Sipariş Tamamlama Oranı</span>
-              </div>
-              <div className="flex items-end justify-between">
-                <span className="text-xl font-bold text-gray-900">%{orderSuccessRate}</span>
-                <span className="text-[10px] text-gray-400">Başarılı</span>
-              </div>
-            </div>
-            
-            <div className="rounded-xl border border-gray-100 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Wallet className="h-4 w-4 text-blue-500" />
-                <span className="text-[10px] font-semibold text-gray-500">Tahsilat Oranı</span>
-              </div>
-              <div className="flex items-end justify-between">
-                <span className="text-xl font-bold text-gray-900">%{collectionRate}</span>
-                <span className="text-[10px] text-gray-400">Hedefe Göre</span>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-gray-100 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock className="h-4 w-4 text-red-500" />
-                <span className="text-[10px] font-semibold text-gray-500">Gecikmiş Ödeme</span>
-              </div>
-              <div className="flex items-end justify-between">
-                <span className="text-xl font-bold text-red-600">{accounting.overdueCustomers}</span>
-                <span className="text-[10px] text-gray-400">Vadesi Geçmiş</span>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-gray-100 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <TriangleAlert className="h-4 w-4 text-orange-500" />
-                <span className="text-[10px] font-semibold text-gray-500">Kritik Stok</span>
-              </div>
-              <div className="flex items-end justify-between">
-                <span className="text-xl font-bold text-orange-600">{accounting.criticalStockCount}</span>
-                <span className="text-[10px] text-gray-400">Limit Altı</span>
-              </div>
-            </div>
-          </div>
-
-          <div className={cn("mt-4 rounded-xl p-4", accounting.overdueCustomers > 0 || accounting.criticalStockCount > 0 ? "bg-red-50" : "bg-blue-50")}>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className={cn("h-4 w-4", accounting.overdueCustomers > 0 || accounting.criticalStockCount > 0 ? "text-red-500" : "text-blue-500")} />
-              <span className="text-sm font-semibold text-gray-900">
-                {accounting.overdueCustomers > 0 || accounting.criticalStockCount > 0 ? 'İlgilenilmesi gereken uyarılar var.' : 'Sisteminizde kritik bir sorun bulunmuyor.'}
-              </span>
-            </div>
-            <p className={cn("mt-1 text-[11px]", accounting.overdueCustomers > 0 || accounting.criticalStockCount > 0 ? "text-red-600" : "text-blue-600")}>
-              Tüm sistemler sorunsuz çalışıyor. Son kontrol: {new Date().toLocaleDateString('tr-TR')} {new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tables Row */}
-      <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        {/* Son Siparişler */}
-        <div className="flex flex-col rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10 lg:col-span-4">
-          <h3 className="font-bold text-gray-900 mb-4">Son Siparişler</h3>
-          <div className="flex-1 overflow-x-auto">
-            <table className="w-full text-left text-[11px] whitespace-nowrap">
-              <thead>
-                <tr className="border-b border-gray-100 text-gray-500">
-                  <th className="pb-2 font-medium">Sipariş No</th>
-                  <th className="pb-2 font-medium">Müşteri</th>
-                  <th className="pb-2 font-medium">Tutar</th>
-                  <th className="pb-2 font-medium">Ödeme</th>
-                  <th className="pb-2 font-medium">Durum</th>
-                  <th className="pb-2 font-medium">Tarih</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="py-3 font-medium text-blue-600">{order.order_number || order.id.slice(0, 8)}</td>
-                    <td className="py-3 font-medium text-gray-800">{order.customerName}</td>
-                    <td className="py-3 font-semibold text-gray-900">{formatCommercePrice(order.total)}</td>
-                    <td className="py-3 text-gray-500">{order.paymentMethod}</td>
-                    <td className="py-3">
-                      <span className={cn(
-                        "rounded-full px-2 py-0.5 text-[10px] font-medium",
-                        order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                        order.status === 'pending_payment' ? 'bg-amber-100 text-amber-700' :
-                        'bg-gray-100 text-gray-700'
-                      )}>
-                        {order.status === 'completed' ? 'Onaylandı' : order.status === 'pending_payment' ? 'Onay Bekliyor' : 'İşleniyor'}
-                      </span>
-                    </td>
-                    <td className="py-3 text-gray-400">{new Date(order.created_at).toLocaleDateString('tr-TR')}</td>
-                  </tr>
-                ))}
-                {recentOrders.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="py-4 text-center text-gray-500">Henüz sipariş yok.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <Link href="/admin/orders" className="mt-3 text-center text-[11px] font-medium text-gray-500 hover:text-blue-600 flex justify-center items-center gap-1">
-            Tüm Siparişleri Görüntüle <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-
-        {/* Geciken Ödemeler */}
-        <div className="flex flex-col rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10 lg:col-span-3">
-          <h3 className="font-bold text-gray-900 mb-4">Geciken Ödemeler</h3>
-          <div className="flex-1 overflow-x-auto">
-            <table className="w-full text-left text-[11px] whitespace-nowrap">
-              <thead>
-                <tr className="border-b border-gray-100 text-gray-500">
-                  <th className="pb-2 font-medium">Müşteri</th>
-                  <th className="pb-2 font-medium">Kalan Tutar</th>
-                  <th className="pb-2 font-medium">Gecikme</th>
-                </tr>
-              </thead>
-              <tbody>
-                {overdue.slice(0, 5).map((item, i) => (
-                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="py-3 font-medium text-gray-800">{item.customerName}</td>
-                    <td className="py-3 font-semibold text-gray-900">{formatCommercePrice(item.remaining)}</td>
-                    <td className="py-3 font-semibold text-red-500">{item.overdueDays} gün</td>
-                  </tr>
-                ))}
-                {overdue.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="py-4 text-center text-gray-500">Geciken ödeme yok.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <Link href="/admin/accounting/geciken-odemeler" className="mt-3 text-center text-[11px] font-medium text-gray-500 hover:text-blue-600 flex justify-center items-center gap-1">
-            Tümünü Görüntüle <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-
-        {/* Kritik Stok */}
-        <div className="flex flex-col rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10 lg:col-span-3">
-          <h3 className="font-bold text-gray-900 mb-4">Kritik Stoktaki Ürünler</h3>
-          <div className="flex-1 overflow-x-auto">
-            <table className="w-full text-left text-[11px] whitespace-nowrap">
-              <thead>
-                <tr className="border-b border-gray-100 text-gray-500">
-                  <th className="pb-2 font-medium">Ürün</th>
-                  <th className="pb-2 font-medium text-center">Stok</th>
-                  <th className="pb-2 font-medium text-center">Limit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {critical.slice(0, 4).map((p) => (
-                  <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                    <td className="py-3 font-medium text-gray-800 truncate max-w-[120px]" title={p.title}>{p.title}</td>
-                    <td className="py-3 text-center font-semibold text-gray-900">{p.stock_quantity}</td>
-                    <td className="py-3 text-center text-gray-500">{p.critical_stock}</td>
-                  </tr>
-                ))}
-                {critical.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="py-4 text-center text-gray-500">Kritik stok yok.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <Link href="/admin/stok/kritik" className="mt-3 text-center text-[11px] font-medium text-gray-500 hover:text-blue-600 flex justify-center items-center gap-1">
-            Tümünü Görüntüle <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
-
-        {/* Sağlık & Hızlı İşlemler */}
-        <div className="flex flex-col gap-4 lg:col-span-2">
-          <div className="flex-1 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
-            <h3 className="font-bold text-gray-900 mb-3 text-[13px]">Entegrasyon Sağlığı</h3>
-            <div className="space-y-3 text-[11px]">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Database</span>
-                <div className="flex items-center gap-1 text-emerald-600 font-medium">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Sağlıklı
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">XML</span>
-                <div className="flex items-center gap-1 text-emerald-600 font-medium">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Sağlıklı
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Netgsm</span>
-                <div className="flex items-center gap-1 text-emerald-600 font-medium">
-                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Sağlıklı
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">SMTP</span>
-                <div className="flex items-center gap-1 text-orange-500 font-medium">
-                  <div className="h-1.5 w-1.5 rounded-full bg-orange-500" /> Hata
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Ödeal</span>
-                <div className="flex items-center gap-1 text-orange-500 font-medium">
-                  <div className="h-1.5 w-1.5 rounded-full bg-orange-500" /> Hata
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-4 shadow-sm shadow-[#cbd5e1]/10">
-            <h3 className="font-bold text-gray-900 mb-3 text-[13px]">Hızlı İşlemler</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <Link href="/admin/customers" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-blue-600">
-                <UserPlus className="h-5 w-5" />
-                <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">Müşteri</span>
+      <section className="grid items-start gap-4 xl:grid-cols-3">
+        <Panel title="Son siparişler" href="/admin/orders">
+          <div className="space-y-2">
+            {recentOrders.map((order) => (
+              <Link key={order.id} href={`/admin/orders/${order.id}`} className="grid gap-1 rounded-xl border border-slate-100 p-3 transition hover:border-blue-200 hover:bg-blue-50/40 sm:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{order.order_number || order.id}</p><p className="truncate text-xs text-slate-500">{order.customerName}</p></div>
+                <div className="sm:text-right"><p className="text-sm font-bold text-slate-900">{formatCommercePrice(Number(order.total))}</p><p className="text-[11px] text-slate-500">{orderStatusLabels[order.status] || order.status} · {paymentStatusLabels[order.payment_status] || order.payment_status}</p></div>
               </Link>
-              <Link href="/admin/products/new" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-emerald-600">
-                <PackagePlus className="h-5 w-5" />
-                <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">Ürün</span>
-              </Link>
-              <Link href="/admin/accounting/tahsilatlar" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-emerald-500">
-                <Landmark className="h-5 w-5" />
-                <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">Tahsilat</span>
-              </Link>
-              <Link href="/admin/integrations/xml" className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-100 p-2.5 hover:bg-gray-50 transition-colors text-indigo-500">
-                <RefreshCw className="h-5 w-5" />
-                <span className="text-[10px] font-medium text-gray-600 text-center leading-tight">XML</span>
-              </Link>
-            </div>
+            ))}
+            {!recentOrders.length && <p className="py-6 text-center text-sm text-slate-500">Henüz sipariş yok.</p>}
           </div>
+        </Panel>
+
+        <Panel title="Geciken ödemeler" href="/admin/accounting/geciken-odemeler">
+          <div className="space-y-2">
+            {overdue.slice(0, 5).map((item) => (
+              <div key={item.transactionId} className="flex items-center justify-between gap-3 rounded-xl bg-rose-50/70 p-3">
+                <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{item.customerName}</p><p className="text-xs text-rose-600">{item.overdueDays} gün gecikmiş</p></div>
+                <span className="shrink-0 text-sm font-bold text-slate-900">{formatCommercePrice(item.remaining)}</span>
+              </div>
+            ))}
+            {!overdue.length && <p className="py-6 text-center text-sm text-slate-500">Geciken ödeme yok.</p>}
+          </div>
+        </Panel>
+
+        <Panel title="Kritik stok" href="/admin/stock">
+          <div className="space-y-2">
+            {critical.map((product) => (
+              <Link key={product.id} href={`/admin/products/${product.id}`} className="flex items-center justify-between gap-3 rounded-xl bg-amber-50/70 p-3 hover:bg-amber-50">
+                <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{product.title}</p><p className="text-xs text-slate-500">{product.sku}</p></div>
+                <span className="shrink-0 text-sm font-bold text-amber-700">{product.stock_quantity} adet</span>
+              </Link>
+            ))}
+            {!critical.length && <p className="py-6 text-center text-sm text-slate-500">Kritik stok bulunmuyor.</p>}
+          </div>
+        </Panel>
+      </section>
+
+      <section className="grid items-start gap-4 xl:grid-cols-3">
+        <Panel title="Risk limitine yaklaşanlar" href="/admin/accounting">
+          <div className="space-y-3">
+            {accounting.customersNearRiskLimit.map((customer) => (
+              <Link key={customer.customerId} href={`/admin/accounting/${customer.customerId}`} className="block rounded-xl border border-slate-100 p-3 hover:border-amber-200">
+                <div className="mb-2 flex items-center justify-between gap-3"><span className="truncate text-sm font-semibold text-slate-900">{customer.customerName}</span><span className="text-xs font-bold text-amber-700">%{customer.usedPercent}</span></div>
+                <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-amber-500" style={{ width: `${customer.usedPercent}%` }} /></div>
+                <p className="mt-2 text-[11px] text-slate-500">Bakiye {formatCommercePrice(customer.balance)} · Limit {formatCommercePrice(customer.riskLimit)}</p>
+              </Link>
+            ))}
+            {!accounting.customersNearRiskLimit.length && <p className="py-6 text-center text-sm text-slate-500">Risk eşiğine yaklaşan müşteri yok.</p>}
+          </div>
+        </Panel>
+
+        {canViewSettings && <Panel title="Entegrasyon durumu" href="/admin/integrations">
+          <div className="space-y-2">
+            {health.map((item) => {
+              const healthy = item.status === 'success' || item.status === 'ready';
+              return <Link key={item.key} href={item.href} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 px-3 py-2.5 hover:bg-slate-50"><div className="min-w-0"><p className="text-sm font-semibold text-slate-900">{item.label}</p><p className="truncate text-xs text-slate-500" title={item.message}>{item.message}</p></div><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${healthy ? 'bg-emerald-500' : item.status === 'failed' ? 'bg-rose-500' : 'bg-slate-300'}`} /></Link>;
+            })}
+          </div>
+        </Panel>}
+
+        {canViewAudit && <Panel title="Son aktiviteler" href="/admin/yonetim/audit">
+          <div className="space-y-2">
+            {activities.map((activity) => (
+              <div key={activity.id} className="rounded-xl border border-slate-100 px-3 py-2.5"><p className="truncate text-sm font-semibold text-slate-900">{activity.label}</p><p className="mt-0.5 text-xs text-slate-500">{activity.resourceType} · {new Intl.DateTimeFormat('tr-TR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Istanbul' }).format(new Date(activity.createdAt))}</p></div>
+            ))}
+            {!activities.length && <p className="py-6 text-center text-sm text-slate-500">Aktivite kaydı yok.</p>}
+          </div>
+        </Panel>}
+      </section>
+
+      {!!quickActions.length && <Panel title="Hızlı işlemler">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          {quickActions.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"><Icon className="h-4 w-4" />{label}</Link>)}
         </div>
-      </div>
-    </div>
+      </Panel>}
+    </main>
   );
 }

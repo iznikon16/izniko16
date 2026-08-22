@@ -21,6 +21,7 @@ export default async function CustomerOrderDetailPage({ params }: { params: Prom
   return (
     <section className="space-y-5">
       <Link href="/hesabim/siparislerim" className="inline-flex items-center gap-2 text-sm font-bold text-sky-700"><ArrowLeft className="h-4 w-4" /> Siparişlerime dön</Link>
+      {['shipped','completed'].includes(order.status) ? <Link href={`/hesabim/iadelerim?order=${order.id}`} className="ml-3 inline-flex text-sm font-bold text-rose-700">İade talebi oluştur</Link> : null}
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-sky-600">Sipariş detayı</p><h1 className="mt-2 text-2xl font-black text-slate-950">{order.order_number}</h1><p className="mt-1 text-sm text-slate-500">{dateFormatter.format(new Date(order.created_at))}</p></div>

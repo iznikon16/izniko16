@@ -100,22 +100,19 @@ function BrandForm({
           <FormSubmitButton
             idleLabel={brand?.id ? 'Güncelle' : 'Marka Ekle'}
             pendingLabel={brand?.id ? 'Güncelleniyor...' : 'Kaydediliyor...'}
-            className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700 disabled:opacity-70"
+            className="px-5 text-sm font-semibold"
           />
-        </div>
-      </form>
-      {brand?.id ? (
-        <div className="mt-2">
-          <form action={deleteBrandAction}>
-            <input type="hidden" name="id" value={brand.id} />
+          {brand?.id ? (
             <FormSubmitButton
+              formAction={deleteBrandAction}
               idleLabel="Sil"
               pendingLabel="Siliniyor..."
-              className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-red-100 transition-colors hover:border-red-500/35 hover:bg-red-500/15 disabled:opacity-70"
+              variant="destructive"
+              className="px-5 text-sm font-semibold"
             />
-          </form>
+          ) : null}
         </div>
-      ) : null}
+      </form>
     </div>
   );
 }

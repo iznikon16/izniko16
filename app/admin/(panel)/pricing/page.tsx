@@ -14,6 +14,7 @@ import { Select } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +46,7 @@ export default async function PriceListsPage() {
       {/* Yeni liste */}
       <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
         <h2 className="mb-4 font-semibold text-gray-900">Yeni Fiyat Listesi</h2>
-        <form action={savePriceListAction} className="grid gap-4 sm:grid-cols-4">
+        <ToastActionForm action={savePriceListAction} successMessage="Fiyat listesi oluşturuldu." errorMessage="Fiyat listesi oluşturulamadı." className="grid gap-4 sm:grid-cols-4">
           <input type="hidden" name="id" value="" />
           <Input type="text" name="name" required placeholder="Liste adı (örn. Bayi A)" />
           <Input type="text" name="code" required placeholder="Kod (örn. BAYIA)" />
@@ -60,13 +61,13 @@ export default async function PriceListsPage() {
           <div className="flex justify-end sm:col-span-4">
             <Button>Oluştur</Button>
           </div>
-        </form>
+        </ToastActionForm>
       </div>
 
       {/* Toplu fiyat değişikliği */}
       <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
         <h2 className="mb-4 font-semibold text-gray-900">Toplu Fiyat Değişikliği</h2>
-        <form action={bulkUpdatePricesAction} className="grid gap-4 sm:grid-cols-5">
+        <ToastActionForm action={bulkUpdatePricesAction} successMessage="Toplu fiyat değişikliği uygulandı." errorMessage="Toplu fiyat değişikliği uygulanamadı." className="grid gap-4 sm:grid-cols-5">
           <Input
             type="text"
             name="product_ids"
@@ -84,9 +85,9 @@ export default async function PriceListsPage() {
           </Select>
           <Input type="number" name="value" required step="0.01" min="0" placeholder="Değer" />
           <div className="flex justify-end sm:col-span-5">
-            <Button className="bg-amber-500 hover:bg-amber-600">Uygula</Button>
+            <Button>Uygula</Button>
           </div>
-        </form>
+        </ToastActionForm>
       </div>
 
       {/* Listeler */}
@@ -104,13 +105,13 @@ export default async function PriceListsPage() {
                     {list.is_active ? ' · Aktif' : ' · Pasif'}
                   </p>
                 </div>
-                <form action={deletePriceListAction}>
+                <ToastActionForm action={deletePriceListAction} successMessage="Fiyat listesi silindi." errorMessage="Fiyat listesi silinemedi.">
                   <input type="hidden" name="id" value={list.id} />
                   <button className="rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">Sil</button>
-                </form>
+                </ToastActionForm>
               </div>
               <div className="p-5">
-                <form action={savePriceListItemAction} className="mb-3 grid gap-2 sm:grid-cols-4">
+                <ToastActionForm action={savePriceListItemAction} successMessage="Ürün fiyat listesine eklendi." errorMessage="Ürün fiyat listesine eklenemedi." className="mb-3 grid gap-2 sm:grid-cols-4">
                   <input type="hidden" name="price_list_id" value={list.id} />
                   <Select name="product_id" required className="sm:col-span-2">
                     <option value="">Ürün seç</option>
@@ -123,7 +124,7 @@ export default async function PriceListsPage() {
                   <div className="flex justify-end sm:col-span-4">
                     <Button>Ekle</Button>
                   </div>
-                </form>
+                </ToastActionForm>
                 {listItems.length > 0 && (
                   <table className="min-w-full divide-y divide-gray-100 text-sm">
                     <tbody className="divide-y divide-gray-100">
@@ -137,10 +138,10 @@ export default async function PriceListsPage() {
                               {item.discount_percent != null && Number(item.discount_percent) > 0 && ` (%${item.discount_percent})`}
                             </td>
                             <td className="py-2 text-right">
-                              <form action={removePriceListItemAction} className="inline">
+                              <ToastActionForm action={removePriceListItemAction} successMessage="Ürün fiyat listesinden kaldırıldı." errorMessage="Ürün fiyat listesinden kaldırılamadı." className="inline">
                                 <input type="hidden" name="id" value={item.id} />
                                 <button className="text-xs font-medium text-red-500 hover:underline">Kaldır</button>
-                              </form>
+                              </ToastActionForm>
                             </td>
                           </tr>
                         );

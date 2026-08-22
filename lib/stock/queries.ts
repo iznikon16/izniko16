@@ -71,7 +71,8 @@ export async function applyManualStockChange(
   quantityChange: number,
   type: 'manual_in' | 'manual_out',
   reference: string,
-  idempotencyKey: string
+  idempotencyKey: string,
+  actorUserId?: string | null
 ): Promise<{ previousQuantity: number; resultingQuantity: number }> {
   const supabase = createAdminClient();
 
@@ -95,6 +96,8 @@ export async function applyManualStockChange(
     p_type: type,
     p_reference: reference,
     p_idempotency_key: idempotencyKey,
+    p_actor_user_id: actorUserId ?? undefined,
+    p_order_id: undefined,
   });
 
   if (error) throw new Error(error.message);

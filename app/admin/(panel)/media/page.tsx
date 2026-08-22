@@ -194,7 +194,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
                       </div>
                     )}
                     {media.is_featured ? (
-                      <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-900">
+                      <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-sky-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
                         <Star className="h-3.5 w-3.5" />
                         Kapak
                       </span>

@@ -2,6 +2,7 @@ import { requireAdminSession } from '@/lib/auth/admin';
 import { getXmlSources } from '@/lib/xml/queries';
 import { deleteXmlSourceAction, runXmlSyncAction, saveXmlSourceAction } from '@/app/admin/(panel)/integrations/xml/actions';
 import type { XmlTargetField } from '@/lib/catalog/types';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +33,7 @@ export default async function XmlSourcesPage() {
       {/* Yeni Kaynak Formu */}
       <div className="mb-6 rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
         <h2 className="mb-4 font-semibold text-gray-900">Yeni XML Kaynağı Ekle</h2>
-        <form action={saveXmlSourceAction} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+        <ToastActionForm action={saveXmlSourceAction} successMessage="XML kaynağı kaydedildi." errorMessage="XML kaynağı kaydedilemedi." className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <input type="hidden" name="id" value="" />
           <input
             type="text"
@@ -62,7 +63,7 @@ export default async function XmlSourcesPage() {
               <input type="checkbox" name="is_active" defaultChecked />
               Aktif
             </label>
-            <button className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">
+            <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">
               Kaydet
             </button>
           </div>
@@ -79,7 +80,7 @@ export default async function XmlSourcesPage() {
             placeholder='Mapping JSON (örn. [{"source":"ProductName","target":"name"},{"source":"ProductCode","target":"sku"},{"source":"Price","target":"price"},{"source":"Quantity","target":"stock"}])'
             className="rounded-lg border border-gray-200 px-3 py-2 text-sm lg:col-span-5"
           />
-        </form>
+        </ToastActionForm>
         <p className="mt-2 text-xs text-gray-500">
           Hedef alanlar: {Object.entries(TARGET_LABELS).map(([k, v]) => `${k} (${v})`).join(' · ')}
         </p>
@@ -134,18 +135,18 @@ export default async function XmlSourcesPage() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
-                    <form action={runXmlSyncAction}>
+                    <ToastActionForm action={runXmlSyncAction} successMessage="XML senkronizasyonu tamamlandı." errorMessage="XML senkronizasyonu tamamlanamadı.">
                       <input type="hidden" name="id" value={source.id} />
-                      <button className="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-700">
+                      <button className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">
                         Senkronize Et
                       </button>
-                    </form>
-                    <form action={deleteXmlSourceAction}>
+                    </ToastActionForm>
+                    <ToastActionForm action={deleteXmlSourceAction} successMessage="XML kaynağı silindi." errorMessage="XML kaynağı silinemedi.">
                       <input type="hidden" name="id" value={source.id} />
                       <button className="rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50">
                         Sil
                       </button>
-                    </form>
+                    </ToastActionForm>
                   </div>
                 </td>
               </tr>

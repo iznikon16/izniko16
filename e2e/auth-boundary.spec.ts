@@ -7,12 +7,18 @@ test.describe('admin session boundary', () => {
     await expect(page.getByRole('heading', { name: /yönetici girişi/i })).toBeVisible();
   });
 
-  for (const path of ['/admin/customers', '/admin/orders', '/admin/accounting', '/admin/integrations']) {
+  for (const path of ['/admin/customers', '/admin/orders', '/admin/accounting', '/admin/integrations', '/admin/returns', '/admin/invoices', '/admin/stock', '/admin/reports', '/admin/yonetim/audit']) {
     test(`oturumsuz ${path} erişimini engeller`, async ({ page }) => {
       await page.goto(path);
       await expect(page).toHaveURL(/\/admin\/login$/);
     });
   }
+
+  test('oturumsuz dashboard raporu verisini engeller', async ({ request }) => {
+    const response = await request.get('/api/export/dashboard?days=30');
+    expect(response.status()).toBe(401);
+    expect(await response.json()).toEqual({ error: 'Oturum açmanız gerekiyor.' });
+  });
 
   test('stale ve uydurma auth cookie erişim sağlamaz', async ({ context, page }) => {
     await context.addCookies([{
@@ -43,6 +49,12 @@ test.describe('admin session boundary', () => {
     const response = await request.post('/api/cron/payment-reminders');
     expect(response.status()).toBe(401);
     await expect(response.json()).resolves.toMatchObject({ ok: false });
+  });
+
+  test('global admin araması oturum olmadan veri döndürmez', async ({ request }) => {
+    const response = await request.get('/api/admin/search?q=musteri');
+    expect(response.status()).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({ error: 'Oturum gerekli.' });
   });
 });
 
@@ -77,6 +89,24 @@ test.describe('gerçek admin logout akışı', () => {
     await expect(page.getByRole('button', { name: /yönetici \/ kullanıcı ekle/i })).toBeVisible();
     await expect(page.getByText(/Supabase Auth hesaplarını/i)).toBeVisible();
   });
+
+  test('admin sidebar grupları tekil ve erişilebilir görünür', async ({ page }) => {
+    await page.goto('/admin/login');
+    await page.getByLabel(/e-posta/i).fill(process.env.E2E_ADMIN_EMAIL!);
+    await page.getByLabel(/^şifre$/i).fill(process.env.E2E_ADMIN_PASSWORD!);
+    await page.getByRole('button', { name: /yönetim paneline giriş yap/i }).click();
+    await expect(page).toHaveURL(/\/admin$/, { timeout: 20_000 });
+
+    const sidebar = page.locator('aside').first();
+    await expect(sidebar.getByRole('button', { name: 'Katalog' })).toBeVisible();
+    await expect(sidebar.getByRole('button', { name: 'Ön Muhasebe' })).toBeVisible();
+    await expect(sidebar.getByRole('button', { name: 'Raporlar' })).toBeVisible();
+    await expect(sidebar.getByRole('button', { name: 'Ayarlar' })).toBeVisible();
+    await expect(sidebar.getByText('Yedekleme Merkezi', { exact: true })).toHaveCount(0);
+
+    await sidebar.getByRole('button', { name: 'Yönetim' }).click();
+    await expect(sidebar.getByRole('link', { name: /Yedekleme Merkezi/i })).toBeVisible();
+  });
 });
 
 test.describe('müşteri session sınırı', () => {
@@ -89,6 +119,16 @@ test.describe('müşteri session sınırı', () => {
   test('oturumsuz sipariş sevkiyat detayını güvenli next ile girişe yönlendirir', async ({ page }) => {
     await page.goto('/hesabim/siparislerim/00000000-0000-0000-0000-000000000001');
     await expect(page).toHaveURL(/\/giris\?next=%2Fhesabim%2Fsiparislerim%2F00000000-0000-0000-0000-000000000001$/);
+  });
+
+  test('oturumsuz iade talepleri sayfasını güvenli next ile girişe yönlendirir', async ({ page }) => {
+    await page.goto('/hesabim/iadelerim');
+    await expect(page).toHaveURL(/\/giris\?next=%2Fhesabim%2Fiadelerim$/);
+  });
+
+  test('oturumsuz faturalar sayfasını güvenli next ile girişe yönlendirir', async ({ page }) => {
+    await page.goto('/hesabim/faturalarim');
+    await expect(page).toHaveURL(/\/giris\?next=%2Fhesabim%2Ffaturalarim$/);
   });
 
   test('stale ve uydurma cookie müşteri portalına erişim sağlamaz', async ({ context, page }) => {

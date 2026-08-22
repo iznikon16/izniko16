@@ -39,7 +39,7 @@ export default async function CriticalStockPage() {
                   <td className="px-4 py-3 text-right text-gray-600">{p.critical_stock}</td>
                   <td className="px-4 py-3 text-right text-amber-600">{p.deficit}</td>
                   <td className="px-4 py-3 text-right">
-                    <Link href="/admin/stok" className="rounded-lg border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                    <Link href="/admin/stock" className="rounded-lg border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">
                       Stok Gir
                     </Link>
                   </td>

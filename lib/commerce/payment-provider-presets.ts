@@ -16,6 +16,7 @@ export const PAYMENT_PROVIDER_VALUES = [
   'papara',
   'hepsipay',
   'bank_pos',
+  'odeal',
   'custom',
 ] as const;
 
@@ -124,6 +125,16 @@ export const PAYMENT_PROVIDER_DEFINITIONS: Record<PaymentProviderKey, PaymentPro
     defaultIntegrationType: 'api',
     key: 'saved_card',
     label: 'Kayıtlı Kart (Eski)',
+    selectable: false,
+  },
+  odeal: {
+    configFields: [],
+    defaultCode: 'odeal',
+    defaultDescription: 'Ödeal sanal POS tahsilatı; bağlantı bilgileri Ödeal entegrasyon ayarlarından yönetilir.',
+    defaultInstructions: 'Kart bilgileri Ödeal güvenli ödeme akışında işlenir.',
+    defaultIntegrationType: 'api',
+    key: 'odeal',
+    label: 'Ödeal',
     selectable: false,
   },
   iyzico: {

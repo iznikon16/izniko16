@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import type { OdealSettingsRow } from '@/lib/catalog/types';
 import { saveOdealSettingsAction } from '@/app/admin/(panel)/integrations/odeal/actions';
 import { SECRET_MASK } from '@/lib/integrations/security';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export default async function OdealPage() {
 
       <div className="max-w-2xl rounded-[2rem] border border-[#cbd5e1]/60 bg-white p-5 shadow-sm shadow-[#cbd5e1]/10">
         <h2 className="mb-4 font-semibold text-gray-900">API Yapılandırması</h2>
-        <form action={saveOdealSettingsAction} className="grid gap-4">
+        <ToastActionForm action={saveOdealSettingsAction} successMessage="Ödeal ayarları kaydedildi." errorMessage="Ödeal ayarları kaydedilemedi." className="grid gap-4">
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-600">API Key</label>
             <input
@@ -53,9 +54,9 @@ export default async function OdealPage() {
             </label>
           </div>
           <div className="flex justify-end">
-            <button className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">Kaydet</button>
+            <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">Kaydet</button>
           </div>
-        </form>
+        </ToastActionForm>
         <p className="mt-4 text-xs text-gray-500">
           Ödeal entegrasyonu ayrı bir payment provider abstraction üzerinden çalışır. Başarılı tahsilat → doğrulama → cari alacak hareketi akışı
           idempotent (aynı callback iki kez bakiyeyi etkilemez) olarak uygulanır. Resmi Ödeal API detayları eklenirken bu ayarlar esas alınır.

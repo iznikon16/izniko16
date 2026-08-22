@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Heart, LogOut, MapPin, PackageCheck, Store, UserRound, WalletCards } from 'lucide-react';
+import { Heart, LogOut, MapPin, PackageCheck, ReceiptText, RotateCcw, Store, UserRound, WalletCards } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { signOutCustomerAction } from '@/lib/commerce/actions';
 import { requireCustomerSession } from '@/lib/commerce/queries';
@@ -33,6 +33,12 @@ export default async function CustomerAccountLayout({ children }: { children: Re
             </Link>
             <Link href="/hesabim/favorilerim" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
               <Heart className="h-4 w-4" aria-hidden="true" />Favorilerim
+            </Link>
+            <Link href="/hesabim/iadelerim" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />İadelerim
+            </Link>
+            <Link href="/hesabim/faturalarim" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
+              <ReceiptText className="h-4 w-4" aria-hidden="true" />Faturalarım
             </Link>
             <Link href="/hesabim/adreslerim" className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100">
               <MapPin className="h-4 w-4" aria-hidden="true" />Adreslerim

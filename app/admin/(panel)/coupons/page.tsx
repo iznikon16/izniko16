@@ -1,5 +1,6 @@
 ﻿import { deleteCouponAction, saveCouponAction } from '@/app/admin/(panel)/actions';
 import { getAdminCoupons } from '@/lib/admin/commerce-queries';
+import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { formatCommercePrice } from '@/lib/commerce/format';
 import type { CouponRow } from '@/lib/catalog/types';
 import { ChevronDown } from 'lucide-react';
@@ -144,20 +145,11 @@ function CouponForm({ coupon }: { coupon?: CouponRow }) {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button type="submit" className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700">
-              {coupon ? 'Kuponu Güncelle' : 'Kupon Ekle'}
-            </button>
+            <FormSubmitButton idleLabel={coupon ? 'Kuponu Güncelle' : 'Kupon Ekle'} pendingLabel="Kaydediliyor..." className="px-5 text-sm font-semibold" />
+            {coupon?.id ? <FormSubmitButton formAction={deleteCouponAction} idleLabel="Sil" pendingLabel="Siliniyor..." variant="destructive" className="px-5 text-sm font-semibold" /> : null}
           </div>
         </form>
 
-        {coupon?.id ? (
-          <form action={deleteCouponAction} className="mt-2">
-            <input type="hidden" name="id" value={coupon.id} />
-            <button type="submit" className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-red-100 transition-colors hover:border-red-500/35 hover:bg-red-500/15">
-              Sil
-            </button>
-          </form>
-        ) : null}
       </div>
     </details>
   );

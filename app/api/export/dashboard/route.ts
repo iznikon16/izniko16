@@ -1,50 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdminSession } from '@/lib/auth/admin';
+import { attachmentHeaders } from '@/lib/accounting/statement-export';
+import { getAdminPermissionKeys, getAdminSession } from '@/lib/auth/admin';
 import { getAdminDashboardMetrics } from '@/lib/catalog/queries';
+import { buildDashboardCsv } from '@/lib/dashboard/export';
+import { getDashboardDateRange, parseDashboardPeriod } from '@/lib/dashboard/filters';
 import { getDashboardAccountingMetrics, getOrderTrend } from '@/lib/dashboard/queries';
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
+  const session = await getAdminSession();
+  if (!session) {
+    return NextResponse.json({ error: 'Oturum açmanız gerekiyor.' }, {
+      status: 401,
+      headers: { 'Cache-Control': 'private, no-store, max-age=0' },
+    });
+  }
+  const permissions = await getAdminPermissionKeys(session);
+  if (!permissions.has('*') && !permissions.has('report.export')) {
+    return NextResponse.json({ error: 'Bu raporu dışa aktarma yetkiniz yok.' }, {
+      status: 403,
+      headers: { 'Cache-Control': 'private, no-store, max-age=0' },
+    });
+  }
   try {
-    await requireAdminSession();
-    
-    const searchParams = req.nextUrl.searchParams;
-    const daysParam = searchParams.get('days');
-    const days = daysParam && daysParam !== 'all' ? parseInt(daysParam) : 7;
-    
-    const metrics = await getAdminDashboardMetrics();
-    const accounting = await getDashboardAccountingMetrics();
-    const orderTrend = await getOrderTrend(days);
-    
-    // Basit bir CSV yapısı - Excel'de TR karakter sorunu olmaması için UTF-8 BOM (\uFEFF) ekliyoruz
-    let csvContent = '\uFEFFMETRIK_ADI,DEGER\n';
-    csvContent += `Toplam Urun,${metrics.totalProducts}\n`;
-    csvContent += `Yayindaki Urunler,${metrics.publishedProducts}\n`;
-    csvContent += `Toplam Musteri,${metrics.totalCustomers}\n`;
-    csvContent += `Toplam Siparis,${metrics.totalOrders}\n`;
-    csvContent += `Bekleyen Siparis,${metrics.pendingOrders}\n`;
-    csvContent += `\n`;
-    
-    csvContent += `TOPLAM_ALACAK,${accounting.totalReceivable}\n`;
-    csvContent += `BUGUN_VADESI_GELEN,${accounting.dueToday}\n`;
-    csvContent += `VADESI_GECMIS_TOPLAM,${accounting.overdueTotal}\n`;
-    csvContent += `BUGUN_TAHSIL_EDILEN,${accounting.todayCollected}\n`;
-    csvContent += `KRITIK_STOK_SAYISI,${accounting.criticalStockCount}\n`;
-    csvContent += `\n`;
-
-    csvContent += 'TARIH,SIPARIS_SAYISI,TOPLAM_TUTAR\n';
-    orderTrend.forEach(trend => {
-      csvContent += `${trend.label},${trend.count},${trend.total}\n`;
+    const period = parseDashboardPeriod(request.nextUrl.searchParams.get('days'));
+    const range = getDashboardDateRange(period);
+    const [metrics, accounting, orderTrend] = await Promise.all([
+      getAdminDashboardMetrics(),
+      getDashboardAccountingMetrics(),
+      getOrderTrend(range),
+    ]);
+    const fileName = `dashboard-raporu-${range.toDate}.csv`;
+    return new Response(buildDashboardCsv({ metrics, accounting, orderTrend }), {
+      headers: attachmentHeaders(fileName, 'text/csv; charset=utf-8'),
     });
-    
-    return new NextResponse(csvContent, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="dashboard_rapor_${new Date().toISOString().slice(0,10)}.csv"`,
-      }
+  } catch {
+    return NextResponse.json({ error: 'Dashboard raporu oluşturulamadı.' }, {
+      status: 500,
+      headers: { 'Cache-Control': 'private, no-store, max-age=0' },
     });
-
-  } catch (error: unknown) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }

@@ -57,5 +57,5 @@ export async function deleteInquiryAction(formData: FormData) {
   }
 
   revalidatePath('/admin/inquiries');
-  redirect('/admin/inquiries');
+  redirect('/admin/inquiries?deleted=1');
 }

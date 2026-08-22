@@ -1671,6 +1671,9 @@ export type Database = {
           action: string
           actor_user_id: string | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_reason: string
           id: string
           ip_address: string
           metadata: Json
@@ -1683,6 +1686,9 @@ export type Database = {
           action: string
           actor_user_id?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string
           id?: string
           ip_address?: string
           metadata?: Json
@@ -1695,6 +1701,9 @@ export type Database = {
           action?: string
           actor_user_id?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_reason?: string
           id?: string
           ip_address?: string
           metadata?: Json
@@ -1764,6 +1773,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      refund_transactions: {
+        Row: { amount: number; created_at: string; currency: string; error_message: string; id: string; idempotency_key: string; metadata: Json; order_credit_transaction_id: string | null; payment_attempt_id: string | null; payout_debit_transaction_id: string | null; processed_at: string | null; provider: Database["public"]["Enums"]["payment_provider"]; provider_reference: string | null; return_request_id: string; status: string; updated_at: string }
+        Insert: { amount: number; created_at?: string; currency?: string; error_message?: string; id?: string; idempotency_key: string; metadata?: Json; order_credit_transaction_id?: string | null; payment_attempt_id?: string | null; payout_debit_transaction_id?: string | null; processed_at?: string | null; provider?: Database["public"]["Enums"]["payment_provider"]; provider_reference?: string | null; return_request_id: string; status?: string; updated_at?: string }
+        Update: { amount?: number; created_at?: string; currency?: string; error_message?: string; id?: string; idempotency_key?: string; metadata?: Json; order_credit_transaction_id?: string | null; payment_attempt_id?: string | null; payout_debit_transaction_id?: string | null; processed_at?: string | null; provider?: Database["public"]["Enums"]["payment_provider"]; provider_reference?: string | null; return_request_id?: string; status?: string; updated_at?: string }
+        Relationships: []
+      }
+      return_items: {
+        Row: { created_at: string; id: string; order_item_id: string; product_id: string | null; quantity: number; refund_amount: number; restocked_at: string | null; return_request_id: string }
+        Insert: { created_at?: string; id?: string; order_item_id: string; product_id?: string | null; quantity: number; refund_amount: number; restocked_at?: string | null; return_request_id: string }
+        Update: { created_at?: string; id?: string; order_item_id?: string; product_id?: string | null; quantity?: number; refund_amount?: number; restocked_at?: string | null; return_request_id?: string }
+        Relationships: []
+      }
+      return_requests: {
+        Row: { admin_note: string; approved_at: string | null; completed_at: string | null; created_at: string; customer_note: string; id: string; order_id: string; payment_attempt_id: string | null; reason: string; received_at: string | null; refunded_at: string | null; rejected_at: string | null; requested_at: string; return_number: string; status: string; total_refund_amount: number; updated_at: string; user_id: string }
+        Insert: { admin_note?: string; approved_at?: string | null; completed_at?: string | null; created_at?: string; customer_note?: string; id?: string; order_id: string; payment_attempt_id?: string | null; reason: string; received_at?: string | null; refunded_at?: string | null; rejected_at?: string | null; requested_at?: string; return_number: string; status?: string; total_refund_amount?: number; updated_at?: string; user_id: string }
+        Update: { admin_note?: string; approved_at?: string | null; completed_at?: string | null; created_at?: string; customer_note?: string; id?: string; order_id?: string; payment_attempt_id?: string | null; reason?: string; received_at?: string | null; refunded_at?: string | null; rejected_at?: string | null; requested_at?: string; return_number?: string; status?: string; total_refund_amount?: number; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      return_status_history: {
+        Row: { actor_user_id: string | null; created_at: string; from_status: string | null; id: string; note: string; return_request_id: string; to_status: string }
+        Insert: { actor_user_id?: string | null; created_at?: string; from_status?: string | null; id?: string; note?: string; return_request_id: string; to_status: string }
+        Update: { actor_user_id?: string | null; created_at?: string; from_status?: string | null; id?: string; note?: string; return_request_id?: string; to_status?: string }
+        Relationships: []
+      }
+      invoice_items: {
+        Row: { created_at: string; discount_amount: number; gross_amount: number; id: string; invoice_id: string; line_total: number; order_item_id: string | null; product_id: string | null; product_sku: string; product_title: string; quantity: number; tax_amount: number; tax_rate: number; unit_price: number }
+        Insert: { created_at?: string; discount_amount?: number; gross_amount: number; id?: string; invoice_id: string; line_total: number; order_item_id?: string | null; product_id?: string | null; product_sku?: string; product_title: string; quantity: number; tax_amount?: number; tax_rate?: number; unit_price: number }
+        Update: { created_at?: string; discount_amount?: number; gross_amount?: number; id?: string; invoice_id?: string; line_total?: number; order_item_id?: string | null; product_id?: string | null; product_sku?: string; product_title?: string; quantity?: number; tax_amount?: number; tax_rate?: number; unit_price?: number }
+        Relationships: [
+          { foreignKeyName: "invoice_items_invoice_id_fkey"; columns: ["invoice_id"]; isOneToOne: false; referencedRelation: "invoices"; referencedColumns: ["id"] },
+          { foreignKeyName: "invoice_items_order_item_id_fkey"; columns: ["order_item_id"]; isOneToOne: false; referencedRelation: "order_items"; referencedColumns: ["id"] },
+          { foreignKeyName: "invoice_items_product_id_fkey"; columns: ["product_id"]; isOneToOne: false; referencedRelation: "products"; referencedColumns: ["id"] },
+        ]
+      }
+      invoice_number_counters: {
+        Row: { document_type: string; document_year: number; last_number: number; updated_at: string }
+        Insert: { document_type: string; document_year: number; last_number?: number; updated_at?: string }
+        Update: { document_type?: string; document_year?: number; last_number?: number; updated_at?: string }
+        Relationships: []
+      }
+      invoice_provider_attempts: {
+        Row: { action: string; actor_user_id: string | null; created_at: string; id: string; invoice_id: string; provider: string; provider_reference: string | null; safe_message: string; status: string }
+        Insert: { action: string; actor_user_id?: string | null; created_at?: string; id?: string; invoice_id: string; provider?: string; provider_reference?: string | null; safe_message?: string; status: string }
+        Update: { action?: string; actor_user_id?: string | null; created_at?: string; id?: string; invoice_id?: string; provider?: string; provider_reference?: string | null; safe_message?: string; status?: string }
+        Relationships: [{ foreignKeyName: "invoice_provider_attempts_invoice_id_fkey"; columns: ["invoice_id"]; isOneToOne: false; referencedRelation: "invoices"; referencedColumns: ["id"] }]
+      }
+      invoices: {
+        Row: { billing_address: Json; cancelled_at: string | null; company_snapshot: Json; created_at: string; created_by: string | null; currency: string; customer_email: string; customer_name: string; customer_phone: string; customer_tax_number: string; customer_tax_office: string; discount_total: number; document_type: string; due_date: string | null; id: string; invoice_number: string; issued_at: string; note: string; order_id: string; parent_invoice_id: string | null; provider_error: string; provider_reference: string | null; provider_status: string; return_request_id: string | null; shipping_total: number; status: string; subtotal: number; tax_included: boolean; tax_rate: number; tax_total: number; total: number; updated_at: string; user_id: string }
+        Insert: { billing_address?: Json; cancelled_at?: string | null; company_snapshot?: Json; created_at?: string; created_by?: string | null; currency?: string; customer_email?: string; customer_name: string; customer_phone?: string; customer_tax_number?: string; customer_tax_office?: string; discount_total?: number; document_type?: string; due_date?: string | null; id?: string; invoice_number: string; issued_at?: string; note?: string; order_id: string; parent_invoice_id?: string | null; provider_error?: string; provider_reference?: string | null; provider_status?: string; return_request_id?: string | null; shipping_total?: number; status?: string; subtotal: number; tax_included?: boolean; tax_rate?: number; tax_total?: number; total: number; updated_at?: string; user_id: string }
+        Update: { billing_address?: Json; cancelled_at?: string | null; company_snapshot?: Json; created_at?: string; created_by?: string | null; currency?: string; customer_email?: string; customer_name?: string; customer_phone?: string; customer_tax_number?: string; customer_tax_office?: string; discount_total?: number; document_type?: string; due_date?: string | null; id?: string; invoice_number?: string; issued_at?: string; note?: string; order_id?: string; parent_invoice_id?: string | null; provider_error?: string; provider_reference?: string | null; provider_status?: string; return_request_id?: string | null; shipping_total?: number; status?: string; subtotal?: number; tax_included?: boolean; tax_rate?: number; tax_total?: number; total?: number; updated_at?: string; user_id?: string }
+        Relationships: [
+          { foreignKeyName: "invoices_order_id_fkey"; columns: ["order_id"]; isOneToOne: false; referencedRelation: "orders"; referencedColumns: ["id"] },
+          { foreignKeyName: "invoices_parent_invoice_id_fkey"; columns: ["parent_invoice_id"]; isOneToOne: false; referencedRelation: "invoices"; referencedColumns: ["id"] },
+          { foreignKeyName: "invoices_return_request_id_fkey"; columns: ["return_request_id"]; isOneToOne: false; referencedRelation: "return_requests"; referencedColumns: ["id"] },
+        ]
       }
       shipment_items: {
         Row: { created_at: string; id: string; order_item_id: string; quantity: number; shipment_id: string }
@@ -2496,9 +2561,21 @@ export type Database = {
         Args: { p_id: string }
         Returns: boolean
       }
+      create_invoice_adjustment: {
+        Args: { p_actor_user_id?: string; p_document_type: string; p_invoice_id: string; p_note?: string; p_return_request_id?: string }
+        Returns: { created_invoice_id: string; created_invoice_number: string; created_total: number }[]
+      }
+      create_order_invoice: {
+        Args: { p_actor_user_id?: string; p_billing_address?: Json; p_company_snapshot?: Json; p_customer_tax_number?: string; p_customer_tax_office?: string; p_due_date?: string; p_note?: string; p_order_id: string; p_tax_rate?: number }
+        Returns: { created_invoice_id: string; created_invoice_number: string; created_total: number }[]
+      }
       create_order_shipment: {
         Args: { p_actor_user_id?: string; p_carrier?: string; p_items: Json; p_note?: string; p_order_id: string; p_tracking_number?: string; p_tracking_url?: string }
         Returns: { history_id: string; order_id: string; shipment_id: string; shipment_status: string }[]
+      }
+      create_return_request: {
+        Args: { p_customer_note?: string; p_items: Json; p_order_id: string; p_reason: string }
+        Returns: { return_number: string; return_request_id: string; total_refund_amount: number }[]
       }
       create_storefront_checkout: {
         Args: {
@@ -2663,6 +2740,7 @@ export type Database = {
           resulting_balance: number
         }[]
       }
+      next_invoice_number: { Args: { p_document_type: string; p_issued_at?: string }; Returns: string }
       record_account_payment: {
         Args: {
           p_actor_user_id?: string | null
@@ -2734,6 +2812,14 @@ export type Database = {
           transaction_id: string | null
         }[]
       }
+      finalize_return_refund: {
+        Args: { p_actor_user_id?: string; p_error_message?: string; p_provider_reference?: string; p_refund_transaction_id: string; p_succeeded: boolean }
+        Returns: { idempotency_hit: boolean; refund_status: string; refund_transaction_id: string; resulting_balance: number; return_request_id: string }[]
+      }
+      transition_return_request: {
+        Args: { p_actor_user_id?: string; p_admin_note?: string; p_return_request_id: string; p_status: string }
+        Returns: { current_status: string; previous_status: string; refund_transaction_id: string | null; return_request_id: string }[]
+      }
       update_order_shipment: {
         Args: { p_actor_user_id?: string; p_carrier?: string; p_note?: string; p_shipment_id: string; p_status: string; p_tracking_number?: string; p_tracking_url?: string }
         Returns: { history_id: string; order_id: string; previous_status: string; shipment_id: string; shipment_status: string; status_changed: boolean }[]
@@ -2788,6 +2874,7 @@ export type Database = {
         | "papara"
         | "hepsipay"
         | "bank_pos"
+        | "odeal"
         | "custom"
       payment_status: "unpaid" | "pending" | "paid" | "failed" | "refunded"
       price_mode: "fixed" | "contact"
@@ -2946,6 +3033,7 @@ export const Constants = {
         "papara",
         "hepsipay",
         "bank_pos",
+        "odeal",
         "custom",
       ],
       payment_status: ["unpaid", "pending", "paid", "failed", "refunded"],

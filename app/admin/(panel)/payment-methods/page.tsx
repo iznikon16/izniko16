@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { maskPaymentConfig } from '@/lib/integrations/security';
+import { requireAdminPermission } from '@/lib/auth/admin';
 
 function PaymentMethodForm({ paymentMethod }: { paymentMethod?: PaymentMethodRow }) {
   const provider = (paymentMethod?.provider ?? 'offline') as PaymentProviderKey;
@@ -113,26 +114,17 @@ function PaymentMethodForm({ paymentMethod }: { paymentMethod?: PaymentMethodRow
           </p>
 
           <div className="flex flex-wrap gap-2">
-            <Button type="submit">
-              {paymentMethod ? 'Yöntemi Güncelle' : 'Yöntem Ekle'}
-            </Button>
+            <FormSubmitButton idleLabel={paymentMethod ? 'Yöntemi Güncelle' : 'Yöntem Ekle'} pendingLabel="Kaydediliyor..." />
+            {paymentMethod?.id ? <FormSubmitButton formAction={deletePaymentMethodAction} idleLabel="Sil" pendingLabel="Siliniyor..." variant="destructive" /> : null}
           </div>
         </form>
-
-        {paymentMethod?.id ? (
-          <form action={deletePaymentMethodAction} className="mt-2">
-            <input type="hidden" name="id" value={paymentMethod.id} />
-            <Button type="submit" variant="destructive">
-              Sil
-            </Button>
-          </form>
-        ) : null}
       </div>
     </details>
   );
 }
 
 export default async function AdminPaymentMethodsPage() {
+  await requireAdminPermission('settings.view');
   const paymentMethods = await getAdminPaymentMethods();
 
   return (

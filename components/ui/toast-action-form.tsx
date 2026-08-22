@@ -17,6 +17,7 @@ export function ToastActionForm({
   action,
   className,
   children,
+  id,
   successMessage,
   errorMessage,
   confirmation,
@@ -24,8 +25,9 @@ export function ToastActionForm({
   action: (formData: FormData) => Promise<unknown>;
   className?: string;
   children: ReactNode;
-  successMessage: string;
-  errorMessage: string;
+  id?: string;
+  successMessage?: string;
+  errorMessage?: string;
   confirmation?: Confirmation;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -38,12 +40,18 @@ export function ToastActionForm({
     const formData = new FormData(formRef.current);
     startTransition(async () => {
       try {
-        await action(formData);
-        toast.success(successMessage);
+        const result = await action(formData);
+        if (result && typeof result === 'object' && 'ok' in result && result.ok === false) {
+          const message = 'message' in result && typeof result.message === 'string' ? result.message : errorMessage;
+          throw new Error(message ?? 'İşlem tamamlanamadı.');
+        }
+        const resultMessage = result && typeof result === 'object' && 'message' in result && typeof result.message === 'string' ? result.message : null;
+        toast.success(resultMessage ?? successMessage ?? 'İşlem başarıyla tamamlandı.');
+        window.dispatchEvent(new CustomEvent('toast-action-success', { detail: { formId: id } }));
         dialogRef.current?.close();
         setDialogOpen(false);
-      } catch {
-        toast.error(errorMessage);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : errorMessage ?? 'İşlem tamamlanamadı. Lütfen tekrar deneyin.');
       }
     });
   }
@@ -52,6 +60,7 @@ export function ToastActionForm({
     <>
       <form
         ref={formRef}
+        id={id}
         className={className}
         onSubmit={(event) => {
           event.preventDefault();

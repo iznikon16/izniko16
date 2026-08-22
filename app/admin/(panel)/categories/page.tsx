@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { FormSubmitButton } from '@/components/ui/form-submit-button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -184,21 +185,10 @@ function CategoryForm({
           className="mt-3 w-full"
         />
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button type="submit">
-            {category?.id ? 'Güncelle' : 'Kategori Ekle'}
-          </Button>
+          <FormSubmitButton idleLabel={category?.id ? 'Güncelle' : 'Kategori Ekle'} pendingLabel="Kaydediliyor..." />
+          {category?.id ? <FormSubmitButton formAction={deleteCategoryAction} idleLabel="Sil" pendingLabel="Siliniyor..." variant="destructive" /> : null}
         </div>
       </form>
-      {category?.id ? (
-        <div className="mt-2">
-          <form action={deleteCategoryAction}>
-            <input type="hidden" name="id" value={category.id} />
-            <Button variant="destructive" type="submit">
-              Sil
-            </Button>
-          </form>
-        </div>
-      ) : null}
     </div>
   );
 }

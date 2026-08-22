@@ -1,11 +1,11 @@
-import { requireAdminSession } from '@/lib/auth/admin';
+import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { GitEngine } from '@/lib/github/git-engine';
 
 import { GitHubSyncClient } from './client';
 
 export default async function GitHubSyncPage() {
-  await requireAdminSession();
+  await requireAdminPermission('settings.view');
   const supabase = createAdminClient();
 
   const { data: config } = await supabase.from('github_sync_config' as never).select('*').limit(1).single();

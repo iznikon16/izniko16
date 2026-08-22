@@ -119,7 +119,7 @@ export default async function AdminPolicyEditPage({ params, searchParams }: Admi
                 </label>
               </section>
 
-              <button type="submit" className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-gray-900 transition-colors hover:bg-[#f05a3f]">
+              <button type="submit" className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_5px_12px_rgba(14,165,233,0.22)] transition-all hover:-translate-y-px hover:bg-sky-600 hover:shadow-[0_7px_16px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2">
                 <Save className="h-4 w-4" />
                 Kaydet
               </button>

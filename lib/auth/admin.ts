@@ -42,14 +42,10 @@ export async function requireAdminSession() {
   return session;
 }
 
-export async function requireAdminPermission(permission?: string) {
-  const session = await requireAdminSession();
-  if (!permission || session.adminUser.role === 'admin' || session.adminUser.is_super_admin) return session;
+export async function getAdminPermissionKeys(session: AdminSession): Promise<Set<string>> {
+  if (session.adminUser.role === 'admin' || session.adminUser.is_super_admin) return new Set(['*']);
 
-  const [{ createAdminClient }, { PermissionError }] = await Promise.all([
-    import('@/lib/supabase/admin'),
-    import('@/lib/auth/permissions'),
-  ]);
+  const { createAdminClient } = await import('@/lib/supabase/admin');
   const supabase = createAdminClient();
   const { data: roleData, error } = await supabase
     .from('roles')
@@ -57,12 +53,22 @@ export async function requireAdminPermission(permission?: string) {
     .eq('name', session.adminUser.role)
     .maybeSingle();
 
-  if (error || !roleData) throw new PermissionError(permission);
-  const hasPermission = roleData.role_permissions.some((entry) => {
+  if (error || !roleData) return new Set();
+  return new Set(roleData.role_permissions.flatMap((entry) => {
     const relation = entry.permissions;
     const key = Array.isArray(relation) ? relation[0]?.key : relation?.key;
-    return key === permission || key === '*';
-  });
+    return key ? [key] : [];
+  }));
+}
+
+export async function requireAdminPermission(permission?: string) {
+  const session = await requireAdminSession();
+  if (!permission) return session;
+  const [{ PermissionError }, permissions] = await Promise.all([
+    import('@/lib/auth/permissions'),
+    getAdminPermissionKeys(session),
+  ]);
+  const hasPermission = permissions.has(permission) || permissions.has('*');
   if (!hasPermission) throw new PermissionError(permission);
   return session;
 }

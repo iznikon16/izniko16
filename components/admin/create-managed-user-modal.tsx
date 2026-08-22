@@ -67,7 +67,7 @@ export function CreateManagedUserModal() {
 
             <div className="mt-6 flex justify-end gap-3">
               <Button type="button" variant="outline" onClick={closeDialog} disabled={pending}>Vazgeç</Button>
-              <Button type="submit" disabled={pending} className="gap-2">{pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}{pending ? 'Oluşturuluyor…' : 'Supabase’e Kaydet'}</Button>
+              <Button type="submit" disabled={pending} className="gap-2">{pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}{pending ? 'Oluşturuluyor…' : 'Kullanıcıyı Oluştur'}</Button>
             </div>
           </form>
         </dialog>

@@ -103,21 +103,19 @@ function HomeSlideForm({ slide }: { slide?: HomeSlide }) {
             <FormSubmitButton
               idleLabel={slide ? 'Sliderı Güncelle' : 'Slider Ekle'}
               pendingLabel={slide ? 'Güncelleniyor...' : 'Yükleniyor...'}
-              className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700 disabled:opacity-70 shadow-sm"
+              className="px-5 text-sm font-semibold"
             />
+            {slide?.id ? (
+              <FormSubmitButton
+                formAction={deleteHomeSlideAction}
+                idleLabel="Sil"
+                pendingLabel="Siliniyor..."
+                variant="destructive"
+                className="px-5 text-sm font-semibold"
+              />
+            ) : null}
           </div>
         </form>
-
-        {slide?.id ? (
-          <form action={deleteHomeSlideAction} className="mt-2">
-            <input type="hidden" name="id" value={slide.id} />
-            <FormSubmitButton
-              idleLabel="Sil"
-              pendingLabel="Siliniyor..."
-              className="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-red-100 transition-colors hover:border-red-500/35 hover:bg-red-500/15 disabled:opacity-70"
-            />
-          </form>
-        ) : null}
       </div>
     </details>
   );

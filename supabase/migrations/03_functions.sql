@@ -26,6 +26,7 @@ begin
       raise exception 'Sipariş numarası üretilemedi';
     end if;
   end loop;
+  return new_number;
 end;
 $$;
 

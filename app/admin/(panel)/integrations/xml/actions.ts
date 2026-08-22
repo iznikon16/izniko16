@@ -5,6 +5,7 @@ import { requireAdminPermission } from '@/lib/auth/admin';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { validateXmlUrl } from '@/lib/xml/queries';
 import type { XmlTargetField } from '@/lib/catalog/types';
+import { writeAuditLog } from '@/lib/audit/queries';
 
 const VALID_TARGETS: XmlTargetField[] = ['name', 'sku', 'price', 'retail_price', 'stock', 'image', 'category', 'brand', 'description', 'barcode'];
 
@@ -20,12 +21,12 @@ function getNumber(formData: FormData, key: string) {
 
 function revalidateXml() {
   revalidatePath('/admin');
-  revalidatePath('/admin/entegrasyonlar/xml');
-  revalidatePath('/admin/entegrasyonlar/xml/aktarimlar');
+  revalidatePath('/admin/integrations/xml');
+  revalidatePath('/admin/integrations/xml/aktarimlar');
 }
 
 export async function saveXmlSourceAction(formData: FormData): Promise<void> {
-  await requireAdminPermission('xml.sync');
+  const session = await requireAdminPermission('xml.sync');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
   const name = getText(formData, 'name');
@@ -36,6 +37,10 @@ export async function saveXmlSourceAction(formData: FormData): Promise<void> {
   }
 
   const safeUrl = validateXmlUrl(url);
+  const { data: previous, error: previousError } = id
+    ? await supabase.from('xml_sources').select('id, name, url, is_active, schedule_minutes, price_markup').eq('id', id).maybeSingle()
+    : { data: null, error: null };
+  if (previousError) throw new Error(previousError.message);
 
   const payload = {
     name,
@@ -81,27 +86,40 @@ export async function saveXmlSourceAction(formData: FormData): Promise<void> {
     if (mappingError) throw new Error(mappingError.message);
   }
 
+  await writeAuditLog({
+    actorUserId: session.user.id,
+    action: id ? 'xml_source_updated' : 'xml_source_created',
+    resourceType: 'xml_source',
+    resourceId: sourceId,
+    oldValue: previous ?? {},
+    newValue: { name, url: safeUrl, isActive: payload.is_active, scheduleMinutes: payload.schedule_minutes, priceMarkup: payload.price_markup, mappingCount: mappings.length },
+  });
+
   revalidateXml();
 }
 
 export async function deleteXmlSourceAction(formData: FormData): Promise<void> {
-  await requireAdminPermission('xml.sync');
+  const session = await requireAdminPermission('xml.sync');
   const supabase = createAdminClient();
   const id = getText(formData, 'id');
   if (!id) return;
 
+  const { data: previous, error: previousError } = await supabase.from('xml_sources').select('id, name, url, is_active, schedule_minutes, price_markup').eq('id', id).maybeSingle();
+  if (previousError || !previous) throw new Error('XML kaynağı bulunamadı.');
   const { error } = await supabase.from('xml_sources').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  await writeAuditLog({ actorUserId: session.user.id, action: 'xml_source_deleted', resourceType: 'xml_source', resourceId: id, oldValue: previous });
 
   revalidateXml();
 }
 
 export async function runXmlSyncAction(formData: FormData): Promise<void> {
-  await requireAdminPermission('xml.sync');
+  const session = await requireAdminPermission('xml.sync');
   const id = getText(formData, 'id');
   if (!id) return;
 
   const { syncXmlSource } = await import('@/lib/xml/queries');
-  await syncXmlSource(id);
+  const run = await syncXmlSource(id);
+  await writeAuditLog({ actorUserId: session.user.id, action: 'xml_sync', resourceType: 'xml_source', resourceId: id, newValue: { runId: run.id, status: run.status, totalProducts: run.total_products, createdProducts: run.created_products, updatedProducts: run.updated_products } });
   revalidateXml();
 }

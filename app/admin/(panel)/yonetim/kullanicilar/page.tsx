@@ -60,7 +60,7 @@ export default async function ManagedUsersPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Supabase kullanıcıları</CardTitle>
+          <CardTitle>Yetkili Kullanıcılar</CardTitle>
           <CardDescription>Şifreler görüntülenemez veya saklanmaz; yalnızca yeni şifre atanabilir.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3">

@@ -3,6 +3,7 @@ import type { AdminDashboardMetrics, AdminMediaFilters, AdminMediaImage, AdminMe
 import { buildPriceLabel, getRootCategory, getRootCategorySlug, getStoragePublicUrl, groupAttributes, mapImage, pickFeaturedImage, sortAttributes, sortCategories, sortHighlights, sortImages } from '@/lib/catalog/utils';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient as createServerClient } from '@/lib/supabase/server';
+import { getIstanbulTodayBounds } from '@/lib/dashboard/filters';
 
 const catalogSelect = `
   *,
@@ -410,9 +411,9 @@ export async function getAdminProductEditor(productId: string): Promise<ProductE
   };
 }
 
-export async function getAdminDashboardMetrics(days?: number): Promise<AdminDashboardMetrics> {
-  void days;
+export async function getAdminDashboardMetrics(): Promise<AdminDashboardMetrics> {
   const supabase = createAdminClient();
+  const today = getIstanbulTodayBounds();
 
   const [
     { count: totalProducts },
@@ -421,8 +422,10 @@ export async function getAdminDashboardMetrics(days?: number): Promise<AdminDash
     { count: featuredProducts },
     { count: totalBrands },
     { count: totalCategories },
-    { count: totalCustomers },
-    { count: totalOrders },
+      { count: totalCustomers },
+      { count: activeCustomers },
+      { count: totalOrders },
+      { count: todayOrders },
     { count: pendingOrders },
     { count: activeCoupons },
     { count: activeCampaigns },
@@ -435,8 +438,10 @@ export async function getAdminDashboardMetrics(days?: number): Promise<AdminDash
       supabase.from('products').select('*', { count: 'exact', head: true }).eq('featured', true),
       supabase.from('brands').select('*', { count: 'exact', head: true }),
       supabase.from('categories').select('*', { count: 'exact', head: true }),
-      supabase.from('customer_profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('orders').select('*', { count: 'exact', head: true }),
+        supabase.from('customer_profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('customer_profiles').select('*', { count: 'exact', head: true }).eq('is_blocked', false),
+        supabase.from('orders').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', today.fromInclusive).lt('created_at', today.toExclusive),
       supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending_payment'),
       supabase.from('coupons').select('*', { count: 'exact', head: true }).eq('is_active', true),
       supabase.from('campaigns').select('*', { count: 'exact', head: true }).eq('is_active', true),
@@ -453,8 +458,10 @@ export async function getAdminDashboardMetrics(days?: number): Promise<AdminDash
     featuredProducts: featuredProducts ?? 0,
     totalBrands: totalBrands ?? 0,
     totalCategories: totalCategories ?? 0,
-    totalCustomers: totalCustomers ?? 0,
-    totalOrders: totalOrders ?? 0,
+      totalCustomers: totalCustomers ?? 0,
+      activeCustomers: activeCustomers ?? 0,
+      totalOrders: totalOrders ?? 0,
+      todayOrders: todayOrders ?? 0,
     pendingOrders: pendingOrders ?? 0,
   };
 }

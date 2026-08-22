@@ -8,7 +8,7 @@ import {
   BadgePercent,
   ChevronDown,
   ChevronLeft,
-  CircleDollarSign,
+  TurkishLira,
   FileText,
   FolderTree,
   Handshake,
@@ -41,17 +41,21 @@ import {
   CloudBackup,
   CreditCard,
   UserCog,
+  RotateCcw,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { adminLogoutAction } from './login-actions';
 import { toast } from 'sonner';
 import { SafeImage } from '@/components/ui/safe-image';
+import { canViewAdminNavigationItem, getActiveAdminNavigationHref, isAdminNavigationHrefActive } from '@/lib/admin/navigation';
 
 type NavigationItem = {
   href: string;
   icon: LucideIcon;
   label: string;
+  permission?: string;
 };
 
 type NavigationGroup = {
@@ -64,116 +68,89 @@ type NavigationGroup = {
 const panelLink: NavigationItem = { href: '/admin', label: 'Dashboard', icon: LayoutDashboard };
 
 const navigationGroups: NavigationGroup[] = [
-  {
-    key: 'accounting',
-    label: 'Ön Muhasebe',
-    icon: Landmark,
-    items: [
-      { href: '/admin/accounting', label: 'Cari Hesaplar', icon: CircleDollarSign },
-      { href: '/admin/accounting/tahsilatlar', label: 'Tahsilatlar', icon: ReceiptText },
-      { href: '/admin/accounting/hareketler', label: 'Cari Hareketler', icon: ListOrdered },
-      { href: '/admin/accounting/geciken-odemeler', label: 'Geciken Ödemeler', icon: CalendarClock },
-      { href: '/admin/accounting/ekstreler', label: 'Ekstreler', icon: FileText },
-    ],
-  },
-  {
-    key: 'stock',
-    label: 'Stok',
-    icon: Boxes,
-    items: [
-      { href: '/admin/stock', label: 'Stok Durumu', icon: Boxes },
-      { href: '/admin/stock/hareketler', label: 'Stok Hareketleri', icon: ArrowDownUp },
-      { href: '/admin/stock/kritik', label: 'Kritik Stok', icon: TriangleAlert },
-    ],
-  },
-  {
-    key: 'integrations',
-    label: 'Entegrasyonlar',
-    icon: Plug,
-    items: [
-      { href: '/admin/integrations', label: 'Entegrasyon Durumu', icon: Activity },
-      { href: '/admin/integrations/xml', label: 'XML Kaynakları', icon: FileCode },
-      { href: '/admin/integrations/xml/aktarimlar', label: 'XML Aktarımları', icon: FileCode },
-      { href: '/admin/integrations/netgsm', label: 'Netgsm', icon: MessageSquareText },
-      { href: '/admin/integrations/odeal', label: 'Ödeal', icon: WalletCards },
-    ],
-  },
-  {
-    key: 'catalog',
-    label: 'Katalog',
-    icon: PackageSearch,
-    items: [
-      { href: '/admin/products', label: 'Ürünler', icon: PackageSearch },
-      { href: '/admin/categories', label: 'Kategoriler', icon: FolderTree },
-      { href: '/admin/brands', label: 'Markalar', icon: Tags },
-      { href: '/admin/pricing', label: 'Fiyat Listeleri', icon: Percent },
-    ],
-  },
-  {
-    key: 'sales',
-    label: 'Satış',
-    icon: ShoppingCart,
-    items: [
-      { href: '/admin/orders', label: 'Siparişler', icon: ShoppingCart },
-      { href: '/admin/inquiries', label: 'Talepler', icon: Inbox },
-      { href: '/admin/payment-methods', label: 'Ödeme Yöntemleri', icon: CreditCard },
-    ],
-  },
-  {
-    key: 'customers',
-    label: 'Müşteriler',
-    icon: UsersRound,
-    items: [
-      { href: '/admin/customers', label: 'Kullanıcılar', icon: UsersRound },
-      { href: '/admin/musteriler/fiyatlar', label: 'Müşteri Fiyatları', icon: Percent },
-      { href: '/admin/references', label: 'Referanslar', icon: Handshake },
-    ],
-  },
-  {
-    key: 'management',
-    label: 'Yönetim',
-    icon: ClipboardList,
-    items: [
-      { href: '/admin/yonetim/kullanicilar', label: 'Kullanıcı & Roller', icon: UserCog },
-      { href: '/admin/yonetim/audit', label: 'Audit Log', icon: ClipboardList },
-      { href: '/admin/github-sync', label: 'Yedekleme Merkezi', icon: CloudBackup },
-    ],
-  },
-  {
-    key: 'marketing',
-    label: 'Pazarlama',
-    icon: Megaphone,
-    items: [
-      { href: '/admin/campaigns', label: 'Kampanyalar', icon: Megaphone },
-      { href: '/admin/coupons', label: 'Kuponlar', icon: BadgePercent },
-      { href: '/admin/mail', label: 'E-posta Ayarları', icon: Mail },
-      { href: '/admin/marketing', label: 'Toplu Gönderim', icon: Send },
-    ],
-  },
-  {
-    key: 'content',
-    label: 'İçerik',
-    icon: Images,
-    items: [
-      { href: '/admin/media', label: 'Medya', icon: Images },
-      { href: '/admin/home-slides', label: 'Ana Sayfa Slider', icon: PanelsTopLeft },
-      { href: '/admin/home-video', label: 'Ana Sayfa Video', icon: Video },
-      { href: '/admin/policies', label: 'Politikalar', icon: FileText },
-    ],
-  },
+  { key: 'catalog', label: 'Katalog', icon: PackageSearch, items: [
+    { href: '/admin/products', label: 'Ürünler', icon: PackageSearch, permission: 'product.view' },
+    { href: '/admin/categories', label: 'Kategoriler', icon: FolderTree, permission: 'product.view' },
+    { href: '/admin/brands', label: 'Markalar', icon: Tags, permission: 'product.view' },
+    { href: '/admin/pricing', label: 'Fiyat Listeleri', icon: Percent, permission: 'product.managePrice' },
+  ] },
+  { key: 'sales', label: 'Satış', icon: ShoppingCart, items: [
+    { href: '/admin/orders', label: 'Siparişler', icon: ShoppingCart, permission: 'order.view' },
+    { href: '/admin/returns', label: 'İade ve Geri Ödeme', icon: RotateCcw, permission: 'return.view' },
+    { href: '/admin/invoices', label: 'Faturalar', icon: ReceiptText, permission: 'invoice.view' },
+    { href: '/admin/inquiries', label: 'Talepler', icon: Inbox, permission: 'customer.view' },
+    { href: '/admin/payment-methods', label: 'Ödeme Yöntemleri', icon: CreditCard, permission: 'settings.view' },
+  ] },
+  { key: 'customers', label: 'Müşteriler', icon: UsersRound, items: [
+    { href: '/admin/customers', label: 'Müşteriler', icon: UsersRound, permission: 'customer.view' },
+    { href: '/admin/musteriler/fiyatlar', label: 'Müşteri Fiyatları', icon: Percent, permission: 'customer.managePricing' },
+    { href: '/admin/references', label: 'Referanslar', icon: Handshake, permission: 'customer.view' },
+  ] },
+  { key: 'accounting', label: 'Ön Muhasebe', icon: Landmark, items: [
+    { href: '/admin/accounting', label: 'Cari Hesaplar', icon: TurkishLira, permission: 'account.view' },
+    { href: '/admin/accounting/tahsilatlar', label: 'Tahsilatlar', icon: ReceiptText, permission: 'account.view' },
+    { href: '/admin/accounting/hareketler', label: 'Cari Hareketler', icon: ListOrdered, permission: 'account.view' },
+    { href: '/admin/accounting/geciken-odemeler', label: 'Geciken Ödemeler', icon: CalendarClock, permission: 'account.view' },
+    { href: '/admin/accounting/ekstreler', label: 'Ekstreler', icon: FileText, permission: 'account.viewStatement' },
+  ] },
+  { key: 'stock', label: 'Stok', icon: Boxes, items: [
+    { href: '/admin/stock', label: 'Stok Durumu', icon: Boxes, permission: 'product.manageStock' },
+    { href: '/admin/stock/hareketler', label: 'Stok Hareketleri', icon: ArrowDownUp, permission: 'product.manageStock' },
+    { href: '/admin/stock/kritik', label: 'Kritik Stok', icon: TriangleAlert, permission: 'product.manageStock' },
+  ] },
+  { key: 'integrations', label: 'Entegrasyonlar', icon: Plug, items: [
+    { href: '/admin/integrations', label: 'Entegrasyon Durumu', icon: Activity, permission: 'settings.view' },
+    { href: '/admin/integrations/xml', label: 'XML Kaynakları', icon: FileCode, permission: 'xml.view' },
+    { href: '/admin/integrations/xml/aktarimlar', label: 'XML Aktarımları', icon: FileCode, permission: 'xml.view' },
+    { href: '/admin/integrations/netgsm', label: 'Netgsm', icon: MessageSquareText, permission: 'settings.view' },
+    { href: '/admin/integrations/odeal', label: 'Ödeal', icon: WalletCards, permission: 'settings.view' },
+  ] },
+  { key: 'reports', label: 'Raporlar', icon: BarChart3, items: [
+    { href: '/admin/reports', label: 'Finansal Raporlar', icon: BarChart3, permission: 'report.view' },
+  ] },
+  { key: 'management', label: 'Yönetim', icon: ClipboardList, items: [
+    { href: '/admin/yonetim/kullanicilar', label: 'Kullanıcı & Roller', icon: UserCog, permission: 'user.manage' },
+    { href: '/admin/yonetim/audit', label: 'Audit Log', icon: ClipboardList, permission: 'audit.view' },
+    { href: '/admin/github-sync', label: 'Yedekleme Merkezi', icon: CloudBackup, permission: 'settings.view' },
+  ] },
+  { key: 'settings', label: 'Ayarlar', icon: Mail, items: [
+    { href: '/admin/mail', label: 'SMTP & E-posta', icon: Mail, permission: 'settings.view' },
+  ] },
+  { key: 'marketing', label: 'Pazarlama', icon: Megaphone, items: [
+    { href: '/admin/campaigns', label: 'Kampanyalar', icon: Megaphone, permission: 'marketing.manage' },
+    { href: '/admin/coupons', label: 'Kuponlar', icon: BadgePercent, permission: 'marketing.manage' },
+    { href: '/admin/marketing', label: 'Toplu Gönderim', icon: Send, permission: 'marketing.manage' },
+  ] },
+  { key: 'content', label: 'İçerik', icon: Images, items: [
+    { href: '/admin/media', label: 'Medya', icon: Images, permission: 'product.view' },
+    { href: '/admin/home-slides', label: 'Ana Sayfa Slider', icon: PanelsTopLeft, permission: 'marketing.manage' },
+    { href: '/admin/home-video', label: 'Ana Sayfa Video', icon: Video, permission: 'marketing.manage' },
+    { href: '/admin/policies', label: 'Politikalar', icon: FileText, permission: 'settings.view' },
+  ] },
 ];
 
-function isNavigationItemActive(pathname: string, href: string) {
-  if (href === '/admin') return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+type AdminSidebarProps = {
+  isCollapsed?: boolean;
+  onNavigate?: () => void;
+  onToggle?: () => void;
+  permissions?: string[];
+  userName?: string;
+  userRole?: string;
+};
 
-export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: boolean; onToggle?: () => void }) {
+export function AdminSidebar({ isCollapsed = false, onNavigate, onToggle, permissions = ['*'], userName = 'Admin', userRole = 'Yönetici' }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [isLoggingOut, startLogoutTransition] = useTransition();
-  const isPanelActive = isNavigationItemActive(pathname, panelLink.href);
+  const isPanelActive = isAdminNavigationHrefActive(pathname, panelLink.href);
+  const permissionSet = new Set(permissions);
+  const visibleGroups = navigationGroups.flatMap((group) => {
+    const items = group.items.filter((item) => canViewAdminNavigationItem(item.permission, permissionSet));
+    return items.length ? [{ ...group, items }] : [];
+  });
+  const activeHref = getActiveAdminNavigationHref(pathname, visibleGroups.flatMap((group) => group.items.map((item) => item.href)));
+  const initials = userName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase('tr-TR') || 'AD';
 
   function handleLogout() {
     startLogoutTransition(async () => {
@@ -203,7 +180,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
           </div>
           {!isCollapsed && <span className="truncate text-2xl font-black tracking-tight text-[#090e1a]">İZNİKON</span>}
         </div>
-        <button onClick={onToggle} className="text-gray-400 hover:text-gray-600 shrink-0">
+        <button type="button" onClick={onToggle} className="shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600" aria-label={isCollapsed ? 'Menüyü genişlet' : 'Menüyü daralt'}>
           <ChevronLeft className={cn("h-5 w-5 transition-transform", isCollapsed && "rotate-180")} />
         </button>
       </div>
@@ -213,6 +190,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
         {/* Dashboard Link */}
         <Link
           href={panelLink.href}
+          onClick={onNavigate}
           className={cn(
             'group mb-6 flex items-center rounded-xl transition-colors whitespace-nowrap',
             isCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3',
@@ -227,12 +205,14 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
 
         {/* Groups */}
         <div className="flex flex-col gap-2">
-          {navigationGroups.map(({ icon: GroupIcon, items, key, label }) => {
-            const isOpen = openGroups[key] ?? false; // Default closed in this design
+          {visibleGroups.map(({ icon: GroupIcon, items, key, label }) => {
+            const groupIsActive = items.some((item) => item.href === activeHref);
+            const isOpen = openGroups[key] ?? groupIsActive;
 
             return (
               <div key={key}>
                 <button
+                  type="button"
                   onClick={() => {
                     if (isCollapsed) onToggle?.();
                     setOpenGroups((curr) => ({ ...curr, [key]: !isOpen }));
@@ -242,6 +222,7 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
                     isCollapsed ? "justify-center px-0" : "justify-between px-4"
                   )}
                   title={isCollapsed ? label : undefined}
+                  aria-expanded={isOpen}
                 >
                   <div className={cn("flex items-center", !isCollapsed && "gap-3")}>
                     <GroupIcon className="h-5 w-5 text-sky-500 shrink-0" />
@@ -255,22 +236,23 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
                 </button>
 
                 {isOpen && !isCollapsed && (
-                  <div className="mt-1 flex flex-col gap-1 pb-4 pl-11">
+                  <div className="mt-1 flex flex-col gap-1 pb-4 pl-9">
                     {items.map((item) => {
-                      const isActive = isNavigationItemActive(pathname, item.href);
+                      const isActive = item.href === activeHref;
                       return (
                         <Link
                           key={item.href}
                           href={item.href}
+                          onClick={onNavigate}
                           className={cn(
-                            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors whitespace-nowrap',
+                            'flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors',
                             isActive
                               ? 'bg-sky-50 font-medium text-sky-600'
                               : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                           )}
                         >
                           <item.icon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
-                          {item.label}
+                          <span className="whitespace-normal leading-5">{item.label}</span>
                         </Link>
                       );
                     })}
@@ -301,11 +283,11 @@ export function AdminSidebar({ isCollapsed = false, onToggle }: { isCollapsed?: 
             <div className="relative flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-900 to-gray-700 text-white shadow-inner">
-                  <span className="text-sm font-bold">AD</span>
+                  <span className="text-sm font-bold">{initials}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-gray-900">Admin</p>
-                  <p className="truncate text-[11px] font-medium text-gray-500">Yönetici</p>
+                  <p className="truncate text-sm font-bold text-gray-900">{userName}</p>
+                  <p className="truncate text-[11px] font-medium text-gray-500">{userRole}</p>
                 </div>
               </div>
             </div>

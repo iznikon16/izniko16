@@ -1,7 +1,7 @@
 ﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { BadgeCheck, Boxes, CircleDollarSign, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, Boxes, ShieldCheck, TurkishLira } from 'lucide-react';
 import { CustomerLoginForm } from '@/components/storefront/customer-login-form';
 import { getSafeCustomerRedirectPath } from '@/lib/auth/safe-redirect';
 import { getCustomerSession } from '@/lib/commerce/queries';
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 const benefits = [
-  { icon: CircleDollarSign, text: 'Size özel bayi fiyatlarını görüntüleyin' },
+  { icon: TurkishLira, text: 'Size özel bayi fiyatlarını görüntüleyin' },
   { icon: Boxes, text: 'Sipariş ve cari hareketlerinizi takip edin' },
   { icon: BadgeCheck, text: 'Doğrulanmış hesapla güvenli işlem yapın' },
 ];

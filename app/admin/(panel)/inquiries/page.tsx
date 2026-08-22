@@ -1,6 +1,7 @@
 ﻿import Link from 'next/link';
 import { ChevronDown, Inbox, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
 import { deleteInquiryAction, saveInquiryAction } from '@/app/admin/(panel)/inquiries/actions';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
 import { getAdminInquiries } from '@/lib/admin/inquiry-queries';
 import type { AdminInquiryFilters, CustomerInquiryRow } from '@/lib/catalog/types';
 
@@ -110,7 +111,7 @@ function InquiryRow({ inquiry }: { inquiry: CustomerInquiryRow }) {
           </div>
 
           <div className="grid content-start gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-            <form action={saveInquiryAction} className="grid gap-3">
+            <ToastActionForm action={saveInquiryAction} successMessage="Talep bilgileri güncellendi." errorMessage="Talep bilgileri güncellenemedi." className="grid gap-3">
               <input type="hidden" name="id" value={inquiry.id} />
               <label className="grid gap-2">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Durum</span>
@@ -126,10 +127,10 @@ function InquiryRow({ inquiry }: { inquiry: CustomerInquiryRow }) {
                 <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">Operasyon notu</span>
                 <textarea name="admin_note" rows={4} defaultValue={inquiry.admin_note} className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 outline-none" />
               </label>
-              <button type="submit" className="rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white transition-colors hover:bg-blue-700">
+              <button type="submit" className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-600">
                 Talebi Güncelle
               </button>
-            </form>
+            </ToastActionForm>
 
             <form action={deleteInquiryAction}>
               <input type="hidden" name="id" value={inquiry.id} />

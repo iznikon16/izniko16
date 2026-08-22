@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
 import type { AdminCustomerFilters, AdminCustomerRecord } from '@/lib/catalog/types';
 
 const dateFormatter = new Intl.DateTimeFormat('tr-TR', {
@@ -93,7 +94,7 @@ function CustomerRow({ customer }: { customer: AdminCustomerRecord }) {
       </summary>
 
       <div className="border-t border-gray-100 bg-gray-50 px-4 py-4">
-        <form action={saveCustomerAction} className="grid gap-3">
+        <ToastActionForm action={saveCustomerAction} successMessage="Müşteri bilgileri güncellendi." errorMessage="Müşteri bilgileri güncellenemedi." className="grid gap-3">
           <input type="hidden" name="user_id" value={customer.user_id} />
 
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)_minmax(0,1.3fr)_auto] lg:items-end">
@@ -139,7 +140,7 @@ function CustomerRow({ customer }: { customer: AdminCustomerRecord }) {
               Son sipariş: {customer.lastOrderAt ? dateFormatter.format(new Date(customer.lastOrderAt)) : 'Henüz sipariş yok'}
             </p>
           </div>
-        </form>
+        </ToastActionForm>
 
         <div className="mt-4 flex flex-wrap gap-2">
           <ChangeUserPasswordForm userId={customer.user_id} userLabel={customer.email} />

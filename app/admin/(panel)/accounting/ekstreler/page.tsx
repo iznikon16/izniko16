@@ -68,7 +68,7 @@ export default async function StatementsPage({
           </select>
           <input type="date" name="from" defaultValue={fromDate} className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
           <input type="date" name="to" defaultValue={toDate} className="rounded-lg border border-gray-200 px-3 py-2 text-sm" />
-          <button className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <button className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-sky-600">
             Ekstre Oluştur
           </button>
         </form>
@@ -165,7 +165,7 @@ export default async function StatementsPage({
           <div className="flex justify-end gap-2">
             <Link
               href={`/admin/accounting/ekstre/pdf?customer=${selectedCustomerId}&from=${fromDate}&to=${toDate}`}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-600"
             >
               PDF İndir
             </Link>

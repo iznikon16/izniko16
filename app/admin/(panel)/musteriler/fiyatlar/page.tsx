@@ -8,6 +8,7 @@ import {
   saveCustomerProductPriceAction,
   removeCustomerProductPriceAction,
 } from '@/app/admin/(panel)/pricing/actions';
+import { ToastActionForm } from '@/components/ui/toast-action-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,7 +71,7 @@ export default async function CustomerPricingPage() {
                       <p className="text-xs text-gray-500">{customer.email}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <form action={assignCustomerPriceListAction} className="flex items-center gap-2">
+                      <ToastActionForm action={assignCustomerPriceListAction} successMessage="Müşteri fiyat listesi güncellendi." errorMessage="Müşteri fiyat listesi güncellenemedi." className="flex items-center gap-2">
                         <input type="hidden" name="customer_id" value={customer.user_id} />
                         <select name="price_list_id" defaultValue={assignedListId ?? ''} className="rounded-lg border border-gray-200 px-2 py-1.5 text-xs">
                           <option value="">Yok</option>
@@ -78,11 +79,11 @@ export default async function CustomerPricingPage() {
                             <option key={list.id} value={list.id}>{list.name}</option>
                           ))}
                         </select>
-                        <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">Ata</button>
-                      </form>
+                        <button className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">Ata</button>
+                      </ToastActionForm>
                     </td>
                     <td className="px-4 py-3">
-                      <form action={saveCustomerDiscountAction} className="flex items-center gap-2">
+                      <ToastActionForm action={saveCustomerDiscountAction} successMessage="Müşteri indirimi güncellendi." errorMessage="Müşteri indirimi güncellenemedi." className="flex items-center gap-2">
                         <input type="hidden" name="customer_id" value={customer.user_id} />
                         <input
                           type="number"
@@ -93,11 +94,11 @@ export default async function CustomerPricingPage() {
                           max="100"
                           className="w-20 rounded-lg border border-gray-200 px-2 py-1.5 text-xs text-right"
                         />
-                        <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">%</button>
-                      </form>
+                        <button className="rounded-full bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">%</button>
+                      </ToastActionForm>
                     </td>
                     <td className="px-4 py-3">
-                      <form action={saveCustomerProductPriceAction} className="mb-2 grid grid-cols-[1fr_90px_auto] gap-1">
+                      <ToastActionForm action={saveCustomerProductPriceAction} successMessage="Müşteriye özel fiyat kaydedildi." errorMessage="Müşteriye özel fiyat kaydedilemedi." className="mb-2 grid grid-cols-[1fr_90px_auto] gap-1">
                         <input type="hidden" name="customer_id" value={customer.user_id} />
                         <select name="product_id" className="rounded-lg border border-gray-200 px-2 py-1 text-xs">
                           <option value="">Ürün seç</option>
@@ -106,8 +107,8 @@ export default async function CustomerPricingPage() {
                           ))}
                         </select>
                         <input type="number" name="price" step="0.01" min="0" placeholder="₺" className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-right" />
-                        <button className="rounded-lg bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700">Ekle</button>
-                      </form>
+                        <button className="rounded-full bg-sky-500 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-sky-600">Ekle</button>
+                      </ToastActionForm>
                       {customerSpecial.length > 0 && (
                         <div className="space-y-1">
                           {customerSpecial.slice(0, 3).map((sp) => {
@@ -116,11 +117,11 @@ export default async function CustomerPricingPage() {
                               <div key={sp.id} className="flex items-center justify-between rounded bg-blue-50/60 px-2 py-1 text-xs">
                                 <span className="truncate text-gray-600">{product?.title || sp.product_id}</span>
                                 <span className="ml-2 font-semibold text-blue-700">{formatCommercePrice(Number(sp.price))}</span>
-                                <form action={removeCustomerProductPriceAction} className="ml-1">
+                                <ToastActionForm action={removeCustomerProductPriceAction} successMessage="Özel fiyat kaldırıldı." errorMessage="Özel fiyat kaldırılamadı." className="ml-1">
                                   <input type="hidden" name="customer_id" value={customer.user_id} />
                                   <input type="hidden" name="product_id" value={sp.product_id} />
                                   <button className="text-red-400 hover:text-red-600">×</button>
-                                </form>
+                                </ToastActionForm>
                               </div>
                             );
                           })}
