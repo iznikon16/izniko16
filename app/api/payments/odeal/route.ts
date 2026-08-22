@@ -91,6 +91,7 @@ export async function POST(request: Request) {
             p_type: 'order_out',
             p_reference: order.id,
             p_order_id: order.id,
+            p_actor_user_id: null,
             p_idempotency_key: `order-stock:${order.id}:${item.product_id}`,
           });
           if (stockError) console.error(`Ödeal stok düşümü başarısız: ${item.product_id}`, stockError.message);

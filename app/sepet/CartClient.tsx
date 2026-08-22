@@ -5,6 +5,8 @@ import { CreditCard, Minus, Plus, ShieldCheck, ShoppingCart, Trash2 } from "luci
 import { prepareCheckoutAction } from "@/lib/commerce/actions";
 import { StorefrontAccountAction } from "@/components/storefront/storefront-account-action";
 import { useCart } from "@/context/CartContext";
+import { useEffect } from "react";
+import { syncCartPricesAction } from "@/lib/commerce/actions";
 
 function formatCurrency(amount: number) {
   return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY" }).format(amount);
@@ -25,11 +27,41 @@ export default function CartClient({
     subtotal,
     total,
     updateQuantity,
+    updatePrice,
     vatAmount,
   } = useCart();
   const serverCartPayload = JSON.stringify(
     cart.map((item) => ({ productId: String(item.id), quantity: item.quantity }))
   );
+
+  useEffect(() => {
+    if (!isAuthenticated || !isHydrated || cart.length === 0) return;
+
+    let isMounted = true;
+    const syncPrices = async () => {
+      try {
+        const productIds = cart.map(item => String(item.id));
+        const updatedPrices = await syncCartPricesAction(productIds);
+
+        if (!isMounted) return;
+
+        updatedPrices.forEach(updated => {
+          const item = cart.find(c => String(c.id) === updated.id);
+          if (item && updated.customerPrice !== null && updated.customerPrice !== item.numericPrice) {
+             updatePrice(item.id, updated.customerPrice);
+          }
+        });
+      } catch (err) {
+        console.error("Fiyat güncelleme hatası:", err);
+      }
+    };
+
+    syncPrices();
+
+    return () => { isMounted = false; };
+  // We intentionally omit cart and updatePrice to avoid infinite loops, we only want to sync once when cart is loaded
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isHydrated]);
 
   return (
     <div className="min-h-screen bg-slate-50">

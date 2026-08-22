@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -60,7 +60,6 @@ export default function HomeClient({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [appliedSearch, setAppliedSearch] = useState("");
   const [viewMode, setViewMode] = useState<"b2b" | "grid">("b2b");
-  const [showPrices, setShowPrices] = useState(false);
   const [sortBy, setSortBy] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(24);
@@ -791,21 +790,7 @@ export default function HomeClient({
                   </button>
                 </div>
 
-                <button
-                  onClick={() => setShowPrices(!showPrices)}
-                  style={{
-                    padding: "0.4rem 0.75rem",
-                    fontSize: "0.8rem",
-                    fontWeight: "600",
-                    borderRadius: "6px",
-                    border: "1px solid #cbd5e1",
-                    background: showPrices ? "#fef3c7" : "white",
-                    color: showPrices ? "#b45309" : "#334155",
-                    cursor: "pointer"
-                  }}
-                >
-                  {showPrices ? "Fiyatlar Açık" : "Fiyatları Göster"}
-                </button>
+
                 {appliedSearch && (
                   <button
                     onClick={clearFilters}
@@ -997,7 +982,7 @@ export default function HomeClient({
                         <div style={{ marginBottom: "0.75rem", display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
                           <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "500" }}>Birim: {product.unit}</span>
                           <div style={{ textAlign: "right" }}>
-                            {isAuthenticated && showPrices ? (
+                            {isAuthenticated ? (
                               <>
                                 <span style={{ fontSize: "1.25rem", fontWeight: "800", color: "#0f172a" }}>{product.price}</span>
                                 <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600", marginLeft: "4px" }}>{product.taxRate == null ? 'KDV oranı bekleniyor' : `%${product.taxRate} KDV dahil`}</span>

@@ -1,25 +1,34 @@
 import { requireAdminSession } from '@/lib/auth/admin';
-import { getAllStockProducts } from '@/lib/stock/queries';
+import { getStockProductsPage, getStockSummary } from '@/lib/stock/queries';
 import { manualStockInAction, manualStockOutAction, updateCriticalStockAction } from '@/app/admin/(panel)/stock/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ToastActionForm } from '@/components/ui/toast-action-form';
+import { Pagination } from '@/components/ui/pagination';
+import { parsePageParam } from '@/lib/pagination';
 
 export const dynamic = 'force-dynamic';
 
 export default async function StockStatusPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   await requireAdminSession();
   const params = await searchParams;
   const search = params.q || '';
-  const products = await getAllStockProducts(search);
+  const page = parsePageParam(params.page);
 
-  const totalProducts = products.length;
-  const outOfStock = products.filter((p) => Number(p.stock_quantity) <= 0).length;
-  const critical = products.filter((p) => Number(p.stock_quantity) <= Number(p.critical_stock)).length;
+  const [stockPage, summary] = await Promise.all([
+    getStockProductsPage({ search, page, pageSize: 25 }),
+    getStockSummary(search),
+  ]);
+
+  const products = stockPage.rows;
+
+  const totalProducts = summary.totalProducts;
+  const outOfStock = summary.outOfStock;
+  const critical = summary.critical;
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -153,6 +162,7 @@ export default async function StockStatusPage({
             </tbody>
           </table>
         </div>
+        <Pagination page={stockPage.page} pageCount={stockPage.pageCount} pageSize={stockPage.pageSize} totalItems={stockPage.count} itemLabel="ürün" searchParams={params} />
       </div>
     </div>
   );

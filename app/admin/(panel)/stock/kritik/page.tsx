@@ -1,12 +1,20 @@
 import Link from 'next/link';
 import { requireAdminSession } from '@/lib/auth/admin';
-import { getCriticalStockProducts } from '@/lib/stock/queries';
+import { getCriticalStockProductsPage } from '@/lib/stock/queries';
+import { Pagination } from '@/components/ui/pagination';
+import { parsePageParam } from '@/lib/pagination';
 
 export const dynamic = 'force-dynamic';
 
-export default async function CriticalStockPage() {
+export default async function CriticalStockPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   await requireAdminSession();
-  const products = await getCriticalStockProducts();
+  const params = await searchParams;
+  const page = parsePageParam(params.page);
+  const productsPage = await getCriticalStockProductsPage(page, 25);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -29,7 +37,7 @@ export default async function CriticalStockPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {products.map((p) => (
+              {productsPage.rows.map((p) => (
                 <tr key={p.id} className="bg-amber-50/30 hover:bg-amber-50/60">
                   <td className="px-4 py-3 font-medium text-gray-900">{p.title}</td>
                   <td className="px-4 py-3 text-gray-500">{p.sku}</td>
@@ -45,7 +53,7 @@ export default async function CriticalStockPage() {
                   </td>
                 </tr>
               ))}
-              {products.length === 0 && (
+              {productsPage.rows.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-4 py-12 text-center text-gray-500">🎉 Kritik stok seviyesinde ürün yok.</td>
                 </tr>
@@ -53,6 +61,7 @@ export default async function CriticalStockPage() {
             </tbody>
           </table>
         </div>
+        <Pagination page={productsPage.page} pageCount={productsPage.pageCount} pageSize={productsPage.pageSize} totalItems={productsPage.count} itemLabel="kritik ürün" searchParams={params} />
       </div>
     </div>
   );

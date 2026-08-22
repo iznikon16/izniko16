@@ -14,7 +14,11 @@ values('50000000-0000-0000-0000-000000000001','MIN-5','min-five','Minimum Five',
 insert into auth.users(id,instance_id,aud,role,email,encrypted_password,created_at,updated_at)
 values('50000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000000','authenticated','authenticated','min@example.test','',now(),now());
 insert into public.customer_profiles(user_id,email,full_name,email_verified_at)
-values('50000000-0000-0000-0000-000000000010','min@example.test','Minimum Test',now());
+values('50000000-0000-0000-0000-000000000010','min@example.test','Minimum Test',now())
+on conflict (user_id) do update set
+  email = excluded.email,
+  full_name = excluded.full_name,
+  email_verified_at = excluded.email_verified_at;
 
 select throws_ok(
   $$insert into public.cart_items(user_id,product_id,quantity) values('50000000-0000-0000-0000-000000000010','50000000-0000-0000-0000-000000000001',4)$$,

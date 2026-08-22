@@ -348,6 +348,7 @@ async function markPaymentResult({
           p_type: 'order_out',
           p_reference: order.order_id,
           p_order_id: order.order_id,
+          p_actor_user_id: null,
           p_idempotency_key: `order-stock:${order.order_id}:${item.product_id}`,
         });
         // Stok yetersizse sessiz geç (sipariş zaten onaylandı)

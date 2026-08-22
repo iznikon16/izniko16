@@ -17,8 +17,8 @@ set
   full_name = excluded.full_name,
   email_verified_at = excluded.email_verified_at;
 
-insert into public.products (id, sku, slug, title)
-values ('14000000-0000-0000-0000-000000000010', 'PORTAL-TEST', 'portal-test-product', 'Portal Test Product');
+insert into public.products (id, sku, slug, title, price, status, is_active, stock_quantity, minimum_order_quantity, tax_rate)
+values ('14000000-0000-0000-0000-000000000010', 'PORTAL-TEST', 'portal-test-product', 'Portal Test Product', 10, 'published', true, 10, 1, 20);
 
 insert into public.customer_addresses (user_id, label) values
   ('14000000-0000-0000-0000-000000000001', 'A Address'),

@@ -1021,3 +1021,27 @@ export async function signOutCustomerAction() {
   revalidatePath('/', 'layout');
   redirect('/giris');
 }
+
+export async function syncCartPricesAction(productIds: string[]) {
+  const session = await requireCustomerSession('/sepet');
+  if (!Array.isArray(productIds) || productIds.length > 100) {
+    throw new Error('Sepet ürün listesi geçersiz.');
+  }
+
+  const rateLimit = checkRateLimit(`cart-price-sync:${session.user.id}`, 60, 60_000);
+  if (!rateLimit.success) {
+    throw new Error('Fiyatlar çok sık yenileniyor. Lütfen kısa bir süre sonra tekrar deneyin.');
+  }
+
+  const normalizedProductIds = [...new Set(productIds.map((id) => String(id).trim()))]
+    .filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id));
+  if (normalizedProductIds.length === 0) return [];
+
+  const publicProducts = await getPublicProductsByIds(normalizedProductIds);
+  const products = await getCustomerPricedProducts(session.user.id, publicProducts);
+
+  return products.map(p => ({
+    id: p.id,
+    customerPrice: getProductCheckoutPrice(p)
+  }));
+}

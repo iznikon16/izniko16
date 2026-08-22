@@ -2735,9 +2735,9 @@ export type Database = {
       is_admin: { Args: { check_user_id?: string }; Returns: boolean }
       apply_stock_change: {
         Args: {
-          p_actor_user_id?: string
+          p_actor_user_id?: string | null
           p_idempotency_key: string
-          p_order_id?: string
+          p_order_id?: string | null
           p_product_id: string
           p_quantity_change: number
           p_reference?: string

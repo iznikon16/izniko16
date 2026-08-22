@@ -1,13 +1,21 @@
 import { requireAdminSession } from '@/lib/auth/admin';
-import { getStockMovements } from '@/lib/stock/queries';
+import { getStockMovementsPage } from '@/lib/stock/queries';
 import { STOCK_MOVEMENT_LABELS } from '@/lib/accounting/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableEmpty } from '@/components/ui/table';
+import { Pagination } from '@/components/ui/pagination';
+import { parsePageParam } from '@/lib/pagination';
 
 export const dynamic = 'force-dynamic';
 
-export default async function StockMovementsPage() {
+export default async function StockMovementsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   await requireAdminSession();
-  const movements = await getStockMovements();
+  const params = await searchParams;
+  const page = parsePageParam(params.page);
+  const movementsPage = await getStockMovementsPage(page, 25);
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -29,7 +37,7 @@ export default async function StockMovementsPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-              {movements.map((m) => (
+              {movementsPage.rows.map((m) => (
                 <TableRow key={m.id}>
                   <TableCell>
                     <span className="font-medium text-gray-900">{m.product?.title || 'Silinmiş ürün'}</span>
@@ -49,11 +57,12 @@ export default async function StockMovementsPage() {
                   <TableCell className="text-right text-gray-500">{new Date(m.created_at).toLocaleString('tr-TR')}</TableCell>
                 </TableRow>
               ))}
-              {movements.length === 0 && (
+              {movementsPage.rows.length === 0 && (
                 <TableEmpty colSpan={7}>Henüz stok hareketi bulunmuyor.</TableEmpty>
               )}
         </TableBody>
       </Table>
+      <Pagination page={movementsPage.page} pageCount={movementsPage.pageCount} pageSize={movementsPage.pageSize} totalItems={movementsPage.count} itemLabel="hareket" searchParams={params} />
     </div>
   );
 }
